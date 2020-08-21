@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title></title>
+	<title>SignalR Simple Chat</title>
+	<style type="text/css">
+		.container {
+			background-color: #99CCFF;
+			border: thick solid #808080;
+			padding: 0 20px 20px;
+			margin: 20px;
+		}
+
+			.container div {
+				margin-top: 10px;
+			}
+
+		.ws-container {
+			background-color: aquamarine;
+			border: thick solid #808080;
+			padding: 0 20px 20px;
+			margin: 20px;
+		}
+
+			.ws-container div {
+				margin-top: 10px;
+			}
+
+		.ws-header {
+			font-size: large;
+			font-weight: bold;
+		}
+
+		.ws-name {
+			font-weight: bold;
+		}
+
+		.sr-header {
+			font-size: large;
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body>
+	<div class="ws-container">
+		<div class="ws-header">WebSocket</div>
+		<div class="ws-user">
+			<label for="ws-displayname">Enter Your Name:</label>
+			<input type="text" id="ws-displayname" />
+			<input type="button" id="ws-btn-connect" value="Connect" />
+			<span id="ws-ackmsg"></span>
+		</div>
+		<div class="ws-send-message">
+			<label for="ws-send-message">Message:</label>
+			<input type="text" id="ws-send-message" />
+			<input type="button" id="ws-btn-send" value="Send" />
+		</div>
+		<div id="ws-discussion">
+			<ul id="ws-ul"></ul>
+		</div>
+	</div>
+	<script type="text/javascript">
+		window.onload = function () {
+
+			// let wsUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/api/websocket";
+			let wsUrl = "wss://localhost:44350/api/websocket";
+			let webSocket;
+			let wsDisplayName = document.getElementById("ws-displayname");
+			let wsAckMsg = document.getElementById("ws-ackmsg");
+			let wsSendMsg = document.getElementById("ws-send-message")
+			let wsSendBtn = document.getElementById("ws-btn-send");
+			let wsUl = document.getElementById("ws-ul");
+			let wsConnectBtn = document.getElementById("ws-btn-connect");
+
+			const wsCommand = {
+				Send: 0
+			}
+
+			wsConnectBtn.onclick = function () {
+
+				const headers = {
+					"Content-Type": "application/json; charset=UTF-8",
+					Accept: "application/json"
+				};
+				const options = { method: "GET", mode: "cors", headers: headers }
+
+				fetch("https://" + location.host + "/api/home", options);
+
+			//	if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
+			//		wsAckMsg.innerHTML = "Websocket Connecting...";
+			//		this.value = "Disconnect";
+			//		try {
+			//			webSocket = new WebSocket(wsUrl);
+			//			console.log("WebSocket:", webSocket);
+			//			webSocket.onopen = function (event) {
+			//				wsAckMsg.innerHTML = "Websocket Connected!";
+			//			}
+			//			webSocket.onmessage = function (event) {
+			//				let obj;
+			//				try {
+			//					console.log("event.data:", event.data);
+			//					obj = JSON.parse(event.data);
+			//					if (obj) wsUl.innerHTML += '<li>' + '<span class="ws-name">' + obj.Name + '</span>' + ': ' + obj.Message + '</li>';
+			//				} catch {
+			//					wsUl.innerHTML += '<li>' + event.data + '</li>';
+			//				}
+			//			}
+			//			webSocket.onclose = function (event) {
+			//				wsAckMsg.innerHTML = "WebSocket Closed (code:" + event.code + ", reason:" + event.reason + ")!";
+			//				wsConnectBtn.value = "Connect";
+			//				console.log("onclose webSocket:", webSocket);
+			//				console.log("event:", event);
+			//			}
+
+			//		} catch (error) {
+			//			console.log("error:", error)
+			//		}
+			//	} else {
+			//		webSocket.close(4999, "User Closed!");
+			//	}
+			}
+
+			//wsSendBtn.onclick = function () {
+			//	let sendObj = {
+			//		Command: wsCommand.Send,
+			//		Name: wsDisplayName.value,
+			//		Message: wsSendMsg.value
+			//	}
+			//	let jsonSendObj = JSON.stringify(sendObj);
+			//	webSocket.send(jsonSendObj);
+			//}
+		}
+	</script>
+</body>
+</body>
+</html>

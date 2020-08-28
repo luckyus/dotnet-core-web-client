@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,9 +15,11 @@ namespace dotnet_core_web_client.Controllers
 	{
 		// GET: api/<HomeController>
 		[HttpGet]
-		public IEnumerable<string> Get()
+		// public IEnumerable<string> Get(string name, string url)
+		public ActionResult Get(string name, string url)
 		{
-			return new string[] { "value1", "value2" };
+			using var webSocket = new ClientWebSocket();
+			return Ok(new { results = "world" });
 		}
 
 		// GET api/<HomeController>/5

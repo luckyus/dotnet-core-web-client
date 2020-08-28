@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
+using dotnet_core_web_client.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -41,6 +43,22 @@ namespace dotnet_core_web_client
 			app.UseRouting();
 
 			app.UseAuthorization();
+
+			app.UseWebSockets();
+
+			app.Use(async (context, next) =>
+			{
+				if (context.WebSockets.IsWebSocketRequest)
+				{
+					WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+					WebSocketManager webSocketManager = new WebSocketManager(webSocket);
+					await webSocketManager.DoConnection();
+				}
+				else
+				{
+					await next();
+				}
+			});
 
 			app.UseEndpoints(endpoints =>
 			{

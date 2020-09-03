@@ -12,6 +12,13 @@ namespace dotnet_core_web_client.Services
 		public string IpPort { get; set; }
 	}
 
+	public class WebSocketChatMsg
+	{
+		public WebSocketCommand Command { get; set; }
+		public string Name { get; set; }
+		public string Message { get; set; }
+	}
+
 	public enum WebSocketCommand
 	{
 		Init = 0,
@@ -20,4 +27,8 @@ namespace dotnet_core_web_client.Services
 		Error = 99
 	}
 
+	public struct CommandType
+	{
+		public WebSocketCommand Command;
+	}
 }

@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Services
 {
-	public class WebSocketClient
+	public interface IConnectionManager
 	{
-		public string name;
-		public WebSocket webSocket;
+		public void Initialize(WebSocket webSocket);
+		public Task SendAsync(string message);
+		public Task ReceiveAsync();
 	}
 }

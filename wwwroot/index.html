@@ -112,7 +112,7 @@
 								}
 							}
 						} catch {
-							wsUl.innerHTML += '<li>' + event.data + '</li>';
+							wsUl.innerHTML += '<li>catch: ' + event.data + '</li>';
 						}
 					}
 					webSocket.onclose = async function (event) {
@@ -125,16 +125,12 @@
 					await new Promise(r => setTimeout(r, 2000));
 					connectServer();
 				}
-				//} else {
-				//	webSocket.close(4999, "User Closed!");
-				//}
 			};
 
 			connectServer();
 
 			wsConnectBtn.onclick = () => {
 				wsConnectBtn.disabled = true;
-				wsAckMsg.innerHTML = "Connecting...";
 				const sendObj = {
 					Command: wsCommand.Init,
 					Name: wsDisplayName.value,
@@ -143,8 +139,18 @@
 				const jsonSendObj = JSON.stringify(sendObj);
 				webSocket.send(jsonSendObj);
 			}
+
+			wsSendBtn.onclick = function () {
+				const sendObj = {
+					command: wsCommand.chatMsg,
+					name: wsDisplayName.value,
+					message: wsSendMsg.value
+				}
+				const jsonSendObj = JSON.stringify(sendObj);
+				console.log(jsonSendObj);
+				webSocket.send(jsonSendObj);
+			}
 		}
 	</script>
-</body>
 </body>
 </html>

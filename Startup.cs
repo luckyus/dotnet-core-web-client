@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using dotnet_core_web_client.Middleware;
 using dotnet_core_web_client.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,6 +29,8 @@ namespace dotnet_core_web_client
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddControllers();
+			services.AddConnectionManager();
+			services.AddScoped<IConnectionManager, ConnectionManager>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,19 +49,7 @@ namespace dotnet_core_web_client
 
 			app.UseWebSockets();
 
-			app.Use(async (context, next) =>
-			{
-				if (context.WebSockets.IsWebSocketRequest)
-				{
-					WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-					WebSocketManager webSocketManager = new WebSocketManager(webSocket);
-					await webSocketManager.DoConnection();
-				}
-				else
-				{
-					await next();
-				}
-			});
+			app.UseMyConnection();
 
 			app.UseEndpoints(endpoints =>
 			{

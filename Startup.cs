@@ -29,12 +29,16 @@ namespace dotnet_core_web_client
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddControllers();
-			services.AddConnectionManager();
-			services.AddScoped<IConnectionManager, ConnectionManager>();
+
+			// WebSocket webSocket = null;
+			// services.AddScoped<IWebSocketHandler>(x => new WebSocketHandler(webSocket));
+
+			services.AddScoped<IWebSocketHandler, WebSocketHandler>();
+			services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IWebSocketHandler webSocketHandler)
 		{
 			if (env.IsDevelopment())
 			{
@@ -49,7 +53,37 @@ namespace dotnet_core_web_client
 
 			app.UseWebSockets();
 
-			app.UseMyConnection();
+			app.UseMyWebSocketHandler();
+
+			//app.Use(async (context, next) =>
+			//{
+			//	if (context.WebSockets.IsWebSocketRequest)
+			//	{
+			//		WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+			//		// WebSocketHandler websocketHandler = new WebSocketHandler(webSocket);
+			//		webSocketHandler.OnConnected(webSocket);
+			//		await webSocketHandler.ReceiveAsync();
+			//	}
+			//	else
+			//	{
+			//		await next();
+			//	}
+			//});
+
+
+			//app.Use(async (context, next) =>
+			//{
+			//	if (context.WebSockets.IsWebSocketRequest)
+			//	{
+			//		WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+			//		WebSocketHandler websocketHandler = new WebSocketHandler(webSocket);
+			//		await websocketHandler.ReceiveAsync();
+			//	}
+			//	else
+			//	{
+			//		await next();
+			//	}
+			//});
 
 			app.UseEndpoints(endpoints =>
 			{

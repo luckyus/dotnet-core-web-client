@@ -10,15 +10,15 @@ using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Services
 {
-	public class ClientConnectionManager
+	public class ClientWebSocketHandler
 	{
-		protected ConnectionManager webSocketManager;
+		protected WebSocketHandler webSocketHandler;
 		protected WebSocketInit webSocketInit;
 		protected ClientWebSocket clientWebSocket;
 
-		public ClientConnectionManager(ConnectionManager webSocketManager, WebSocketInit webSocketInit)
+		public ClientWebSocketHandler(WebSocketHandler webSocketHandler, WebSocketInit webSocketInit)
 		{
-			this.webSocketManager = webSocketManager;
+			this.webSocketHandler = webSocketHandler;
 			this.webSocketInit = webSocketInit;
 			_ = Initialize();
 		}
@@ -37,10 +37,12 @@ namespace dotnet_core_web_client.Services
 
 					try
 					{
-						await clientWebSocket.ConnectAsync(new Uri("wss://" + webSocketInit.IpPort + "/api/websocket"), CancellationToken.None);
+						string queryString = "sn=8000-1234-5678&name=" + webSocketInit.Name;
+						await clientWebSocket.ConnectAsync(new Uri("wss://" + webSocketInit.IpPort + "/api/websocket?" + queryString), CancellationToken.None);
 
+						// acknowledge the browser (201021)
 						var jsonMsg = JsonConvert.SerializeObject(new { command = WebSocketCommand.AckMsg, message = "Connected to iGuardPayroll!" });
-						await webSocketManager.SendAsync(jsonMsg);
+						await webSocketHandler.SendAsync(jsonMsg);
 
 						isConnected = true;
 						reconnectCount = 0;
@@ -51,11 +53,11 @@ namespace dotnet_core_web_client.Services
 					{
 						if (isConnected)
 						{
-							await webSocketManager.SendAsync(JsonConvert.SerializeObject(new { command = WebSocketCommand.AckMsg, message = "Reconnecting (" + ++reconnectCount + ")..." }));
+							await webSocketHandler.SendAsync(JsonConvert.SerializeObject(new { command = WebSocketCommand.AckMsg, message = "Reconnecting (" + ++reconnectCount + ")..." }));
 						}
 						else
 						{
-							await webSocketManager.SendAsync(JsonConvert.SerializeObject(new { command = WebSocketCommand.Error, message = ex.Message }));
+							await webSocketHandler.SendAsync(JsonConvert.SerializeObject(new { command = WebSocketCommand.Error, message = ex.Message }));
 						}
 					}
 
@@ -85,7 +87,7 @@ namespace dotnet_core_web_client.Services
 			}
 			catch(WebSocketException ex)
 			{
-				await webSocketManager.SendAsync("Error: " + ex.Message);
+				await webSocketHandler.SendAsync("Error: " + ex.Message);
 			}
 		}
 
@@ -115,7 +117,7 @@ namespace dotnet_core_web_client.Services
 
 					if (jsonObj.Command == WebSocketCommand.ChatMsg)
 					{
-						await webSocketManager.SendAsync(jsonStr);
+						await webSocketHandler.SendAsync(jsonStr);
 					}
 				}
 			}

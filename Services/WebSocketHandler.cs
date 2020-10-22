@@ -13,12 +13,19 @@ using Newtonsoft.Json;
 
 namespace dotnet_core_web_client.Services
 {
-	public class ConnectionManager : IConnectionManager
+	public class WebSocketHandler : IWebSocketHandler
 	{
 		protected WebSocket webSocket;
 		protected string name;
 
-		public void Initialize(WebSocket webSocket)
+		public WebSocketHandler() { }
+
+		//public WebSocketHandler(WebSocket webSocket)
+		//{
+		//	this.webSocket = webSocket;
+		//}
+
+		public void OnConnected(WebSocket webSocket)
 		{
 			this.webSocket = webSocket;
 		}
@@ -31,7 +38,7 @@ namespace dotnet_core_web_client.Services
 
 		public async Task ReceiveAsync()
 		{
-			ClientConnectionManager clientConnectionManager = null;
+			ClientWebSocketHandler clientWebSocketHandler = null;
 			var receiveBuffer = new ArraySegment<Byte>(new byte[100]);
 
 			while (webSocket.State == WebSocketState.Open)
@@ -65,11 +72,11 @@ namespace dotnet_core_web_client.Services
 
 							WebSocketInit webSocketInit = JsonConvert.DeserializeObject<WebSocketInit>(jsonStr);
 							name = webSocketInit.Name;
-							clientConnectionManager = new ClientConnectionManager(this, webSocketInit);
+							clientWebSocketHandler = new ClientWebSocketHandler(this, webSocketInit);
 						}
 						else if (command == WebSocketCommand.ChatMsg)
 						{
-							clientConnectionManager.Send(jsonStr);
+							clientWebSocketHandler.Send(jsonStr);
 						}
 					}
 					else if (result.MessageType == WebSocketMessageType.Close)
@@ -82,14 +89,14 @@ namespace dotnet_core_web_client.Services
 						};
 
 						var jsonStr = JsonConvert.SerializeObject(webSocketChatMsg);
-						clientConnectionManager.Send(jsonStr);
+						clientWebSocketHandler.Send(jsonStr);
 
 						await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
 					}
 				}
 				catch (WebSocketException)
 				{
-					await clientConnectionManager.CloseAsync();
+					await clientWebSocketHandler.CloseAsync();
 				}
 			}
 		}

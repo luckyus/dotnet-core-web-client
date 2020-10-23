@@ -37,7 +37,7 @@ namespace dotnet_core_web_client.Services
 
 					try
 					{
-						string queryString = "sn=8000-1234-5678&name=" + webSocketInit.Name;
+						string queryString = "sn=7100-1234-5678&name=" + webSocketInit.Name;
 						await clientWebSocket.ConnectAsync(new Uri("wss://" + webSocketInit.IpPort + "/api/websocket?" + queryString), CancellationToken.None);
 
 						// acknowledge the browser (201021)

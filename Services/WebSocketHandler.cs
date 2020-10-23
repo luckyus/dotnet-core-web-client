@@ -89,14 +89,14 @@ namespace dotnet_core_web_client.Services
 						};
 
 						var jsonStr = JsonConvert.SerializeObject(webSocketChatMsg);
-						clientWebSocketHandler.Send(jsonStr);
+						clientWebSocketHandler?.Send(jsonStr);
 
 						await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
 					}
 				}
 				catch (WebSocketException)
 				{
-					await clientWebSocketHandler.CloseAsync();
+					await clientWebSocketHandler?.CloseAsync();
 				}
 			}
 		}

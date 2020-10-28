@@ -38,6 +38,10 @@
 			font-size: large;
 			font-weight: bold;
 		}
+
+		#ws-send-message {
+			width: 80%;
+		}
 	</style>
 </head>
 <body>
@@ -58,7 +62,7 @@
 		</div>
 		<div class="ws-send-message">
 			<label for="ws-send-message">Message:</label>
-			<input type="text" id="ws-send-message" />
+			<input type="text" id="ws-send-message" value='{"event":"OnDeviceConnected","data":[{"terminalId":"iGuard","description":"en-Us","serialNo":"5400-5400-0540","firmwareVersion":null,"hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}]}' />
 			<input type="button" id="ws-btn-send" value="Send" />
 		</div>
 		<div id="ws-discussion">

@@ -37,8 +37,8 @@ namespace dotnet_core_web_client.Services
 
 					try
 					{
-						string queryString = "sn=7100-1234-5678&name=" + webSocketInit.Name;
-						await clientWebSocket.ConnectAsync(new Uri("wss://" + webSocketInit.IpPort + "/api/websocket?" + queryString), CancellationToken.None);
+						string queryString = "sn=7100-1234-5678";
+						await clientWebSocket.ConnectAsync(new Uri("ws://" + webSocketInit.IpPort + "/api/websocket?" + queryString), CancellationToken.None);
 
 						// acknowledge the browser (201021)
 						var jsonMsg = JsonConvert.SerializeObject(new { command = WebSocketCommand.AckMsg, message = "Connected to iGuardPayroll!" });
@@ -75,6 +75,7 @@ namespace dotnet_core_web_client.Services
 
 		public void Send(string jsonStr)
 		{
+			// "{\"event\":\"OnDeviceConnected\",\"data\":[{\"terminalId\":\"iGuard\",\"description\":\"en-Us\",\"serialNo\":\"5400-5400-0540\",\"firmwareVersion\":null,\"hasRS485\":false,\"masterServer\":\"192.168.0.230\",\"photoServer\":\"photo.iguardpayroll.com\",\"supportedCardType\":null,\"regDate\":\"2020-10-27T14:10:01.2825229+08:00\",\"environment\":null}]}"
 			_ = SendAsync(jsonStr);
 		}
 

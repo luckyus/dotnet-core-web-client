@@ -145,14 +145,15 @@
 			}
 
 			wsSendBtn.onclick = function () {
-				const sendObj = {
-					command: wsCommand.chatMsg,
-					name: wsDisplayName.value,
-					message: wsSendMsg.value
-				}
-				const jsonSendObj = JSON.stringify(sendObj);
-				console.log(jsonSendObj);
-				webSocket.send(jsonSendObj);
+				webSocket.send(wsSendMsg.value);
+				//const sendObj = {
+				//	command: wsCommand.chatMsg,
+				//	name: wsDisplayName.value,
+				//	message: wsSendMsg.value
+				//}
+				//const jsonSendObj = JSON.stringify(sendObj);
+				//console.log(jsonSendObj);
+				//webSocket.send(jsonSendObj);
 			}
 		}
 	</script>

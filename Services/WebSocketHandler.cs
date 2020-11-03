@@ -16,7 +16,7 @@ namespace dotnet_core_web_client.Services
 	public class WebSocketHandler : IWebSocketHandler
 	{
 		protected WebSocket webSocket;
-		protected string name;
+		protected string sn;
 
 		public WebSocketHandler() { }
 
@@ -58,45 +58,39 @@ namespace dotnet_core_web_client.Services
 
 					if (result.MessageType == WebSocketMessageType.Text)
 					{
+						// eg. {"eventType":"Init","data":{"SN":"5400-5400-5400","IpPort":"192.168.0.138:50595"}}
 						using var reader = new StreamReader(ms, Encoding.UTF8);
 						string jsonStr = reader.ReadToEnd();
-						var jsonObj = JsonConvert.DeserializeAnonymousType(jsonStr, new { command = WebSocketCommand.Init });
+						var jsonObj = JsonConvert.DeserializeObject<dynamic>(jsonStr);
 
-						WebSocketCommand command = jsonObj.command;
+						string eventType = jsonObj.eventType;
 
-						if (command == WebSocketCommand.Init)
+						if (eventType == "onInit")
 						{
-							var obj = new { command = WebSocketCommand.AckMsg, message = "iGuardPayroll Connecting..." };
+							// array of objects (201103)
+							object[] data = { "iGuardPayroll Connecting..." };
+							var obj = new { eventType = "onConnecting", data };
 							var str = JsonConvert.SerializeObject(obj);
 							_ = SendAsync(str);
 
-							WebSocketInit webSocketInit = JsonConvert.DeserializeObject<WebSocketInit>(jsonStr);
-							name = webSocketInit.Name;
-							clientWebSocketHandler = new ClientWebSocketHandler(this, webSocketInit);
+							sn = jsonObj.data[0].SN;
+							string ipPort = jsonObj.data[0].IpPort;
+							clientWebSocketHandler = new ClientWebSocketHandler(this, sn, ipPort);
 						}
-						else if (command == WebSocketCommand.ChatMsg)
+						else
 						{
 							clientWebSocketHandler.Send(jsonStr);
 						}
 					}
 					else if (result.MessageType == WebSocketMessageType.Close)
 					{
-						WebSocketChatMsg webSocketChatMsg = new WebSocketChatMsg
-						{
-							Command = WebSocketCommand.ChatMsg,
-							Name = name,
-							Message = "Disconnected!!!"
-						};
-
-						var jsonStr = JsonConvert.SerializeObject(webSocketChatMsg);
-						clientWebSocketHandler?.Send(jsonStr);
-
+						if (clientWebSocketHandler != null) await clientWebSocketHandler.CloseAsync();
 						await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
 					}
 				}
 				catch (WebSocketException)
 				{
-					await clientWebSocketHandler?.CloseAsync();
+					if (clientWebSocketHandler != null) await clientWebSocketHandler.CloseAsync();
 				}
 			}
 		}

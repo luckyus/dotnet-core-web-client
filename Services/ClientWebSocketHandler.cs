@@ -123,19 +123,11 @@ namespace dotnet_core_web_client.Services
 
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
-                    // {"Command":2,"Message":"ID: ba6807e1-a47c-4208-a944-96b2a036b861"}
+                    // {"eventType":"onTerminal","data":[{"inOutControl":{"inOutTrigger":{"06:00":0,"11:30":1}},"goodList":[2163965516,750006734]},"342001084"]} (201030)
                     using var reader = new StreamReader(ms, Encoding.UTF8);
                     var jsonStr = reader.ReadToEnd();
-                    var jsonObj = JsonConvert.DeserializeObject<WebSocketMessage>(jsonStr);
-
-                    if (jsonObj.EventType == "onError")
-                    {
-                        await webSocketHandler.SendAsync(jsonStr);
-                    }
-                    else
-                    {
-                        await webSocketHandler.SendAsync("jsonStr: " + jsonStr);
-                    }
+                    // var jsonObj = JsonConvert.DeserializeObject<WebSocketMessage>(jsonStr);
+                    await webSocketHandler.SendAsync(jsonStr);
                 }
             }
         }

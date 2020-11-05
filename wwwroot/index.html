@@ -1,156 +1,175 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8" />
-	<title></title>
-	<title>SignalR Simple Chat</title>
-	<style type="text/css">
-		.ws-container {
-			background-color: aquamarine;
-			border: thick solid #808080;
-			padding: 0 20px 20px;
-			margin: 20px;
-		}
+    <meta charset="utf-8" />
+    <title></title>
+    <title>SignalR Simple Chat</title>
+    <style type="text/css">
+        .ws-container {
+            background-color: aquamarine;
+            border: thick solid #808080;
+            padding: 0 20px 20px;
+            margin: 20px;
+        }
 
-			.ws-container div {
-				margin-top: 10px;
-			}
+            .ws-container div {
+                margin-top: 10px;
+            }
 
-		.ws-title-container {
-			display: flex;
-			align-items: baseline;
-		}
+        .ws-title-container {
+            display: flex;
+            align-items: baseline;
+        }
 
-			.ws-title-container div:first-child {
-				margin-right: 1em;
-			}
+            .ws-title-container div:first-child {
+                margin-right: 1em;
+            }
 
-		.ws-header {
-			font-size: large;
-			font-weight: bold;
-		}
+        .ws-header {
+            font-size: large;
+            font-weight: bold;
+        }
 
-		.ws-name {
-			font-weight: bold;
-		}
+        .ws-name {
+            font-weight: bold;
+        }
 
-		.sr-header {
-			font-size: large;
-			font-weight: bold;
-		}
+        .sr-header {
+            font-size: large;
+            font-weight: bold;
+        }
 
-		#ws-send-message {
-			width: 80%;
-		}
-	</style>
+        #ws-send-message {
+            width: 80%;
+        }
+    </style>
 </head>
 <body>
-	<div class="ws-container">
-		<div class="ws-title-container">
-			<div class="ws-header">WebSocket</div>
-			<div id="status"></div>
-		</div>
-		<div class="ws-user">
-			<label for="ws-serial-no">Serial No.:</label>
-			<input type="text" id="ws-serial-no" value="5400-5400-0540" />
-		</div>
-		<div class="ws-enter-ip">
-			<label for="ws-ip-port">iGuardPayroll IP:Port:</label>
-			<input type="text" id="ws-ip-port" value="192.168.0.138:50595" />
-			<input type="button" id="ws-btn-connect" value="Connect" />
-			<span id="ws-ackmsg"></span>
-		</div>
-		<div class="ws-send-message">
-			<label for="ws-send-message">Message:</label>
-			<input type="text" id="ws-send-message" value='{"eventType":"OnDeviceConnected","data":[{"terminalId":"iGuard","description":"en-Us","serialNo":"5400-5400-0540","firmwareVersion":null,"hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}]}' />
-			<input type="button" id="ws-btn-send" value="Send" />
-		</div>
-		<div id="ws-discussion">
-			<ul id="ws-ul"></ul>
-		</div>
-	</div>
-	<script type="text/javascript">
-		window.onload = function () {
+    <div class="ws-container">
+        <div class="ws-title-container">
+            <div class="ws-header">WebSocket</div>
+            <div id="status"></div>
+        </div>
+        <div class="ws-user">
+            <label for="ws-serial-no">Serial No.:</label>
+            <input type="text" id="ws-serial-no" />
+        </div>
+        <div class="ws-enter-ip">
+            <label for="ws-ip-port">iGuardPayroll IP:Port:</label>
+            <input type="text" id="ws-ip-port" />
+            <input type="button" id="ws-btn-connect" value="Connect" />
+            <span id="ws-ackmsg"></span>
+        </div>
+        <div class="ws-send-message">
+            <label for="ws-send-message">Message:</label>
+            <input type="text" id="ws-send-message" value='{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"5400-5400-0540","firmwareVersion":null,"hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}' />
+            <input type="button" id="ws-btn-send" value="Send" disabled />
+        </div>
+        <div id="ws-discussion">
+            <ul id="ws-ul"></ul>
+        </div>
+    </div>
+    <script type="text/javascript">
+        window.onload = function () {
 
-			// let wsUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/api/websocket";
-			let webSocket;
-			const wsStatus = document.getElementById("status");
+            // let wsUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/api/websocket";
+            let webSocket;
+            const wsStatus = document.getElementById("status");
             const wsSerialNo = document.getElementById("ws-serial-no");
-			const wsIpPort = document.getElementById("ws-ip-port");
-			const wsAckMsg = document.getElementById("ws-ackmsg");
-			const wsSendMsg = document.getElementById("ws-send-message")
-			const wsSendBtn = document.getElementById("ws-btn-send");
-			const wsUl = document.getElementById("ws-ul");
-			const wsConnectBtn = document.getElementById("ws-btn-connect");
+            const wsIpPort = document.getElementById("ws-ip-port");
+            const wsAckMsg = document.getElementById("ws-ackmsg");
+            const wsSendMsg = document.getElementById("ws-send-message")
+            const wsSendBtn = document.getElementById("ws-btn-send");
+            const wsUl = document.getElementById("ws-ul");
+            const wsConnectBtn = document.getElementById("ws-btn-connect");
 
-			const connectServer = async () => {
-				try {
-					wsStatus.innerHTML = "Connecting...";
-					const wsUrl = "wss://" + location.host;
-					webSocket = new WebSocket(wsUrl);
-					webSocket.onopen = function (event) {
-						wsStatus.innerHTML = "ONLINE!";
-					}
-					webSocket.onmessage = function (event) {
-						let obj;
-						try {
-							console.log("event.data:", event.data);
-							obj = JSON.parse(event.data);
-							if (obj) {
-								if (obj.eventType === 'onConnecting' || obj.eventType === 'onConnected' || obj.eventType === 'onReconnecting') {
-									wsAckMsg.innerHTML = obj.data[0];
-								} else if (obj.eventType === 'onError') {
-									wsConnectBtn.disabled = false;
-                                    wsUl.innerHTML += '<li>' + '<span class="ws-name">' + obj.eventType + '</span>' + ': ' + obj.data[0] + '</li>';
-								} else {
-									wsUl.innerHTML += '<li>' + '<span class="ws-name">' + obj.eventType + '</span>' + ': ' + obj.data[0] + '</li>';
-								}
-							}
-						} catch {
-							wsUl.innerHTML += '<li>catch: ' + event.data + '</li>';
-						}
-					}
-					webSocket.onclose = async function (event) {
-						wsStatus.innerHTML = "WebSocket Closed (code:" + event.code + ", reason:" + event.reason + ")!";
-						await new Promise(r => setTimeout(r, 2000));
-						connectServer();
-					}
-				} catch (error) {
-					wsStatus.innerHTML = error;
-					await new Promise(r => setTimeout(r, 2000));
-					connectServer();
-				}
-			};
+            // get/set fake sn @localStorage (201105)
+            wsSerialNo.value = window.localStorage.getItem("sn");
+            if (!wsSerialNo.value) {
+                wsSerialNo.value = "5400-" + Math.floor(Math.random() * (8999) + 1000) + "-" + Math.floor(Math.random() * (8999) + 1000);
+                window.localStorage.setItem("sn", wsSerialNo.value);
+            }
 
-			connectServer();
+            // ditto (201105)
+            wsIpPort.value = window.localStorage.getItem("ipPort");
+            if (!wsIpPort.value) {
+                wsIpPort.value = "localhost:50595";
+                window.localStorage.setItem("ipPort", wsIpPort.value);
+            }
 
-			wsConnectBtn.onclick = () => {
-				wsConnectBtn.disabled = true;
-				const sendObj = {
-					eventType: "onInit",
-					data: [{
+            const connectServer = async () => {
+                try {
+                    wsStatus.innerHTML = "Connecting...";
+                    const wsUrl = "wss://" + location.host;
+                    webSocket = new WebSocket(wsUrl);
+                    webSocket.onopen = function (event) {
+                        wsStatus.innerHTML = "ONLINE!";
+                    }
+                    webSocket.onmessage = function (event) {
+                        let obj;
+                        try {
+                            console.log("event.data:", event.data);
+                            obj = JSON.parse(event.data);
+                            if (obj) {
+                                if (obj.eventType === 'onConnected') {
+                                    wsAckMsg.innerHTML = obj.data[0];
+                                    wsSendBtn.disabled = false;
+                                } else if (obj.eventType === 'onConnecting' || obj.eventType === 'onReconnecting') {
+                                    wsAckMsg.innerHTML = obj.data[0];
+                                    wsSendBtn.disabled = true;
+                                } else {
+                                    wsUl.innerHTML += '<li>' + '<span class="ws-name">' + obj.eventType + '</span>' + ': ' + event.data + '</li>';
+                                    if (obj.eventType === 'onError') {
+                                        wsConnectBtn.disabled = false;
+                                    }
+                                }
+                            }
+                        } catch {
+                            wsUl.innerHTML += '<li>catch: ' + event.data + '</li>';
+                        }
+                    }
+                    webSocket.onclose = async function (event) {
+                        wsStatus.innerHTML = "WebSocket Closed (code:" + event.code + ", reason:" + event.reason + ")!";
+                        await new Promise(r => setTimeout(r, 2000));
+                        connectServer();
+                    }
+                } catch (error) {
+                    wsStatus.innerHTML = error;
+                    await new Promise(r => setTimeout(r, 2000));
+                    connectServer();
+                }
+            };
+
+            connectServer();
+
+            wsConnectBtn.onclick = () => {
+                wsConnectBtn.disabled = true;
+                window.localStorage.setItem("ipPort", wsIpPort.value);
+                const sendObj = {
+                    eventType: "onInit",
+                    data: [{
                         SN: wsSerialNo.value,
                         IpPort: wsIpPort.value
                     }]
                 }
-				const jsonStr = JSON.stringify(sendObj);
-				webSocket.send(jsonStr);
-			}
+                const jsonStr = JSON.stringify(sendObj);
+                webSocket.send(jsonStr);
+            }
 
-			wsSendBtn.onclick = function () {
-				console.log(wsSendMsg.value);
-				webSocket.send(wsSendMsg.value);
-				wsUl.innerHTML = ''; 
-				//const sendObj = {
-				//	command: wsCommand.chatMsg,
-				//	name: wsSerialNo.value,
-				//	message: wsSendMsg.value
-				//}
-				//const jsonSendObj = JSON.stringify(sendObj);
-				//console.log(jsonSendObj);
-				//webSocket.send(jsonSendObj);
-			}
-		}
-	</script>
+            wsSendBtn.onclick = function () {
+                console.log(wsSendMsg.value);
+                webSocket.send(wsSendMsg.value);
+                wsUl.innerHTML = '';
+                //const sendObj = {
+                //	command: wsCommand.chatMsg,
+                //	name: wsSerialNo.value,
+                //	message: wsSendMsg.value
+                //}
+                //const jsonSendObj = JSON.stringify(sendObj);
+                //console.log(jsonSendObj);
+                //webSocket.send(jsonSendObj);
+            }
+        }
+    </script>
 </body>
 </html>

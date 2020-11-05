@@ -62,7 +62,7 @@
         </div>
         <div class="ws-send-message">
             <label for="ws-send-message">Message:</label>
-            <input type="text" id="ws-send-message" value='{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"5400-5400-0540","firmwareVersion":null,"hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}' />
+            <input type="text" id="ws-send-message" />
             <input type="button" id="ws-btn-send" value="Send" disabled />
         </div>
         <div id="ws-discussion">
@@ -96,6 +96,9 @@
                 wsIpPort.value = "localhost:50595";
                 window.localStorage.setItem("ipPort", wsIpPort.value);
             }
+
+            // default message (201105)
+            wsSendMsg.value = '{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"' + wsSerialNo.value + '","firmwareVersion":null,"hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}';
 
             const connectServer = async () => {
                 try {

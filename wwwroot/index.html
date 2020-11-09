@@ -117,6 +117,7 @@
                                 if (obj.eventType === 'onConnected') {
                                     wsAckMsg.innerHTML = obj.data[0];
                                     wsSendBtn.disabled = false;
+									wsUl.innerHTML = '';
                                 } else if (obj.eventType === 'onConnecting' || obj.eventType === 'onReconnecting') {
                                     wsAckMsg.innerHTML = obj.data[0];
                                     wsSendBtn.disabled = true;

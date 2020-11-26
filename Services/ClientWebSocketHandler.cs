@@ -1,10 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using dotnet_core_web_client.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -79,14 +81,9 @@ namespace dotnet_core_web_client.Services
 			}
 		}
 
-		public void Send(string jsonStr)
-		{
-			// "{\"event\":\"OnDeviceConnected\",\"data\":[{\"terminalId\":\"iGuard\",\"description\":\"en-Us\",\"serialNo\":\"5400-5400-0540\",\"firmwareVersion\":null,\"hasRS485\":false,\"masterServer\":\"192.168.0.230\",\"photoServer\":\"photo.iguardpayroll.com\",\"supportedCardType\":null,\"regDate\":\"2020-10-27T14:10:01.2825229+08:00\",\"environment\":null}]}"
-			_ = SendAsync(jsonStr);
-		}
-
 		public async Task SendAsync(string jsonStr)
 		{
+			// "{\"event\":\"OnDeviceConnected\",\"data\":[{\"terminalId\":\"iGuard\",\"description\":\"en-Us\",\"serialNo\":\"5400-5400-0540\",\"firmwareVersion\":null,\"hasRS485\":false,\"masterServer\":\"192.168.0.230\",\"photoServer\":\"photo.iguardpayroll.com\",\"supportedCardType\":null,\"regDate\":\"2020-10-27T14:10:01.2825229+08:00\",\"environment\":null}]}"
 			try
 			{
 				var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(jsonStr));
@@ -118,12 +115,124 @@ namespace dotnet_core_web_client.Services
 				if (result.MessageType == WebSocketMessageType.Text)
 				{
 					// {"eventType":"onTerminal","data":[{"inOutControl":{"inOutTrigger":{"06:00":0,"11:30":1}},"goodList":[2163965516,750006734]},"342001084"]} (201030)
+					// {"eventType":"requestTerminalInfo","data":["GSD_80478134"]}
 					using var reader = new StreamReader(ms, Encoding.UTF8);
 					var jsonStr = reader.ReadToEnd();
-					// var jsonObj = JsonConvert.DeserializeObject<WebSocketMessage>(jsonStr);
+
+					// just to acknowledge via webpage (201124)
 					await webSocketHandler.SendAsync(jsonStr);
+
+					// handle the request (201124)
+					var webSocketMessage = JsonConvert.DeserializeObject<WebSocketMessage>(jsonStr);
+
+					if (webSocketMessage.EventType == "requestTerminalSettings")
+					{
+						await OnRequestTerminalSettings(webSocketMessage.Data);
+					}
+					else if(webSocketMessage.EventType == "requestTerminal")
+					{
+						await OnRequestTerminal(webSocketMessage.Data);
+					}
 				}
 			}
+		}
+
+		private Task OnRequestTerminal(object[] data)
+		{
+			if (data == null || data[0] == null) return Task.CompletedTask;
+
+			string requestID = (string)data[0];
+
+			Terminal terminal = new Terminal
+			{
+				TerminalId = "iGuard540",
+				Description = "iGuardExpress 540 Machine",
+			};
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "OnRequestTerminal",
+				Data = new object[2]
+			};
+			webSocketMessage.Data[0] = terminal;
+			webSocketMessage.Data[1] = requestID;
+
+			string jsonStr = System.Text.Json.JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			return SendAsync(jsonStr);
+		}
+
+		private Task OnRequestTerminalSettings(object[] data)
+		{
+			if (data == null || data[0] == null) return Task.CompletedTask;
+
+			string requestID = (string)data[0];
+
+			TerminalSettings terminalSettings = new TerminalSettings
+			{
+				TerminalId = "My540",
+				Description = "This is my 540 Machine",
+				Language = "en-US",
+				Server = "www.iguardpayroll.com",
+				PhotoServer = "photo.iguardpayroll.com",
+				DateTimeFormat = "dd/mm/yy",
+				AllowedOrigins = new string[] { "one", "two" },
+				CameraControl = new CameraControl
+				{
+					Enable = true,
+					Resolution = CameraResolution.r640x480,
+					FrameRate = 1,
+					Environment = CameraEnvironment.Normal
+				},
+				SmartCardControl = new SmartCardControl
+				{
+					IsReadCardSNOnly = false,
+					AcceptUnknownCard = false,
+					CardType = SmartCardType.OctopusOnly,
+					AcceptUnregisteredCard = false
+				},
+				InOutControl = new InOutControl
+				{
+					DefaultInOut = InOutStrategy.SystemInOut,
+					IsEnableFx = new bool[] { true, false, true, false },
+					InOutTigger = new SortedDictionary<string, InOutStatus>()
+					{
+						["7:00"] = InOutStatus.IN,
+						["11:30"] = InOutStatus.OUT,
+						["12:30"] = InOutStatus.IN,
+						["16:30"] = InOutStatus.OUT
+					},
+				},
+				RemoteDoorRelayControl = new RemoteDoorRelayControl
+				{
+					Enabled = true,
+					Id = 123,
+					DelayTimer = 3000,
+					AccessRight = AccessRight.System
+				},
+				DailyReboot = new DailyReboot
+				{
+					Enabled = true,
+					Time = "02:00"
+				},
+				TimeSync = new TimeSync
+				{
+					TimeZone = "HK",
+					TimeServer = "time.google.com",
+					IsEnableSNTP = true,
+					IsSyncMasterTime = true
+				}
+			};
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "OnRequestTerminalSettings",
+				Data = new object[2]
+			};
+			webSocketMessage.Data[0] = terminalSettings;
+			webSocketMessage.Data[1] = requestID;
+
+			string jsonStr = System.Text.Json.JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			return SendAsync(jsonStr);
 		}
 
 		public async Task CloseAsync()

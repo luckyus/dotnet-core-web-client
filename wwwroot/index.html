@@ -86,7 +86,7 @@
             // get/set fake sn @localStorage (201105)
             wsSerialNo.value = window.localStorage.getItem("sn");
             if (!wsSerialNo.value) {
-                wsSerialNo.value = "5400-" + Math.floor(Math.random() * (8999) + 1000) + "-" + Math.floor(Math.random() * (8999) + 1000);
+                wsSerialNo.value = "7100-" + Math.floor(Math.random() * (8999) + 1000) + "-" + Math.floor(Math.random() * (8999) + 1000);
                 window.localStorage.setItem("sn", wsSerialNo.value);
             }
 
@@ -98,7 +98,7 @@
             }
 
             // default message (201105)
-            wsSendMsg.value = '{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"' + wsSerialNo.value + '","firmwareVersion":null,"hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}';
+            wsSendMsg.value = '{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"' + wsSerialNo.value + '","firmwareVersion":"7.0.0000","hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}';
 
             const connectServer = async () => {
                 try {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Dynamic;
 using System.IO;
@@ -11,22 +12,108 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using dotnet_core_web_client.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace dotnet_core_web_client.Services
 {
 	public class WebSocketHandler : IWebSocketHandler
 	{
 		protected WebSocket webSocket;
-		protected string sn;
+		protected string iGuardPayrollIpPort;
+		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase" + "/terminal.config";
+		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase" + "/terminalSettings.config";
+		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase" + "/network.config";
 
-		Terminal terminal;
-		TerminalSettings terminalSettings;
-
-		public WebSocketHandler()
+		public WebSocketHandler() 
 		{
-			string folder = Directory.GetCurrentDirectory() + "/DBase";
-			terminal = InitTerminal(folder + "/terminal.json");
-			terminalSettings = InitTerminalSettings(folder + "/terminalSettings.json");
+		}
+
+		private TerminalSettings _TerminalSettings = null;
+		public TerminalSettings TerminalSettings
+		{
+			get
+			{
+				if (_TerminalSettings == null)
+				{
+					if (File.Exists(terminalSettingsConfigPath))
+					{
+						string jsonStr = File.ReadAllText(terminalSettingsConfigPath);
+						_TerminalSettings = JsonSerializer.Deserialize<TerminalSettings>(jsonStr);
+					}
+					else
+					{
+						_TerminalSettings = new TerminalSettings();
+						string jsonStr = JsonSerializer.Serialize<TerminalSettings>(_TerminalSettings, new JsonSerializerOptions { IgnoreNullValues = true });
+						File.WriteAllText(terminalConfigPath, jsonStr);
+					}
+
+				}
+				return _TerminalSettings;
+			}
+			set
+			{
+				string jsonStr = JsonSerializer.Serialize<TerminalSettings>(value, new JsonSerializerOptions { IgnoreNullValues = true });
+				File.WriteAllText(terminalSettingsConfigPath, jsonStr);
+				_TerminalSettings = value;
+			}
+		}
+
+		private Terminal _Terminal = null;
+		public Terminal Terminal
+		{
+			get
+			{
+				if (_Terminal == null)
+				{
+					if (File.Exists(terminalConfigPath))
+					{
+						string jsonStr = File.ReadAllText(terminalConfigPath);
+						_Terminal = JsonSerializer.Deserialize<Terminal>(jsonStr);
+					}
+					else
+					{
+						_Terminal = new Terminal();
+						string jsonStr = JsonSerializer.Serialize<Terminal>(_Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
+						File.WriteAllText(terminalConfigPath, jsonStr);
+					}
+				}
+				return _Terminal;
+			}
+			set
+			{
+				string jsonStr = JsonSerializer.Serialize<Terminal>(value, new JsonSerializerOptions { IgnoreNullValues = true });
+				File.WriteAllText(terminalConfigPath, jsonStr);
+				_Terminal = value;
+			}
+		}
+
+		private Network _Network = null;
+		public Network Network
+		{
+			get
+			{
+				if (_Network == null)
+				{
+					if (File.Exists(networkConfigPath))
+					{
+						string jsonStr = File.ReadAllText(networkConfigPath);
+						_Network = JsonSerializer.Deserialize<Network>(jsonStr);
+					}
+					else
+					{
+						_Network = new Network();
+						string jsonStr = JsonSerializer.Serialize<Network>(_Network, new JsonSerializerOptions { IgnoreNullValues = true });
+						File.WriteAllText(networkConfigPath, jsonStr);
+					}
+				}
+				return _Network;
+			}
+			set
+			{
+				string jsonStr = JsonSerializer.Serialize<Network>(value, new JsonSerializerOptions { IgnoreNullValues = true });
+				File.WriteAllText(networkConfigPath, jsonStr);
+				_Network = value;
+			}
 		}
 
 		public void OnConnected(WebSocket webSocket)
@@ -34,10 +121,20 @@ namespace dotnet_core_web_client.Services
 			this.webSocket = webSocket;
 		}
 
-		public Task SendAsync(string message)
+		private void SaveTerminal()
 		{
-			var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
-			return webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+			string jsonStr = JsonSerializer.Serialize<Terminal>(Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
+			File.WriteAllText(terminalConfigPath, jsonStr);
+		}
+
+		public async Task SendAsync(string message)
+		{
+			if (webSocket.State == WebSocketState.Open)
+			{
+				var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
+				await webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+			}
+			return;
 		}
 
 		public async Task ReceiveAsync()
@@ -62,7 +159,6 @@ namespace dotnet_core_web_client.Services
 
 					if (result.MessageType == WebSocketMessageType.Text)
 					{
-						// eg. {"eventType":"Init","data":{"SN":"5400-5400-5400","IpPort":"192.168.0.138:50595"}}
 						using var reader = new StreamReader(ms, Encoding.UTF8);
 						string jsonStr = reader.ReadToEnd();
 						var jsonObj = JsonSerializer.Deserialize<WebSocketMessage>(jsonStr);
@@ -77,9 +173,18 @@ namespace dotnet_core_web_client.Services
 							var str = JsonSerializer.Serialize(obj);
 							_ = SendAsync(str);
 
+							// update the existing terminal info if necessary (201201)
 							var jsonElement = JsonSerializer.Deserialize<JsonElement>(jsonObj.Data[0].ToString()) as JsonElement?;
 							var sn = jsonElement?.GetProperty("SN").GetString();
 							var ipPort = jsonElement?.GetProperty("IpPort").GetString();
+
+							if (Terminal.SN != sn)
+							{
+								Terminal.SN = sn;
+								SaveTerminal();
+							}
+
+							// connect to iGuardPayroll (201201)
 							clientWebSocketHandler = new ClientWebSocketHandler(this, sn, ipPort);
 						}
 						else
@@ -102,40 +207,7 @@ namespace dotnet_core_web_client.Services
 					if (clientWebSocketHandler != null) await clientWebSocketHandler.CloseAsync();
 				}
 			}
-		}
-
-		private Terminal InitTerminal(string path)
-		{
-			Terminal terminal;
-
-			if (!File.Exists(path))
-			{
-				var random = new Random();
-
-				terminal = new Terminal
-				{
-					TerminalId = "iGuard540",
-					Description = "My iGuardExpress 540 Machine",
-					SerialNo = "7100-" + random.Next(1000, 9999) + "-" + random.Next(1000, 9999),
-					FirmwareVersion = "7.0.0000",
-					HasRS485 = true,
-					MasterServer = "www.iguardpayroll.com",
-					PhotoServer = "photo.iguardpayroll.com",
-					SupportedCardType = (int)SmartCardType.MifareAndOctopus,
-					RegDate = DateTime.Now,
-					Environment = "development",
-				};
-
-				string jsonStr = JsonSerializer.Serialize<Terminal>(terminal, new JsonSerializerOptions { IgnoreNullValues = true });
-				File.WriteAllText(path, jsonStr);
-			}
-			else
-			{
-				string jsonStr = File.ReadAllText(path);
-				terminal = JsonSerializer.Deserialize<Terminal>(jsonStr, new JsonSerializerOptions { IgnoreNullValues = true });
-			}
-
-			return terminal;
+			return;
 		}
 	}
 }

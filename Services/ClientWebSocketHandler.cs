@@ -1,11 +1,11 @@
 ﻿using dotnet_core_web_client.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,8 +22,9 @@ namespace dotnet_core_web_client.Services
 		public ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort)
 		{
 			this.webSocketHandler = webSocketHandler;
-			this.sn = sn;
 			this.ipPort = ipPort;
+			this.sn = sn;
+
 			_ = Initialize();
 		}
 
@@ -44,15 +45,31 @@ namespace dotnet_core_web_client.Services
 						string queryString = $"sn={sn}";
 						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
 
-						// acknowledge the browser (201021)
+						// connected! acknowledge the browser (201021)
 						object[] data = { "Connected to iGuardPayroll!" };
 						var jsonObj = new { eventType = "onConnected", data };
-						var jsonStr = JsonConvert.SerializeObject(jsonObj);
+						var jsonStr = JsonSerializer.Serialize(jsonObj);
 						await webSocketHandler.SendAsync(jsonStr);
+
+						// '{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"' + wsSerialNo.value + '","firmwareVersion":"7.0.0000","hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}';
+
+						// send terminal details to iGuardPayroll (201201)
+						WebSocketMessage webSocketMessage = new WebSocketMessage
+						{
+							EventType = "OnDeviceConnected",
+							Data = new object[2]
+						};
+
+						webSocketMessage.Data[0] = new object[] { webSocketHandler.Terminal };
+						webSocketMessage.Data[1] = 342001083;
+
+						string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+						_ = SendAsync(jsonString);
 
 						isConnected = true;
 						reconnectCount = 0;
 
+						// ready to receive message (201201)
 						await ReceiveAsync();
 					}
 					catch (Exception ex)
@@ -61,29 +78,43 @@ namespace dotnet_core_web_client.Services
 						{
 							object[] data = { ex.Message };
 							var jsonObj = new { eventType = "onError", data };
-							var jsonStr = JsonConvert.SerializeObject(jsonObj);
+							var jsonStr = JsonSerializer.Serialize(jsonObj);
 							await webSocketHandler.SendAsync(jsonStr);
-							// await webSocketHandler.SendAsync(JsonConvert.SerializeObject(new { command = WebSocketCommand.Error, message = ex.Message }));
 						}
 
 						if (true)
 						{
 							object[] data = { "Reconnecting (" + ++reconnectCount + ")..." };
 							var jsonObj = new { eventType = "onReconnecting", data };
-							var jsonStr = JsonConvert.SerializeObject(jsonObj);
+							var jsonStr = JsonSerializer.Serialize(jsonObj);
 							await webSocketHandler.SendAsync(jsonStr);
-							// await webSocketHandler.SendAsync(JsonConvert.SerializeObject(new { command = WebSocketCommand.AckMsg, message = "Reconnecting (" + ++reconnectCount + ")..." }));
 						}
-					}
 
-					await Task.Delay(5000);
+						await Task.Delay(5000);
+						continue;
+					}
 				}
+				break;
 			}
+		}
+
+		public async Task CloseAsync()
+		{
+			if (clientWebSocket != null)
+			{
+				// await clientWebSocket?.CloseAsync(WebSocketCloseStatus.NormalClosure, "don't know", CancellationToken.None);
+				await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "don't know don't care", CancellationToken.None);
+			}
+
 		}
 
 		public async Task SendAsync(string jsonStr)
 		{
-			// "{\"event\":\"OnDeviceConnected\",\"data\":[{\"terminalId\":\"iGuard\",\"description\":\"en-Us\",\"serialNo\":\"5400-5400-0540\",\"firmwareVersion\":null,\"hasRS485\":false,\"masterServer\":\"192.168.0.230\",\"photoServer\":\"photo.iguardpayroll.com\",\"supportedCardType\":null,\"regDate\":\"2020-10-27T14:10:01.2825229+08:00\",\"environment\":null}]}"
+			// acknowledge the browser (201201)
+			var obj = new { eventType = "Tx", data = jsonStr };
+			string str = JsonSerializer.Serialize(obj);
+			await webSocketHandler.SendAsync(str);
+
 			try
 			{
 				var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(jsonStr));
@@ -91,7 +122,8 @@ namespace dotnet_core_web_client.Services
 			}
 			catch (WebSocketException ex)
 			{
-				await webSocketHandler.SendAsync("Error: " + ex.Message);
+				// acknowledge the browser (201201)
+				await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Error", data = ex.Message }));
 			}
 		}
 
@@ -110,7 +142,7 @@ namespace dotnet_core_web_client.Services
 					ms.Write(receiveBuffer.Array, receiveBuffer.Offset, result.Count);
 				} while (!result.EndOfMessage);
 
-				ms.Seek(0, SeekOrigin.Begin);
+				_ = ms.Seek(0, SeekOrigin.Begin);
 
 				if (result.MessageType == WebSocketMessageType.Text)
 				{
@@ -120,124 +152,82 @@ namespace dotnet_core_web_client.Services
 					var jsonStr = reader.ReadToEnd();
 
 					// just to acknowledge via webpage (201124)
-					await webSocketHandler.SendAsync(jsonStr);
+					_ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
 
 					// handle the request (201124)
-					var webSocketMessage = JsonConvert.DeserializeObject<WebSocketMessage>(jsonStr);
+					var webSocketMessage = JsonSerializer.Deserialize<WebSocketMessage>(jsonStr);
 
-					if (webSocketMessage.EventType == "requestTerminalSettings")
+					if (webSocketMessage.EventType == "getTerminalSettings")
 					{
-						await OnRequestTerminalSettings(webSocketMessage.Data);
+						_ = OnGetTerminalSettings(webSocketMessage.Data);
 					}
-					else if(webSocketMessage.EventType == "requestTerminal")
+					else if (webSocketMessage.EventType == "getTerminal")
 					{
-						await OnRequestTerminal(webSocketMessage.Data);
+						_ = OnGetTerminal(webSocketMessage.Data);
+					}
+					else if (webSocketMessage.EventType == "getNetwork")
+					{
+						_ = OnGetNetwork(webSocketMessage.Data);
 					}
 				}
 			}
 		}
 
-		private Task OnRequestTerminal(object[] data)
+		private async Task OnGetNetwork(object[] data)
 		{
-			if (data == null || data[0] == null) return Task.CompletedTask;
+			if (data == null || data[0] == null) return;
 
-			string requestID = (string)data[0];
-
-			Terminal terminal = new Terminal
-			{
-				TerminalId = "iGuard540",
-				Description = "iGuardExpress 540 Machine",
-			};
+			string requestID = data[0].ToString();
+			Network network = webSocketHandler.Network;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "OnRequestTerminal",
+				EventType = "OnGetNetwork",
+				Data = new object[2]
+			};
+			webSocketMessage.Data[0] = network;
+			webSocketMessage.Data[1] = requestID;
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			await SendAsync(jsonStr);
+		}
+
+		private async Task OnGetTerminal(object[] data)
+		{
+			if (data == null || data[0] == null) return;
+
+			string requestID = data[0].ToString();
+			Terminal terminal = webSocketHandler.Terminal;
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "OnGetTerminal",
 				Data = new object[2]
 			};
 			webSocketMessage.Data[0] = terminal;
 			webSocketMessage.Data[1] = requestID;
 
-			string jsonStr = System.Text.Json.JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-			return SendAsync(jsonStr);
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			await SendAsync(jsonStr);
 		}
 
-		private Task OnRequestTerminalSettings(object[] data)
+		private async Task OnGetTerminalSettings(object[] data)
 		{
-			if (data == null || data[0] == null) return Task.CompletedTask;
+			if (data == null || data[0] == null) return;
 
-			string requestID = (string)data[0];
-
-			TerminalSettings terminalSettings = new TerminalSettings
-			{
-				TerminalId = "My540",
-				Description = "This is my 540 Machine",
-				Language = "en-US",
-				Server = "www.iguardpayroll.com",
-				PhotoServer = "photo.iguardpayroll.com",
-				DateTimeFormat = "dd/mm/yy",
-				AllowedOrigins = new string[] { "one", "two" },
-				CameraControl = new CameraControl
-				{
-					Enable = true,
-					Resolution = CameraResolution.r640x480,
-					FrameRate = 1,
-					Environment = CameraEnvironment.Normal
-				},
-				SmartCardControl = new SmartCardControl
-				{
-					IsReadCardSNOnly = false,
-					AcceptUnknownCard = false,
-					CardType = SmartCardType.OctopusOnly,
-					AcceptUnregisteredCard = false
-				},
-				InOutControl = new InOutControl
-				{
-					DefaultInOut = InOutStrategy.SystemInOut,
-					IsEnableFx = new bool[] { true, false, true, false },
-					InOutTigger = new SortedDictionary<string, InOutStatus>()
-					{
-						["7:00"] = InOutStatus.IN,
-						["11:30"] = InOutStatus.OUT,
-						["12:30"] = InOutStatus.IN,
-						["16:30"] = InOutStatus.OUT
-					},
-				},
-				RemoteDoorRelayControl = new RemoteDoorRelayControl
-				{
-					Enabled = true,
-					Id = 123,
-					DelayTimer = 3000,
-					AccessRight = AccessRight.System
-				},
-				DailyReboot = new DailyReboot
-				{
-					Enabled = true,
-					Time = "02:00"
-				},
-				TimeSync = new TimeSync
-				{
-					TimeZone = "HK",
-					TimeServer = "time.google.com",
-					IsEnableSNTP = true,
-					IsSyncMasterTime = true
-				}
-			};
+			string requestID = data[0].ToString();
+			TerminalSettings terminalSettings = webSocketHandler.TerminalSettings;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "OnRequestTerminalSettings",
+				EventType = "OnGetTerminalSettings",
 				Data = new object[2]
 			};
 			webSocketMessage.Data[0] = terminalSettings;
 			webSocketMessage.Data[1] = requestID;
 
-			string jsonStr = System.Text.Json.JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-			return SendAsync(jsonStr);
-		}
-
-		public async Task CloseAsync()
-		{
-			await clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "don't know", CancellationToken.None);
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			await SendAsync(jsonStr);
 		}
 	}
 }

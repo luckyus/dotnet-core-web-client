@@ -9,31 +9,31 @@ namespace dotnet_core_web_client.Models
 	public class TerminalSettings
 	{
 		[JsonPropertyName("terminalId")]
-		public string TerminalId { get; set; }
+		public string TerminalId { get; set; } = "iGuard540";
 		[JsonPropertyName("description")]
-		public string Description { get; set; }
+		public string Description { get; set; } = "My iGuardExpress 540 Machine";
 		[JsonPropertyName("language")]
-		public string Language { get; set; }
-		[JsonPropertyName("server")]
-		public string Server { get; set; }
-		[JsonPropertyName("photoServer")]
-		public string PhotoServer { get; set; }
+		public string Language { get; set; } = "en-us";
+		//[JsonPropertyName("server")]
+		//public string Server { get; set; } = "www.iguardpayroll.com";
+		//[JsonPropertyName("photoServer")]
+		//public string PhotoServer { get; set; } = "photo.iguardpayroll.com";
 		[JsonPropertyName("dateTimeFormat")]
-		public string DateTimeFormat { get; set; }
+		public string DateTimeFormat { get; set; } = "dd/mm/yy";
 		[JsonPropertyName("allowedOrigins")]
-		public string[] AllowedOrigins { get; set; }
+		public string[] AllowedOrigins { get; set; } = new string[] { "one", "two" };
 		[JsonPropertyName("cameraControl")]
-		public CameraControl CameraControl { get; set; }
+		public CameraControl CameraControl { get; set; } = new CameraControl();
 		[JsonPropertyName("smartCardControl")]
-		public SmartCardControl SmartCardControl { get; set; }
+		public SmartCardControl SmartCardControl { get; set; } = new SmartCardControl();
 		[JsonPropertyName("inOutControl")]
-		public InOutControl InOutControl { get; set; }
+		public InOutControl InOutControl { get; set; } = new InOutControl();
 		[JsonPropertyName("remoteDoorRelayControl")]
-		public RemoteDoorRelayControl RemoteDoorRelayControl { get; set; }
+		public RemoteDoorRelayControl RemoteDoorRelayControl { get; set; } = new RemoteDoorRelayControl();
 		[JsonPropertyName("dailyReboot")]
-		public DailyReboot DailyReboot { get; set; }
+		public DailyReboot DailyReboot { get; set; } = new DailyReboot();
 		[JsonPropertyName("timeSync")]
-		public TimeSync TimeSync { get; set; }
+		public TimeSync TimeSync { get; set; } = new TimeSync();
 	}
 
 	public enum CameraEnvironment
@@ -51,13 +51,13 @@ namespace dotnet_core_web_client.Models
 	public class CameraControl
 	{
 		[JsonPropertyName("enable")]
-		public bool Enable { get; set; }
+		public bool Enable { get; set; } = true;
 		[JsonPropertyName("resolution")]
-		public CameraResolution Resolution { get; set; }
+		public CameraResolution Resolution { get; set; } = CameraResolution.r640x480;
 		[JsonPropertyName("frameRate")]
-		public int FrameRate { get; set; }
+		public int FrameRate { get; set; } = 1;
 		[JsonPropertyName("environment")]
-		public CameraEnvironment Environment { get; set; }
+		public CameraEnvironment Environment { get; set; } = CameraEnvironment.Normal;
 	}
 
 	public enum SmartCardType
@@ -68,13 +68,13 @@ namespace dotnet_core_web_client.Models
 	public class SmartCardControl
 	{
 		[JsonPropertyName("isReadCardSNOnly")]
-		public bool IsReadCardSNOnly { get; set; }
+		public bool IsReadCardSNOnly { get; set; } = false;
 		[JsonPropertyName("acceptUnknownCard")]
-		public bool AcceptUnknownCard { get; set; }
+		public bool AcceptUnknownCard { get; set; } = false;
 		[JsonPropertyName("cardType")]
-		public SmartCardType CardType { get; set; }
+		public SmartCardType CardType { get; set; } = SmartCardType.OctopusOnly;
 		[JsonPropertyName("acceptUnregisteredCard")]
-		public bool AcceptUnregisteredCard { get; set; }
+		public bool AcceptUnregisteredCard { get; set; } = false;
 	}
 
 	public enum InOutStrategy
@@ -107,16 +107,23 @@ namespace dotnet_core_web_client.Models
 
 	public class InOutControl
 	{
+		// nullable for json's IgnoreNullValues (201106)
 		[JsonPropertyName("inOutStrategy")]
-		public InOutStrategy? DefaultInOut { get; set; }   // nullable for json's IgnoreNullValues (201106)
+		public InOutStrategy? DefaultInOut { get; set; } = InOutStrategy.SystemInOut;
 		[JsonPropertyName("isEnableFx")]
-		public bool[] IsEnableFx { get; set; }
+		public bool[] IsEnableFx { get; set; } = new bool[] { true, false, true, false };
 		[JsonPropertyName("inOutTrigger")]
-		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; }
+		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>()
+		{
+			["7:00"] = InOutStatus.IN,
+			["11:30"] = InOutStatus.OUT,
+			["12:30"] = InOutStatus.IN,
+			["16:30"] = InOutStatus.OUT
+		};
 		[JsonPropertyName("dailyResetAutoInOut")]
-		public bool DailyResetAutoInOut { get; set; }
+		public bool DailyResetAutoInOut { get; set; } = true;
 		[JsonPropertyName("dailyResetAutoInOutTime")]
-		public string DailyResetAutoInOutTime { get; set; }
+		public string DailyResetAutoInOutTime { get; set; } = "00:00";
 	}
 
 	public enum AccessRight
@@ -127,32 +134,32 @@ namespace dotnet_core_web_client.Models
 	public class RemoteDoorRelayControl
 	{
 		[JsonPropertyName("enabled")]
-		public bool Enabled { get; set; }
+		public bool Enabled { get; set; } = true;
 		[JsonPropertyName("id")]
-		public int Id { get; set; }
+		public int Id { get; set; } = 123;
 		[JsonPropertyName("delayTimer")]
-		public int DelayTimer { get; set; }
+		public int DelayTimer { get; set; } = 3000;
 		[JsonPropertyName("accessRight")]
-		public AccessRight AccessRight { get; set; }
+		public AccessRight AccessRight { get; set; } = AccessRight.System;
 	}
 
 	public class DailyReboot
 	{
 		[JsonPropertyName("enabled")]
-		public bool Enabled { get; set; }
+		public bool Enabled { get; set; } = true;
 		[JsonPropertyName("time")]
-		public string Time { get; set; }
+		public string Time { get; set; } = "02:00";
 	}
 
 	public class TimeSync
 	{
 		[JsonPropertyName("timeZone")]
-		public string TimeZone { get; set; }
+		public string TimeZone { get; set; } = "HK";
 		[JsonPropertyName("timeServer")]
-		public string TimeServer { get; set; }
+		public string TimeServer { get; set; } = "time.google.com";
 		[JsonPropertyName("isEnableSNTP")]
-		public bool IsEnableSNTP { get; set; }
+		public bool IsEnableSNTP { get; set; } = true;
 		[JsonPropertyName("isSyncMasterTime")]
-		public bool IsSyncMasterTime { get; set; }
+		public bool IsSyncMasterTime { get; set; } = true;
 	}
 }

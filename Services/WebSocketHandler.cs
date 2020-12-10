@@ -207,6 +207,7 @@ namespace dotnet_core_web_client.Services
 					if (clientWebSocketHandler != null) await clientWebSocketHandler.CloseAsync();
 				}
 			}
+
 			return;
 		}
 	}

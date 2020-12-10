@@ -90,6 +90,8 @@ namespace dotnet_core_web_client.Services
 							await webSocketHandler.SendAsync(jsonStr);
 						}
 
+						_ = clientWebSocket?.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+
 						await Task.Delay(5000);
 						continue;
 					}

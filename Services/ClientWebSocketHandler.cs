@@ -33,6 +33,10 @@ namespace dotnet_core_web_client.Services
 			var isConnected = false;
 			var reconnectCount = 0;
 
+			object[] data;
+			object jsonObj;
+			string jsonStr;
+
 			for (; ; )
 			{
 				// establish websocket connection with .net framework server (hub) (200827)
@@ -46,9 +50,9 @@ namespace dotnet_core_web_client.Services
 						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
 
 						// connected! acknowledge the browser (201021)
-						object[] data = { "Connected to iGuardPayroll!" };
-						var jsonObj = new { eventType = "onConnected", data };
-						var jsonStr = JsonSerializer.Serialize(jsonObj);
+						data = new object[] { "Connected to iGuardPayroll!" };
+						jsonObj = new { eventType = "onConnected", data };
+						jsonStr = JsonSerializer.Serialize(jsonObj);
 						await webSocketHandler.SendAsync(jsonStr);
 
 						// '{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"' + wsSerialNo.value + '","firmwareVersion":"7.0.0000","hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}';
@@ -71,32 +75,29 @@ namespace dotnet_core_web_client.Services
 
 						// ready to receive message (201201)
 						await ReceiveAsync();
+
+						break;
 					}
 					catch (Exception ex)
 					{
 						if (!isConnected && reconnectCount == 0)
 						{
-							object[] data = { ex.Message };
-							var jsonObj = new { eventType = "onError", data };
-							var jsonStr = JsonSerializer.Serialize(jsonObj);
+							data = new object[] { ex.Message };
+							jsonObj = new { eventType = "onError", data };
+							jsonStr = JsonSerializer.Serialize(jsonObj);
 							await webSocketHandler.SendAsync(jsonStr);
 						}
 
-						if (true)
-						{
-							object[] data = { "Reconnecting (" + ++reconnectCount + ")..." };
-							var jsonObj = new { eventType = "onReconnecting", data };
-							var jsonStr = JsonSerializer.Serialize(jsonObj);
-							await webSocketHandler.SendAsync(jsonStr);
-						}
-
-						_ = clientWebSocket?.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-
-						await Task.Delay(5000);
-						continue;
+						data = new object[] { "Reconnecting (" + ++reconnectCount + ")..." };
+						jsonObj = new { eventType = "onReconnecting", data };
+						jsonStr = JsonSerializer.Serialize(jsonObj);
+						await webSocketHandler.SendAsync(jsonStr);
 					}
+
+					_ = clientWebSocket?.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
 				}
-				break;
+
+				await Task.Delay(5000);
 			}
 		}
 
@@ -153,11 +154,12 @@ namespace dotnet_core_web_client.Services
 					using var reader = new StreamReader(ms, Encoding.UTF8);
 					var jsonStr = reader.ReadToEnd();
 
-					// just to acknowledge via webpage (201124)
-					_ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
-
 					// handle the request (201124)
 					var webSocketMessage = JsonSerializer.Deserialize<WebSocketMessage>(jsonStr);
+
+					// just to acknowledge via webpage (201124)
+					if (webSocketMessage.EventType == "heartBeat") _ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
+					else _ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
 
 					if (webSocketMessage.EventType == "getTerminalSettings")
 					{

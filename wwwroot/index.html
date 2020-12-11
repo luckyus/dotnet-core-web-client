@@ -46,6 +46,11 @@
             display: flex;
             justify-content: space-between;
         }
+        #ws-heartbeat {
+            margin-left: 10px;
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -53,6 +58,7 @@
         <div class="ws-title-container">
             <div class="ws-header">iGuardExpress 540</div>
             <div id="status"></div>
+            <div id="ws-heartbeat">HeartBeating</div>
         </div>
         <div class="flex-container">
             <div class="ws-enter-ip">
@@ -83,6 +89,7 @@
             const wsUl = document.getElementById("ws-ul");
             const wsConnectBtn = document.getElementById("ws-btn-connect");
             const wsClearBtn = document.getElementById("ws-btn-clear");
+            const wsHeartBeat = document.getElementById("ws-heartbeat");
 
             // get/set fake sn @localStorage (201105)
             wsSerialNo.value = window.localStorage.getItem("sn");
@@ -110,12 +117,18 @@
                         let obj;
                         try {
                             obj = JSON.parse(event.data);
+                            console.log("obj:", obj);
                             if (obj) {
                                 if (obj.eventType === 'onConnected') {
                                     wsAckMsg.innerHTML = obj.data[0];
-									wsUl.innerHTML = '';
+                                    wsUl.innerHTML = '';
                                 } else if (obj.eventType === 'onConnecting' || obj.eventType === 'onReconnecting') {
                                     wsAckMsg.innerHTML = obj.data[0];
+                                } else if (obj.eventType === 'heartBeat') {
+                                    wsHeartBeat.style.display = "block";
+                                    setTimeout(() => {
+										wsHeartBeat.style.display = "none"
+                                    }, 500);
                                 } else {
                                     wsUl.innerHTML += '<li>' + '<span class="ws-name">' + obj.eventType + '</span>' + ': ' + obj.data + '</li>';
                                     if (obj.eventType === 'onError') {

@@ -94,7 +94,10 @@ namespace dotnet_core_web_client.Services
 						await webSocketHandler.SendAsync(jsonStr);
 					}
 
-					_ = clientWebSocket?.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+					if (clientWebSocket != null && clientWebSocket.State != WebSocketState.Closed)
+					{
+						_ = clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+					}
 				}
 
 				await Task.Delay(5000);
@@ -181,16 +184,17 @@ namespace dotnet_core_web_client.Services
 		{
 			if (data == null || data[0] == null) return;
 
+			Random r = new Random();
+			await Task.Delay(r.Next(0, 200));
+
 			string requestID = data[0].ToString();
 			Network network = webSocketHandler.Network;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
 				EventType = "OnGetNetwork",
-				Data = new object[2]
+				Data = new object[] { network, requestID }
 			};
-			webSocketMessage.Data[0] = network;
-			webSocketMessage.Data[1] = requestID;
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
@@ -200,16 +204,17 @@ namespace dotnet_core_web_client.Services
 		{
 			if (data == null || data[0] == null) return;
 
+			Random r = new Random();
+			await Task.Delay(r.Next(0, 200));
+
 			string requestID = data[0].ToString();
 			Terminal terminal = webSocketHandler.Terminal;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
 				EventType = "OnGetTerminal",
-				Data = new object[2]
+				Data = new object[] { terminal, requestID }
 			};
-			webSocketMessage.Data[0] = terminal;
-			webSocketMessage.Data[1] = requestID;
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
@@ -219,16 +224,17 @@ namespace dotnet_core_web_client.Services
 		{
 			if (data == null || data[0] == null) return;
 
+			Random r = new Random();
+			await Task.Delay(r.Next(0, 200));
+
 			string requestID = data[0].ToString();
 			TerminalSettings terminalSettings = webSocketHandler.TerminalSettings;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
 				EventType = "OnGetTerminalSettings",
-				Data = new object[2]
+				Data = new object[] { terminalSettings, requestID }
 			};
-			webSocketMessage.Data[0] = terminalSettings;
-			webSocketMessage.Data[1] = requestID;
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);

@@ -47,7 +47,7 @@ namespace dotnet_core_web_client.Services
 					try
 					{
 						string queryString = $"sn={sn}";
-						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
+						await clientWebSocket.ConnectAsync(new Uri("wss://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
 
 						// connected! acknowledge the browser (201021)
 						data = new object[] { "Connected to iGuardPayroll!" };
@@ -164,20 +164,35 @@ namespace dotnet_core_web_client.Services
 					if (webSocketMessage.EventType == "heartBeat") _ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
 					else _ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
 
-					if (webSocketMessage.EventType == "getTerminalSettings")
+					_ = webSocketMessage.EventType switch
 					{
-						_ = OnGetTerminalSettings(webSocketMessage.Data);
-					}
-					else if (webSocketMessage.EventType == "getTerminal")
-					{
-						_ = OnGetTerminal(webSocketMessage.Data);
-					}
-					else if (webSocketMessage.EventType == "getNetwork")
-					{
-						_ = OnGetNetwork(webSocketMessage.Data);
-					}
+						"getTerminalSettings" => OnGetTerminalSettings(webSocketMessage.Data),
+						"getTerminal" => OnGetTerminal(webSocketMessage.Data),
+						"getNetwork" => OnGetNetwork(webSocketMessage.Data),
+						"setTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data),
+						_ => OnDefault(webSocketMessage.Data),
+					};
 				}
 			}
+		}
+
+		private async Task OnSetTerminalSettings(object[] data)
+		{
+			if (data == null || data.Length != 2) return;
+
+			string message = data[0].ToString();
+			string requestID = data[1].ToString();
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "OnAcknowledge",
+				Data = new object[] { requestID }
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			await SendAsync(jsonStr);
+
+			webSocketHandler.TerminalSettings = JsonSerializer.Deserialize<TerminalSettings>(message);
 		}
 
 		private async Task OnGetNetwork(object[] data)
@@ -238,6 +253,11 @@ namespace dotnet_core_web_client.Services
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
+		}
+
+		private async Task OnDefault(object[] data)
+		{
+			await Task.CompletedTask;
 		}
 	}
 }

@@ -94,15 +94,18 @@
 			const wsClearBtn = document.getElementById("ws-btn-clear");
 			const wsHeartBeat = document.querySelectorAll(".ws-container .fa-heart");
 
+			var storageSN;
+			var storageIpPort;
+
 			// get/set fake sn @localStorage (201105)
-			wsSerialNo.value = window.localStorage.getItem("sn");
+			storageSN = wsSerialNo.value = window.localStorage.getItem("sn");
 			if (!wsSerialNo.value) {
 				wsSerialNo.value = "7100-" + Math.floor(Math.random() * (8999) + 1000) + "-" + Math.floor(Math.random() * (8999) + 1000);
 				window.localStorage.setItem("sn", wsSerialNo.value);
 			}
 
 			// ditto (201105)
-			wsIpPort.value = window.localStorage.getItem("ipPort");
+			storageIpPort = wsIpPort.value = window.localStorage.getItem("ipPort");
 			if (!wsIpPort.value) {
 				wsIpPort.value = "localhost:50595";
 				window.localStorage.setItem("ipPort", wsIpPort.value);
@@ -159,7 +162,14 @@
 
 			wsConnectBtn.onclick = () => {
 				wsConnectBtn.disabled = true;
-				window.localStorage.setItem("ipPort", wsIpPort.value);
+				if (storageIpPort !== wsIpPort.value) {
+					storageIpPort = wsIpPort.value;
+					window.localStorage.setItem("ipPort", wsIpPort.value);
+				}
+				if (storageSN !== wsSerialNo.value) {
+					storageSN = wsSerialNo.value
+					window.localStorage.setItem("sn", wsSerialNo.value);
+				}
 				const sendObj = {
 					eventType: "onInit",
 					data: [{

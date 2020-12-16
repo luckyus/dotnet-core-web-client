@@ -10,7 +10,7 @@
 *.userosscache
 *.sln.docstates
 *.config
-DBase/
+[Dd][Bb]ase/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

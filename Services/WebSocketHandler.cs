@@ -124,7 +124,15 @@ namespace dotnet_core_web_client.Services
 		private void SaveTerminal()
 		{
 			string jsonStr = JsonSerializer.Serialize<Terminal>(Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
-			File.WriteAllText(terminalConfigPath, jsonStr);
+			try
+			{
+				File.WriteAllText(terminalConfigPath, jsonStr);
+			}
+			catch (Exception ex)
+			{
+				_ = ex.Message;
+			}
+			
 		}
 
 		public async Task SendAsync(string message)

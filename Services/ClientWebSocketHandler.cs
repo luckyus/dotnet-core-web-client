@@ -47,7 +47,7 @@ namespace dotnet_core_web_client.Services
 					try
 					{
 						string queryString = $"sn={sn}";
-						await clientWebSocket.ConnectAsync(new Uri("wss://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
+						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
 
 						// connected! acknowledge the browser (201021)
 						data = new object[] { "Connected to iGuardPayroll!" };

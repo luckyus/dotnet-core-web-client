@@ -126,6 +126,7 @@ namespace dotnet_core_web_client.Services
 			string jsonStr = JsonSerializer.Serialize<Terminal>(Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
 			try
 			{
+				File.Delete(terminalConfigPath);
 				File.WriteAllText(terminalConfigPath, jsonStr);
 			}
 			catch (Exception ex)

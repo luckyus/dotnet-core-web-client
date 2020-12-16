@@ -20,9 +20,9 @@ namespace dotnet_core_web_client.Services
 	{
 		protected WebSocket webSocket;
 		protected string iGuardPayrollIpPort;
-		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase" + "/terminal.config";
-		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase" + "/terminalSettings.config";
-		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase" + "/network.config";
+		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminal.config";
+		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminalSettings.config";
+		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase/network.config";
 
 		public WebSocketHandler() 
 		{

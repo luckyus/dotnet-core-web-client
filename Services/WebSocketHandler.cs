@@ -44,7 +44,7 @@ namespace dotnet_core_web_client.Services
 					{
 						_TerminalSettings = new TerminalSettings();
 						string jsonStr = JsonSerializer.Serialize<TerminalSettings>(_TerminalSettings, new JsonSerializerOptions { IgnoreNullValues = true });
-						File.WriteAllText(terminalConfigPath, jsonStr);
+						File.WriteAllText(terminalSettingsConfigPath, jsonStr);
 					}
 
 				}

@@ -86,6 +86,8 @@ namespace dotnet_core_web_client.Services
 							jsonObj = new { eventType = "onError", data };
 							jsonStr = JsonSerializer.Serialize(jsonObj);
 							await webSocketHandler.SendAsync(jsonStr);
+
+							break;
 						}
 
 						data = new object[] { "Reconnecting (" + ++reconnectCount + ")..." };

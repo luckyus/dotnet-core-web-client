@@ -127,6 +127,9 @@
 									wsUl.innerHTML = '';
 								} else if (obj.eventType === 'onConnecting' || obj.eventType === 'onReconnecting') {
 									wsAckMsg.innerHTML = obj.data[0];
+								} else if (obj.eventType === 'onError') {
+									wsAckMsg.innerHTML = obj.data[0];
+									wsConnectBtn.disabled = false;								
 								} else if (obj.eventType === 'heartBeat') {
 									wsHeartBeat[0].style.display = "block";
 									setTimeout(() => {
@@ -134,9 +137,6 @@
 									}, 400);
 								} else {
 									wsUl.innerHTML += '<li>' + '<span class="ws-name">' + obj.eventType + '</span>' + ': ' + obj.data + '</li>';
-									if (obj.eventType === 'onError') {
-										wsConnectBtn.disabled = false;
-									}
 								}
 							}
 						} catch {

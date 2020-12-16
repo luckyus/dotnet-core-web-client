@@ -111,7 +111,7 @@
 			const connectServer = async () => {
 				try {
 					wsStatus.innerHTML = "Connecting...";
-					const wsUrl = "ws://" + location.host;
+					const wsUrl = "wss://" + location.host;
 					webSocket = new WebSocket(wsUrl);
 					webSocket.onopen = function (event) {
 						wsStatus.innerHTML = "ONLINE!";

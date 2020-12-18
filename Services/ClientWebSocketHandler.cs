@@ -74,9 +74,8 @@ namespace dotnet_core_web_client.Services
 						reconnectCount = 0;
 
 						// ready to receive message (201201)
+						// - supposed to be infinite loop, unless iGuardPayroll drops the connection (201218)
 						await ReceiveAsync();
-
-						break;
 					}
 					catch (Exception ex)
 					{
@@ -86,19 +85,19 @@ namespace dotnet_core_web_client.Services
 							jsonObj = new { eventType = "onError", data };
 							jsonStr = JsonSerializer.Serialize(jsonObj);
 							await webSocketHandler.SendAsync(jsonStr);
-
 							break;
 						}
-
-						data = new object[] { "Reconnecting (" + ++reconnectCount + ")..." };
-						jsonObj = new { eventType = "onReconnecting", data };
-						jsonStr = JsonSerializer.Serialize(jsonObj);
-						await webSocketHandler.SendAsync(jsonStr);
 					}
+
+					// reconnect (201218)
+					data = new object[] { "Reconnecting (" + ++reconnectCount + ")..." };
+					jsonObj = new { eventType = "onReconnecting", data };
+					jsonStr = JsonSerializer.Serialize(jsonObj);
+					await webSocketHandler.SendAsync(jsonStr);
 
 					if (clientWebSocket != null && clientWebSocket.State != WebSocketState.Closed)
 					{
-						_ = clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+						_ = clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
 					}
 				}
 
@@ -108,12 +107,7 @@ namespace dotnet_core_web_client.Services
 
 		public async Task CloseAsync()
 		{
-			if (clientWebSocket != null)
-			{
-				// await clientWebSocket?.CloseAsync(WebSocketCloseStatus.NormalClosure, "don't know", CancellationToken.None);
-				await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "don't know don't care", CancellationToken.None);
-			}
-
+			await clientWebSocket?.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "don't know don't care", CancellationToken.None);
 		}
 
 		public async Task SendAsync(string jsonStr)
@@ -174,6 +168,10 @@ namespace dotnet_core_web_client.Services
 						"setTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data),
 						_ => OnDefault(webSocketMessage.Data),
 					};
+				}
+				else if (result.MessageType == WebSocketMessageType.Close)
+				{
+					await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, "", CancellationToken.None);
 				}
 			}
 		}
@@ -257,7 +255,7 @@ namespace dotnet_core_web_client.Services
 			await SendAsync(jsonStr);
 		}
 
-		private async Task OnDefault(object[] data)
+		private static async Task OnDefault(object[] data)
 		{
 			await Task.CompletedTask;
 		}

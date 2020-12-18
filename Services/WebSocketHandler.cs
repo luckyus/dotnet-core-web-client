@@ -20,13 +20,11 @@ namespace dotnet_core_web_client.Services
 	{
 		protected WebSocket webSocket;
 		protected string iGuardPayrollIpPort;
-		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminal.config";
-		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminalSettings.config";
-		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase/network.config";
+		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminal.json";
+		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminalSettings.json";
+		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase/network.json";
 
-		public WebSocketHandler() 
-		{
-		}
+		public WebSocketHandler() { }
 
 		private TerminalSettings _TerminalSettings = null;
 		public TerminalSettings TerminalSettings
@@ -126,14 +124,12 @@ namespace dotnet_core_web_client.Services
 			string jsonStr = JsonSerializer.Serialize<Terminal>(Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
 			try
 			{
-				File.Delete(terminalConfigPath);
 				File.WriteAllText(terminalConfigPath, jsonStr);
 			}
 			catch (Exception ex)
 			{
 				_ = ex.Message;
 			}
-			
 		}
 
 		public async Task SendAsync(string message)

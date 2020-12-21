@@ -18,6 +18,7 @@ namespace dotnet_core_web_client.Services
 		protected ClientWebSocket clientWebSocket;
 		protected string sn;
 		protected string ipPort;
+		protected bool isToReconnect = true;
 
 		public ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort)
 		{
@@ -55,17 +56,12 @@ namespace dotnet_core_web_client.Services
 						jsonStr = JsonSerializer.Serialize(jsonObj);
 						await webSocketHandler.SendAsync(jsonStr);
 
-						// '{"eventType":"OnDeviceConnected","data":[[{"terminalId":"iGuard","description":"en-Us","serialNo":"' + wsSerialNo.value + '","firmwareVersion":"7.0.0000","hasRS485":false,"masterServer":"192.168.0.230","photoServer":"photo.iguardpayroll.com","supportedCardType":null,"regDate":"2020-10-27T14:10:01.2825229+08:00","environment":null}], 342001083]}';
-
 						// send terminal details to iGuardPayroll (201201)
 						WebSocketMessage webSocketMessage = new WebSocketMessage
 						{
 							EventType = "OnDeviceConnected",
-							Data = new object[2]
+							Data = new object[] { new object[] { webSocketHandler.Terminal }, 342001083 }
 						};
-
-						webSocketMessage.Data[0] = new object[] { webSocketHandler.Terminal };
-						webSocketMessage.Data[1] = 342001083;
 
 						string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 						_ = SendAsync(jsonString);
@@ -89,6 +85,8 @@ namespace dotnet_core_web_client.Services
 						}
 					}
 
+					if (!isToReconnect) break;
+
 					// reconnect (201218)
 					data = new object[] { "Reconnecting (" + ++reconnectCount + ")..." };
 					jsonObj = new { eventType = "onReconnecting", data };
@@ -107,6 +105,8 @@ namespace dotnet_core_web_client.Services
 
 		public async Task CloseAsync()
 		{
+			// no need to further reconnect because it is closed on purpose (eg browser refresh) (201219)
+			isToReconnect = false;
 			await clientWebSocket?.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "don't know don't care", CancellationToken.None);
 		}
 

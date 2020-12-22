@@ -44,6 +44,7 @@ namespace dotnet_core_web_client.Services
 				using (clientWebSocket = new ClientWebSocket())
 				{
 					clientWebSocket.Options.UseDefaultCredentials = true;
+					clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
 
 					try
 					{

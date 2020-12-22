@@ -51,7 +51,10 @@ namespace dotnet_core_web_client
 
 			app.UseAuthorization();
 
-			app.UseWebSockets();
+			app.UseWebSockets(new WebSocketOptions()
+			{
+				KeepAliveInterval = TimeSpan.FromSeconds(10)
+			});
 
 			app.UseMyWebSocketHandler();
 

@@ -85,7 +85,7 @@ namespace dotnet_core_web_client.Services
 						}
 					}
 
-					// testing push (201222)
+					// eg set to false in CloseAsync() below when browser refresh (201222)
 					if (!isToReconnect) break;
 
 					// reconnect (201218)

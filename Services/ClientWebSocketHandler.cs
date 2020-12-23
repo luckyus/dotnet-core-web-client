@@ -44,6 +44,10 @@ namespace dotnet_core_web_client.Services
 				using (clientWebSocket = new ClientWebSocket())
 				{
 					clientWebSocket.Options.UseDefaultCredentials = true;
+
+					// it doesn't seem work when working with IIS (iGuardPayroll uses IIS) (201222)
+					// - it works at the client side, ie, ReceiveAsync() will throw exception, but the iGuardPayroll
+					//   won't detect client offline, might need to continue to use manual ping (201222)
 					clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
 
 					try

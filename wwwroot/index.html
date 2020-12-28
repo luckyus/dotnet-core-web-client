@@ -13,7 +13,7 @@
 		}
 
 			.ws-container div {
-				margin-top: 10px;
+				margin-top: 5px;
 			}
 
 			.ws-container .fa-heart {
@@ -52,28 +52,49 @@
 		.flex-container {
 			display: flex;
 			justify-content: space-between;
+			align-items: baseline;
 		}
 	</style>
 	<script src="https://kit.fontawesome.com/bf1dd6efb7.js" crossorigin="anonymous"></script>
 </head>
 <body>
 	<div class="ws-container">
-		<div class="ws-title-container">
-			<div class="ws-header">iGuardExpress 540</div>
-			<div id="status"></div>
-			<i class="fas fa-heart"></i>
+		<div class="flex-container">
+			<div class="ws-title-container">
+				<div class="ws-header">iGuardExpress 540</div>
+				<div id="status"></div>
+				<i class="fas fa-heart"></i>
+			</div>
+			<div>
+				<span id="ws-ackmsg"></span>
+			</div>
 		</div>
 		<div class="flex-container">
-			<div class="ws-enter-ip">
+			<div>
 				<label for="ws-serial-no">Serial No.:</label>
 				<input type="text" id="ws-serial-no" />&nbsp;&nbsp;
-				<label for="ws-ip-port">iGuardPayroll IP:Port:</label>
+				<label for="ws-ip-port">iGuardPayroll:</label>
 				<input type="text" id="ws-ip-port" />
 				<input type="button" id="ws-btn-connect" value="Connect" />
-				<span id="ws-ackmsg"></span>
 			</div>
 			<div>
 				<input type="button" id="ws-btn-clear" value="Clear" />
+			</div>
+		</div>
+		<div class="flex-container">
+			<div>
+				<label for="ws-accesslog-employee-id">ID:</label>
+				<input type="text" id="ws-accesslog-employee-id" oninput="this.value = this.value.toUpperCase()" />&nbsp;&nbsp;
+				<label for="in-out-status">Status:</label>
+				<select name="in-out-status" id="in-out-status">
+					<option value="0">In</option>
+					<option value="1">Out</option>
+					<option value="2">F1</option>
+					<option value="3">F2</option>
+					<option value="4">F3</option>
+					<option value="5">F4</option>
+				</select>
+				<input type="button" id="btn-accesslog" value="AccessLog" />
 			</div>
 		</div>
 		<div id="ws-discussion">
@@ -82,9 +103,8 @@
 	</div>
 	<script type="text/javascript">
 		window.onload = function () {
-
-			// let wsUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/api/websocket";
 			let webSocket;
+
 			const wsStatus = document.getElementById("status");
 			const wsSerialNo = document.getElementById("ws-serial-no");
 			const wsIpPort = document.getElementById("ws-ip-port");
@@ -93,6 +113,9 @@
 			const wsConnectBtn = document.getElementById("ws-btn-connect");
 			const wsClearBtn = document.getElementById("ws-btn-clear");
 			const wsHeartBeat = document.querySelectorAll(".ws-container .fa-heart");
+			const accessLogEmployeeID = document.querySelector("#ws-accesslog-employee-id");
+			const accessLogStatus = document.querySelector("#in-out-status");
+			const accessLogButton = document.querySelector("#btn-accesslog");
 
 			var storageSN;
 			var storageIpPort;
@@ -132,7 +155,7 @@
 									wsAckMsg.innerHTML = obj.data[0];
 								} else if (obj.eventType === 'onError') {
 									wsAckMsg.innerHTML = obj.data[0];
-									wsConnectBtn.disabled = false;								
+									wsConnectBtn.disabled = false;
 								} else if (obj.eventType === 'heartBeat') {
 									wsHeartBeat[0].style.display = "block";
 									setTimeout(() => {
@@ -170,19 +193,31 @@
 					storageSN = wsSerialNo.value
 					window.localStorage.setItem("sn", wsSerialNo.value);
 				}
-				const sendObj = {
+				const jsonObj = {
 					eventType: "onInit",
 					data: [{
 						SN: wsSerialNo.value,
 						IpPort: wsIpPort.value
 					}]
 				}
-				const jsonStr = JSON.stringify(sendObj);
+				const jsonStr = JSON.stringify(jsonObj);
 				webSocket.send(jsonStr);
 			}
 
 			wsClearBtn.onclick = () => {
 				wsUl.innerHTML = "";
+			}
+
+			accessLogButton.onclick = () => {
+				const jsonObj = {
+					eventType: "accessLog",
+					data: [{
+						id: accessLogEmployeeID.value,
+						status: accessLogStatus.value
+					}]
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
 			}
 		}
 	</script>

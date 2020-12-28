@@ -19,6 +19,7 @@ namespace dotnet_core_web_client.Services
 	public class WebSocketHandler : IWebSocketHandler
 	{
 		protected WebSocket webSocket;
+		protected ClientWebSocketHandler clientWebSocketHandler = null;
 		protected string iGuardPayrollIpPort;
 		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminal.json";
 		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminalSettings.json";
@@ -144,7 +145,6 @@ namespace dotnet_core_web_client.Services
 
 		public async Task ReceiveAsync()
 		{
-			ClientWebSocketHandler clientWebSocketHandler = null;
 			var receiveBuffer = new ArraySegment<Byte>(new byte[100]);
 
 			while (webSocket.State == WebSocketState.Open)
@@ -192,6 +192,10 @@ namespace dotnet_core_web_client.Services
 							// connect to iGuardPayroll (201201)
 							clientWebSocketHandler = new ClientWebSocketHandler(this, sn, ipPort);
 						}
+						else if (eventType == "accessLog")
+						{
+							await OnAccessLog(jsonObj.Data);
+						}
 						else
 						{
 							await clientWebSocketHandler.SendAsync(jsonStr);
@@ -214,6 +218,46 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		/*
+			"{\"event\":\"OnAccesslog\",\"data\":[\"ed9c29cd-6b32-4420-aae4-2765d58c4622\",{\"id\":\"b82bde0f-43d7-4b82-962b-10bd181a7d1c\",\"logTime\":\"2020-10-28T15:51:26.071\",\"terminalID\":\"iGuard\",\"terminalSN\":\"5400-5400-0540\",\"jobCode\":0,\"status\":\"UNKNOWN\",\"bodyTemperature\":31.7,\"dwStatus\":6,\"smartCardSN\":1879092480,\"thumbnail\":\"\",\"photoId\":\"cbda9a12-ec3d-11ea-a13e-001d431004a8\",\"accessPhoto\":null,\"byWhat\":\"S\"}]}"		
+		*/
+
+		private async Task OnAccessLog(object[] data)
+		{
+			var random = new Random();
+			var requestId = Guid.NewGuid().ToString();
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var id = jsonElement?.GetProperty("id").GetString();
+			var status = jsonElement?.GetProperty("status").GetString();
+
+			object accesslog = new
+			{
+				id,
+				status,
+				logTime = DateTime.Now.ToString(),
+				terminalID = TerminalSettings.TerminalId,
+				terminalSN = Terminal.SN,
+				jobCode = 0,
+				bodyTemperature = random.Next(365, 400) / 10,
+				dwStatus = 6,
+				smartCardSN = 1879092480,
+				thumbnail = 0,
+				photoId = Guid.NewGuid().ToString(),
+				accessPhoto = 0,
+				byWhat = "S"
+			};
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "OnAccesslog",
+				Data = new Object[] { accesslog, requestId }
+			};
+
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage);
+			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 	}
 }

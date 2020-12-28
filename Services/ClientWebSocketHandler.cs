@@ -172,6 +172,8 @@ namespace dotnet_core_web_client.Services
 						"getTerminal" => OnGetTerminal(webSocketMessage.Data),
 						"getNetwork" => OnGetNetwork(webSocketMessage.Data),
 						"setTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data),
+						"getLogFile" => OnGetLogFile(webSocketMessage.Data),
+						"reboot" => OnReboot(webSocketMessage.Data),
 						_ => OnDefault(webSocketMessage.Data),
 					};
 				}
@@ -182,16 +184,53 @@ namespace dotnet_core_web_client.Services
 			}
 		}
 
+		private async Task OnReboot(object[] data)
+		{
+			if (data == null || data[0] == null) return;
+
+			string requestID = data[0].ToString();
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "acknowledge",
+				Data = new object[] { requestID }
+			};
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			await SendAsync(jsonStr);
+
+			// simulate machine reboot time (201228)
+			await Task.Delay(3000);
+			await SendAsync(jsonStr);
+		}
+
+		private async Task OnGetLogFile(object[] data)
+		{
+			if (data == null || data.Length < 2) return;
+
+			string filename = data[0].ToString();
+			string requestID = data[1].ToString();
+
+			byte[] file = File.Exists(filename) ? File.ReadAllBytes(filename) : Array.Empty<byte>();
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "onGetLogFile",
+				Data = new object[] { file, requestID }
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			await SendAsync(jsonStr);
+		}
+
 		private async Task OnSetTerminalSettings(object[] data)
 		{
-			if (data == null || data.Length != 2) return;
+			if (data == null || data.Length < 2) return;
 
 			string message = data[0].ToString();
 			string requestID = data[1].ToString();
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "OnAcknowledge",
+				EventType = "acknowledge",
 				Data = new object[] { requestID }
 			};
 
@@ -213,7 +252,7 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "OnGetNetwork",
+				EventType = "onGetNetwork",
 				Data = new object[] { network, requestID }
 			};
 
@@ -233,7 +272,7 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "OnGetTerminal",
+				EventType = "onGetTerminal",
 				Data = new object[] { terminal, requestID }
 			};
 
@@ -253,7 +292,7 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "OnGetTerminalSettings",
+				EventType = "onGetTerminalSettings",
 				Data = new object[] { terminalSettings, requestID }
 			};
 
@@ -261,9 +300,22 @@ namespace dotnet_core_web_client.Services
 			await SendAsync(jsonStr);
 		}
 
-		private static async Task OnDefault(object[] data)
+		private async Task OnDefault(object[] data)
 		{
-			await Task.CompletedTask;
+			if (data == null || data[0] == null) return;
+
+			try
+			{
+				string requestID = data[0].ToString();
+				WebSocketMessage webSocketMessage = new WebSocketMessage
+				{
+					EventType = "acknowledge",
+					Data = new object[] { requestID }
+				};
+				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+				await SendAsync(jsonStr);
+			}
+			catch { /* don't care */ }
 		}
 	}
 }

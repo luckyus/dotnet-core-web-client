@@ -83,8 +83,15 @@
 		</div>
 		<div class="flex-container">
 			<div>
-				<label for="ws-accesslog-employee-id">ID:</label>
-				<input type="text" id="ws-accesslog-employee-id" oninput="this.value = this.value.toUpperCase()" />&nbsp;&nbsp;
+				<label for="ws-accesslog-card-sn">Card SN:</label>
+				<!--<input type="text" id="ws-accesslog-card-sn" value="" oninput="this.value = this.value.toUpperCase()" />&nbsp;&nbsp;-->
+				<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn">
+					<option value="1879092480"></option>
+					<option value="1746856734"></option>
+					<option value="1875647873"></option>
+					<option value="1789640835"></option>
+					<option value="1809586741"></option>
+				</select>
 				<label for="in-out-status">Status:</label>
 				<select name="in-out-status" id="in-out-status">
 					<option value="0">In</option>
@@ -113,7 +120,7 @@
 			const wsConnectBtn = document.getElementById("ws-btn-connect");
 			const wsClearBtn = document.getElementById("ws-btn-clear");
 			const wsHeartBeat = document.querySelectorAll(".ws-container .fa-heart");
-			const accessLogEmployeeID = document.querySelector("#ws-accesslog-employee-id");
+			const accessLogCardSN = document.querySelector("#ws-accesslog-card-sn");
 			const accessLogStatus = document.querySelector("#in-out-status");
 			const accessLogButton = document.querySelector("#btn-accesslog");
 
@@ -133,6 +140,12 @@
 				wsIpPort.value = "localhost:50595";
 				window.localStorage.setItem("ipPort", wsIpPort.value);
 			}
+
+			// setup accessLog options' innerHTML (based on value) (210105)
+			const cardSNOptions = accessLogCardSN.options;
+			Array.from(cardSNOptions).forEach((option) => {
+				option.innerHTML = "0x" + parseInt(option.value, 10).toString(16).toUpperCase().padStart(10, '0');
+			});
 
 			const connectServer = async () => {
 				try {
@@ -212,7 +225,7 @@
 				const jsonObj = {
 					eventType: "accessLog",
 					data: [{
-						id: accessLogEmployeeID.value,
+						cardSN: accessLogCardSN.value,
 						status: accessLogStatus.value
 					}]
 				}

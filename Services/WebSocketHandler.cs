@@ -230,24 +230,23 @@ namespace dotnet_core_web_client.Services
 			var requestId = Guid.NewGuid().ToString();
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
-			var id = jsonElement?.GetProperty("id").GetString();
+			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 			var status = jsonElement?.GetProperty("status").GetString();
 
-			object accesslog = new
+			AccessLog accesslog = new AccessLog
 			{
-				id,
-				status,
-				logTime = DateTime.Now.ToString(),
-				terminalID = TerminalSettings.TerminalId,
-				terminalSN = Terminal.SN,
-				jobCode = 0,
-				bodyTemperature = random.Next(365, 400) / 10,
-				dwStatus = 6,
-				smartCardSN = 1879092480,
-				thumbnail = 0,
-				photoId = Guid.NewGuid().ToString(),
-				accessPhoto = 0,
-				byWhat = "S"
+				Status = status,
+				LogTime = DateTime.Now,
+				TerminalID = TerminalSettings.TerminalId,
+				TerminalSN = Terminal.SN,
+				JobCode = 0,
+				BodyTemperature = (float)Math.Round(((random.NextDouble() * 4) + 36), 2),
+				DwStatus = 6,
+				SmartCardSN = ulong.Parse(cardSN),
+				Thumbnail = null,
+				PhotoId = Guid.NewGuid(),
+				AccessPhoto = null,
+				ByWhat = "S"
 			};
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage

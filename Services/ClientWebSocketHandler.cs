@@ -61,11 +61,14 @@ namespace dotnet_core_web_client.Services
 						jsonStr = JsonSerializer.Serialize(jsonObj);
 						await webSocketHandler.SendAsync(jsonStr);
 
+						int timeStamp = 342001083;
+
 						// send terminal details to iGuardPayroll (201201)
+						// - finally marcus agrees to send everything to me (210104)
 						WebSocketMessage webSocketMessage = new WebSocketMessage
 						{
 							EventType = "OnDeviceConnected",
-							Data = new object[] { new object[] { webSocketHandler.Terminal }, 342001083 }
+							Data = new object[] { webSocketHandler.Terminal, webSocketHandler.TerminalSettings, webSocketHandler.Network, timeStamp }
 						};
 
 						string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });

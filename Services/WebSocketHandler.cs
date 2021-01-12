@@ -194,7 +194,11 @@ namespace dotnet_core_web_client.Services
 						}
 						else if (eventType == "accessLog")
 						{
-							await OnAccessLog(jsonObj.Data);
+							await AccessLog(jsonObj.Data);
+						}
+						else if (eventType == "accessLogs")
+						{
+							await AccessLogs(jsonObj.Data);
 						}
 						else
 						{
@@ -224,14 +228,22 @@ namespace dotnet_core_web_client.Services
 			"{\"event\":\"OnAccesslog\",\"data\":[\"ed9c29cd-6b32-4420-aae4-2765d58c4622\",{\"id\":\"b82bde0f-43d7-4b82-962b-10bd181a7d1c\",\"logTime\":\"2020-10-28T15:51:26.071\",\"terminalID\":\"iGuard\",\"terminalSN\":\"5400-5400-0540\",\"jobCode\":0,\"status\":\"UNKNOWN\",\"bodyTemperature\":31.7,\"dwStatus\":6,\"smartCardSN\":1879092480,\"thumbnail\":\"\",\"photoId\":\"cbda9a12-ec3d-11ea-a13e-001d431004a8\",\"accessPhoto\":null,\"byWhat\":\"S\"}]}"		
 		*/
 
-		private async Task OnAccessLog(object[] data)
+		private async Task AccessLog(object[] data)
 		{
 			var random = new Random();
-			var requestId = Guid.NewGuid().ToString();
+			var requestId = Guid.NewGuid();
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 			var status = jsonElement?.GetProperty("status").GetString();
+
+			int dwStatus = 0;
+			if (status == "In") dwStatus = (int)InOutStatus.IN;
+			else if (status == "Out") dwStatus = (int)InOutStatus.OUT;
+			else if (status == "F1") dwStatus = (int)InOutStatus.F1;
+			else if (status == "F2") dwStatus = (int)InOutStatus.F2;
+			else if (status == "F3") dwStatus = (int)InOutStatus.F3;
+			else if (status == "F4") dwStatus = (int)InOutStatus.F4;
 
 			AccessLog accesslog = new AccessLog
 			{
@@ -241,7 +253,7 @@ namespace dotnet_core_web_client.Services
 				TerminalSN = Terminal.SN,
 				JobCode = 0,
 				BodyTemperature = (float)Math.Round(((random.NextDouble() * 4) + 36), 2),
-				DwStatus = 6,
+				DwStatus = dwStatus,
 				SmartCardSN = ulong.Parse(cardSN),
 				Thumbnail = null,
 				PhotoId = Guid.NewGuid(),
@@ -249,10 +261,61 @@ namespace dotnet_core_web_client.Services
 				ByWhat = "S"
 			};
 
+			List<AccessLog> accessLogs = new List<AccessLog> { accesslog };
+
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "OnAccesslog",
-				Data = new Object[] { accesslog, requestId }
+				EventType = "Accesslogs",
+				Data = new Object[] { accessLogs },
+				RequestId = requestId,
+			};
+
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage);
+			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+		}
+
+		private async Task AccessLogs(object[] data)
+		{
+			var random = new Random();
+			var requestId = Guid.NewGuid();
+			List<AccessLog> accessLogs = new List<AccessLog>();
+
+			foreach (var item in data)
+			{
+				var jsonElement = JsonSerializer.Deserialize<JsonElement>(item.ToString()) as JsonElement?;
+				var cardSN = jsonElement?.GetProperty("cardSN").GetString();
+				var status = jsonElement?.GetProperty("status").GetString();
+
+				int dwStatus = 0;
+				if (status == "In") dwStatus = (int)InOutStatus.IN;
+				else if (status == "Out") dwStatus = (int)InOutStatus.OUT;
+				else if (status == "F1") dwStatus = (int)InOutStatus.F1;
+				else if (status == "F2") dwStatus = (int)InOutStatus.F2;
+				else if (status == "F3") dwStatus = (int)InOutStatus.F3;
+				else if (status == "F4") dwStatus = (int)InOutStatus.F4;
+
+				accessLogs.Add(new AccessLog
+				{
+					Status = status,
+					LogTime = DateTime.Now,
+					TerminalID = TerminalSettings.TerminalId,
+					TerminalSN = Terminal.SN,
+					JobCode = 0,
+					BodyTemperature = (float)Math.Round(((random.NextDouble() * 4) + 36), 2),
+					DwStatus = dwStatus,
+					SmartCardSN = ulong.Parse(cardSN),
+					Thumbnail = null,
+					PhotoId = Guid.NewGuid(),
+					AccessPhoto = null,
+					ByWhat = "S"
+				});
+			}
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "Accesslogs",
+				Data = new Object[] { accessLogs },
+				RequestId = requestId,
 			};
 
 			string jsonStr = JsonSerializer.Serialize(webSocketMessage);

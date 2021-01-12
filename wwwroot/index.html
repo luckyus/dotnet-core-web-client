@@ -102,6 +102,7 @@
 					<option value="5">F4</option>
 				</select>
 				<input type="button" id="btn-accesslog" value="AccessLog" />
+				<input type="button" id="btn-accesslogs" value="AccessLogs" />
 			</div>
 		</div>
 		<div id="ws-discussion">
@@ -123,6 +124,7 @@
 			const accessLogCardSN = document.querySelector("#ws-accesslog-card-sn");
 			const accessLogStatus = document.querySelector("#in-out-status");
 			const accessLogButton = document.querySelector("#btn-accesslog");
+			const accessLogsButton = document.querySelector("#btn-accesslogs");
 
 			var storageSN;
 			var storageIpPort;
@@ -159,7 +161,7 @@
 						let obj;
 						try {
 							obj = JSON.parse(event.data);
-							console.log("obj:", obj);
+							// console.log("obj:", obj);
 							if (obj) {
 								if (obj.eventType === 'onConnected') {
 									wsAckMsg.innerHTML = obj.data[0];
@@ -228,6 +230,21 @@
 						cardSN: accessLogCardSN.value,
 						status: accessLogStatus.value
 					}]
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
+			}
+
+			accessLogsButton.onclick = () => {
+				var data = Array.from(accessLogCardSN.options).map((e) => {
+					return {
+						cardSN: e.value,
+						status: (Math.floor(Math.random() * 100) % 2) === 1 ? "In" : "Out"
+					}
+				});
+				const jsonObj = {
+					eventType: "accessLogs",
+					data: data
 				}
 				const jsonStr = JSON.stringify(jsonObj);
 				webSocket.send(jsonStr);

@@ -166,19 +166,26 @@ namespace dotnet_core_web_client.Services
 					var webSocketMessage = JsonSerializer.Deserialize<WebSocketMessage>(jsonStr);
 
 					// just to acknowledge via webpage (201124)
-					if (webSocketMessage.EventType == "heartBeat") _ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
-					else _ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
-
-					_ = webSocketMessage.EventType switch
+					if (webSocketMessage.EventType == "heartBeat")
 					{
-						"getTerminalSettings" => OnGetTerminalSettings(webSocketMessage.Data),
-						"getTerminal" => OnGetTerminal(webSocketMessage.Data),
-						"getNetwork" => OnGetNetwork(webSocketMessage.Data),
-						"setTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data),
-						"getLogFile" => OnGetLogFile(webSocketMessage.Data),
-						"reboot" => OnReboot(webSocketMessage.Data),
-						_ => OnDefault(webSocketMessage.Data),
-					};
+						_ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
+					}
+					else
+					{
+						_ = webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
+
+						_ = webSocketMessage.EventType switch
+						{
+							"GetTerminalSettings" => OnGetTerminalSettings(webSocketMessage.RequestId),
+							"GetTerminal" => OnGetTerminal(webSocketMessage.RequestId),
+							"GetNetwork" => OnGetNetwork(webSocketMessage.RequestId),
+							"SetTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data, webSocketMessage.RequestId),
+							"GetLogFile" => OnGetLogFile(webSocketMessage.Data, webSocketMessage.RequestId),
+							"Reboot" => OnReboot(webSocketMessage.Data, webSocketMessage.RequestId),
+							"Acknowledge" => OnAcknowledge(webSocketMessage.RequestId),
+							_ => OnDefault(webSocketMessage.RequestId),
+						};
+					}
 				}
 				else if (result.MessageType == WebSocketMessageType.Close)
 				{
@@ -187,16 +194,22 @@ namespace dotnet_core_web_client.Services
 			}
 		}
 
-		private async Task OnReboot(object[] data)
+		private static object OnAcknowledge(Guid? requestID)
 		{
-			if (data == null || data[0] == null) return;
+			return null;		
+		}
 
-			string requestID = data[0].ToString();
+		private async Task OnReboot(object[] data, Guid? requestID)
+		{
+			if (data?.Length == 0 || requestID == null) return;
+
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "acknowledge",
-				Data = new object[] { requestID }
+				EventType = "Acknowledge",
+				Data = Array.Empty<object>(),
+				RequestId = requestID
 			};
+
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
 
@@ -205,36 +218,35 @@ namespace dotnet_core_web_client.Services
 			await SendAsync(jsonStr);
 		}
 
-		private async Task OnGetLogFile(object[] data)
+		private async Task OnGetLogFile(object[] data, Guid? requestID)
 		{
-			if (data == null || data.Length < 2) return;
+			if (data?.Length == 0 || requestID == null) return;
 
 			string filename = data[0].ToString();
-			string requestID = data[1].ToString();
-
 			byte[] file = File.Exists(filename) ? File.ReadAllBytes(filename) : Array.Empty<byte>();
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "onGetLogFile",
-				Data = new object[] { file, requestID }
+				EventType = "OnGetLogFile",
+				Data = new object[] { file },
+				RequestId = requestID
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
 		}
 
-		private async Task OnSetTerminalSettings(object[] data)
+		private async Task OnSetTerminalSettings(object[] data, Guid? requestID)
 		{
-			if (data == null || data.Length < 2) return;
+			if (data?.Length == 0 || requestID == null) return;
 
 			string message = data[0].ToString();
-			string requestID = data[1].ToString();
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "acknowledge",
-				Data = new object[] { requestID }
+				EventType = "Acknowledge",
+				Data = Array.Empty<object>(),
+				RequestId = requestID
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
@@ -243,82 +255,84 @@ namespace dotnet_core_web_client.Services
 			webSocketHandler.TerminalSettings = JsonSerializer.Deserialize<TerminalSettings>(message);
 		}
 
-		private async Task OnGetNetwork(object[] data)
+		private async Task OnGetNetwork(Guid? requestID)
 		{
-			if (data == null || data[0] == null) return;
+			if (requestID == null) return;
 
 			Random r = new Random();
 			await Task.Delay(r.Next(0, 200));
 
-			string requestID = data[0].ToString();
 			Network network = webSocketHandler.Network;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "onGetNetwork",
-				Data = new object[] { network, requestID }
+				EventType = "OnGetNetwork",
+				Data = new object[] { network },
+				RequestId = requestID
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
 		}
 
-		private async Task OnGetTerminal(object[] data)
+		private async Task OnGetTerminal(Guid? requestID)
 		{
-			if (data == null || data[0] == null) return;
+			if (requestID == null) return;
 
 			Random r = new Random();
 			await Task.Delay(r.Next(0, 200));
 
-			string requestID = data[0].ToString();
 			Terminal terminal = webSocketHandler.Terminal;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "onGetTerminal",
-				Data = new object[] { terminal, requestID }
+				EventType = "OnGetTerminal",
+				Data = new object[] { terminal },
+				RequestId = requestID
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
 		}
 
-		private async Task OnGetTerminalSettings(object[] data)
+		private async Task OnGetTerminalSettings(Guid? requestID)
 		{
-			if (data == null || data[0] == null) return;
+			if (requestID == null) return;
 
 			Random r = new Random();
 			await Task.Delay(r.Next(0, 200));
 
-			string requestID = data[0].ToString();
 			TerminalSettings terminalSettings = webSocketHandler.TerminalSettings;
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "onGetTerminalSettings",
-				Data = new object[] { terminalSettings, requestID }
+				EventType = "OnGetTerminalSettings",
+				Data = new object[] { terminalSettings },
+				RequestId = requestID
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			await SendAsync(jsonStr);
 		}
 
-		private async Task OnDefault(object[] data)
+		private async Task OnDefault(Guid? requestID)
 		{
-			if (data == null || data[0] == null) return;
-
-			try
+			if (requestID != null)
 			{
-				string requestID = data[0].ToString();
-				WebSocketMessage webSocketMessage = new WebSocketMessage
+				try
 				{
-					EventType = "acknowledge",
-					Data = new object[] { requestID }
-				};
-				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-				await SendAsync(jsonStr);
+					WebSocketMessage webSocketMessage = new WebSocketMessage
+					{
+						EventType = "Acknowledge",
+						Data = Array.Empty<object>(),
+						RequestId = requestID
+					};
+
+					string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+					await SendAsync(jsonStr);
+				}
+				catch { /* don't care */ }
 			}
-			catch { /* don't care */ }
 		}
 	}
 }

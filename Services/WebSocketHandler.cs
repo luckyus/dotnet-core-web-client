@@ -231,7 +231,7 @@ namespace dotnet_core_web_client.Services
 		private async Task AccessLog(object[] data)
 		{
 			var random = new Random();
-			var requestId = Guid.NewGuid();
+			var id = Guid.NewGuid();
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
@@ -267,17 +267,17 @@ namespace dotnet_core_web_client.Services
 			{
 				EventType = "Accesslogs",
 				Data = new Object[] { accessLogs },
-				RequestId = requestId,
+				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize(webSocketMessage);
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 
 		private async Task AccessLogs(object[] data)
 		{
 			var random = new Random();
-			var requestId = Guid.NewGuid();
+			var id = Guid.NewGuid();
 			List<AccessLog> accessLogs = new List<AccessLog>();
 
 			foreach (var item in data)
@@ -315,10 +315,10 @@ namespace dotnet_core_web_client.Services
 			{
 				EventType = "Accesslogs",
 				Data = new Object[] { accessLogs },
-				RequestId = requestId,
+				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize(webSocketMessage);
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 	}

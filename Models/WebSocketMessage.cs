@@ -12,7 +12,9 @@ namespace dotnet_core_web_client.Models
 		public string EventType { get; set; }
 		[JsonPropertyName("data")]
 		public object[] Data { get; set; }
-		[JsonPropertyName("requestId")]
-		public Guid? RequestId { get; set; } = null;
+		[JsonPropertyName("id")]
+		public Guid? Id { get; set; } = null;
+		[JsonPropertyName("ackId")]
+		public Guid? AckId { get; set; } = null;
 	}
 }

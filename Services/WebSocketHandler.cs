@@ -200,6 +200,10 @@ namespace dotnet_core_web_client.Services
 						{
 							await AccessLogs(jsonObj.Data);
 						}
+						else if (eventType == "GetAccessRight")
+						{
+							await GetAccessRight(jsonObj.Data);
+						}
 						else
 						{
 							await clientWebSocketHandler.SendAsync(jsonStr);
@@ -224,9 +228,22 @@ namespace dotnet_core_web_client.Services
 			return;
 		}
 
-		/*
-			"{\"event\":\"OnAccesslog\",\"data\":[\"ed9c29cd-6b32-4420-aae4-2765d58c4622\",{\"id\":\"b82bde0f-43d7-4b82-962b-10bd181a7d1c\",\"logTime\":\"2020-10-28T15:51:26.071\",\"terminalID\":\"iGuard\",\"terminalSN\":\"5400-5400-0540\",\"jobCode\":0,\"status\":\"UNKNOWN\",\"bodyTemperature\":31.7,\"dwStatus\":6,\"smartCardSN\":1879092480,\"thumbnail\":\"\",\"photoId\":\"cbda9a12-ec3d-11ea-a13e-001d431004a8\",\"accessPhoto\":null,\"byWhat\":\"S\"}]}"		
-		*/
+		private async Task GetAccessRight(object[] data)
+		{
+			var id = Guid.NewGuid();
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
+
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "GetAccessRight",
+				Data = new Object[] { new { smartCardSN = cardSN, dateTime = DateTime.Now } },
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+		}
 
 		private async Task AccessLog(object[] data)
 		{
@@ -237,13 +254,7 @@ namespace dotnet_core_web_client.Services
 			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 			var status = jsonElement?.GetProperty("status").GetString();
 
-			int dwStatus = 0;
-			if (status == "In") dwStatus = (int)InOutStatus.IN;
-			else if (status == "Out") dwStatus = (int)InOutStatus.OUT;
-			else if (status == "F1") dwStatus = (int)InOutStatus.F1;
-			else if (status == "F2") dwStatus = (int)InOutStatus.F2;
-			else if (status == "F3") dwStatus = (int)InOutStatus.F3;
-			else if (status == "F4") dwStatus = (int)InOutStatus.F4;
+			_ = int.TryParse(status, out int dwStatus);
 
 			AccessLog accesslog = new AccessLog
 			{
@@ -286,13 +297,7 @@ namespace dotnet_core_web_client.Services
 				var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 				var status = jsonElement?.GetProperty("status").GetString();
 
-				int dwStatus = 0;
-				if (status == "In") dwStatus = (int)InOutStatus.IN;
-				else if (status == "Out") dwStatus = (int)InOutStatus.OUT;
-				else if (status == "F1") dwStatus = (int)InOutStatus.F1;
-				else if (status == "F2") dwStatus = (int)InOutStatus.F2;
-				else if (status == "F3") dwStatus = (int)InOutStatus.F3;
-				else if (status == "F4") dwStatus = (int)InOutStatus.F4;
+				_ = int.TryParse(status, out int dwStatus);
 
 				accessLogs.Add(new AccessLog
 				{

@@ -104,6 +104,7 @@
 				</select>
 				<input type="button" id="btn-accesslog" value="AccessLog" />
 				<input type="button" id="btn-accesslogs" value="AccessLogs" />
+				<input type="button" id="btn-get-access-right" value="GetAccessRight" />
 			</div>
 		</div>
 		<div id="ws-discussion">
@@ -126,6 +127,7 @@
 			const accessLogStatus = document.querySelector("#in-out-status");
 			const accessLogButton = document.querySelector("#btn-accesslog");
 			const accessLogsButton = document.querySelector("#btn-accesslogs");
+			const getAccessRightButton = document.querySelector("#btn-get-access-right");
 
 			var storageSN;
 			var storageIpPort;
@@ -237,15 +239,27 @@
 			}
 
 			accessLogsButton.onclick = () => {
+				var statusArray = ["0", "1", "2", "3", "4", "5"];
 				var data = Array.from(accessLogCardSN.options).map((e) => {
 					return {
 						cardSN: e.value,
-						status: (Math.floor(Math.random() * 100) % 2) === 1 ? "In" : "Out"
+						status: statusArray[Math.floor(Math.random() * statusArray.length)]
 					}
 				});
 				const jsonObj = {
 					eventType: "accessLogs",
 					data: data
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
+			}
+
+			getAccessRightButton.onclick = () => {
+				const jsonObj = {
+					eventType: "GetAccessRight",
+					data: [{
+						cardSN: accessLogCardSN.value
+					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);
 				webSocket.send(jsonStr);

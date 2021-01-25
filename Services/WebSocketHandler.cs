@@ -234,10 +234,13 @@ namespace dotnet_core_web_client.Services
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 
+			// convert to ISO 8601 (210125)
+			var dateTimeISO8601 = DateTimeOffset.Now.ToString("s");
+
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
 				EventType = "GetAccessRight",
-				Data = new Object[] { new { smartCardSN = cardSN, dateTime = DateTime.Now } },
+				Data = new Object[] { new { smartCardSN = cardSN, dateTime = dateTimeISO8601 } },
 				Id = id,
 			};
 

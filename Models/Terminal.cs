@@ -25,7 +25,8 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("supportedCardType")]
 		public int? SupportedCardType { get; set; } = (int)SmartCardType.MifareAndOctopus;
 		[JsonPropertyName("regDate")]
-		public DateTime RegDate { get; set; } = DateTime.Now;
+		[JsonConverter(typeof(DateTimeOffsetConverter))]
+		public DateTimeOffset RegDate { get; set; } = DateTimeOffset.Now;
 		[JsonPropertyName("environment")]
 		public string Environment { get; set; } = "development";
 	}

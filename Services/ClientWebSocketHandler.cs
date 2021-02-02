@@ -220,9 +220,8 @@ namespace dotnet_core_web_client.Services
 
 		private async Task OnGetLogFile(object[] data, Guid? id)
 		{
-			if (data?.Length == 0 || id == null) return;
-
-			string filename = data[0].ToString();
+			// iGuardPayroll no longer specifys filename for 540 (ref marcus' signal msg) (210129)
+			string filename = "http.zip";
 			byte[] file = File.Exists(filename) ? File.ReadAllBytes(filename) : Array.Empty<byte>();
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage

@@ -34,6 +34,10 @@ namespace dotnet_core_web_client.Models
 		public DailyReboot DailyReboot { get; set; } = new DailyReboot();
 		[JsonPropertyName("timeSync")]
 		public TimeSync TimeSync { get; set; } = new TimeSync();
+		[JsonPropertyName("tempDetectEnable")]
+		public bool TempDetectEnable { get; set; }
+		[JsonPropertyName("faceDetectEnable")]
+		public bool FaceDetectEnable { get; set; }
 	}
 
 	public enum CameraEnvironment

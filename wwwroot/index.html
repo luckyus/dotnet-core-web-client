@@ -50,6 +50,10 @@
 			padding-left: 0;
 		}
 
+		#ws-accesslog-card-sn {
+			width: 130px;
+		}
+
 		.flex-container {
 			display: flex;
 			justify-content: space-between;
@@ -85,14 +89,7 @@
 		<div class="flex-container">
 			<div>
 				<label for="ws-accesslog-card-sn">Card SN:</label>
-				<!--<input type="text" id="ws-accesslog-card-sn" value="" oninput="this.value = this.value.toUpperCase()" />&nbsp;&nbsp;-->
-				<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn">
-					<option value="1879092480"></option>
-					<option value="1746856734"></option>
-					<option value="1875647873"></option>
-					<option value="1789640835"></option>
-					<option value="1809586741"></option>
-				</select>
+				<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn"></select>
 				<label for="in-out-status">Status:</label>
 				<select name="in-out-status" id="in-out-status">
 					<option value="0">In</option>
@@ -146,11 +143,15 @@
 				window.localStorage.setItem("ipPort", wsIpPort.value);
 			}
 
-			// setup accessLog options' innerHTML (based on value) (210105)
-			const cardSNOptions = accessLogCardSN.options;
-			Array.from(cardSNOptions).forEach((option) => {
-				option.innerHTML = "0x" + parseInt(option.value, 10).toString(16).toUpperCase().padStart(10, '0');
-			});
+			// setup smartCard SN dropdown (210127)
+			const setSmartCardSNDropdown = (snArray) => {
+				snArray.forEach(sn => {
+					var option = document.createElement('option');
+					option.innerHTML = "0x" + sn.toString(16).toUpperCase().padStart(10, '0');
+					option.value = sn;
+					accessLogCardSN.add(option);
+				});
+			};
 
 			const connectServer = async () => {
 				try {
@@ -169,7 +170,10 @@
 								if (obj.eventType === 'onConnected') {
 									wsAckMsg.innerHTML = obj.data[0];
 									wsUl.innerHTML = '';
-								} else if (obj.eventType === 'onConnecting' || obj.eventType === 'onReconnecting') {
+								} else if (obj.eventType === 'onConnecting') {
+									wsAckMsg.innerHTML = obj.data[0];
+									setSmartCardSNDropdown(obj.data[1]);
+								} else if (obj.eventType === 'onReconnecting') {
 									wsAckMsg.innerHTML = obj.data[0];
 								} else if (obj.eventType === 'onError') {
 									wsAckMsg.innerHTML = obj.data[0];

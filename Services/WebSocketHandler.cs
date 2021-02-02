@@ -24,6 +24,7 @@ namespace dotnet_core_web_client.Services
 		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminal.json";
 		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminalSettings.json";
 		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase/network.json";
+		readonly string smartCardSNConfigPath = Directory.GetCurrentDirectory() + "/DBase/smartCardSN.json";
 
 		public WebSocketHandler() { }
 
@@ -172,8 +173,13 @@ namespace dotnet_core_web_client.Services
 
 						if (eventType == "onInit")
 						{
+							// get the smartCard sn array (210127)
+							string smartCardSNJsonStr = File.ReadAllText(smartCardSNConfigPath);
+							var smartCardSNJsonElement = JsonSerializer.Deserialize<JsonElement>(smartCardSNJsonStr) as JsonElement?;
+							var smartCardSNArray = smartCardSNJsonElement?.GetProperty("smartCardSNArray");
+
 							// array of objects (201103)
-							object[] data = { "iGuardPayroll Connecting..." };
+							object[] data = { "iGuardPayroll Connecting...", smartCardSNArray };
 							var obj = new { eventType = "onConnecting", data };
 							var str = JsonSerializer.Serialize(obj);
 							_ = SendAsync(str);
@@ -236,6 +242,10 @@ namespace dotnet_core_web_client.Services
 
 			// convert to ISO 8601 (210125)
 			var dateTimeISO8601 = DateTimeOffset.Now.ToString("s");
+
+			// add ms at the end to follow marcus' whatsapp sample (210125)
+			var random = new Random();
+			dateTimeISO8601 += "." + random.Next(1000);
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{

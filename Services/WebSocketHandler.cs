@@ -238,7 +238,7 @@ namespace dotnet_core_web_client.Services
 		{
 			var id = Guid.NewGuid();
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
-			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
+			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString();
 
 			// convert to ISO 8601 (210125)
 			var dateTimeISO8601 = DateTimeOffset.Now.ToString("s");
@@ -250,7 +250,7 @@ namespace dotnet_core_web_client.Services
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
 				EventType = "GetAccessRight",
-				Data = new Object[] { new { smartCardSN = cardSN, dateTime = dateTimeISO8601 } },
+				Data = new Object[] { new { smartCardSN, dateTime = dateTimeISO8601 } },
 				Id = id,
 			};
 
@@ -267,21 +267,15 @@ namespace dotnet_core_web_client.Services
 			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 			var status = jsonElement?.GetProperty("status").GetString();
 
-			_ = int.TryParse(status, out int dwStatus);
-
 			AccessLog accesslog = new AccessLog
 			{
 				Status = status,
 				LogTime = DateTime.Now,
 				TerminalID = TerminalSettings.TerminalId,
-				TerminalSN = Terminal.SN,
 				JobCode = 0,
-				BodyTemperature = (float)Math.Round(((random.NextDouble() * 4) + 36), 2),
-				DwStatus = dwStatus,
+				BodyTemperature = (decimal)Math.Round(((random.NextDouble() * 4) + 36), 2),
 				SmartCardSN = ulong.Parse(cardSN),
 				Thumbnail = null,
-				PhotoId = Guid.NewGuid(),
-				AccessPhoto = null,
 				ByWhat = "S"
 			};
 
@@ -294,7 +288,7 @@ namespace dotnet_core_web_client.Services
 				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 
@@ -310,21 +304,15 @@ namespace dotnet_core_web_client.Services
 				var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 				var status = jsonElement?.GetProperty("status").GetString();
 
-				_ = int.TryParse(status, out int dwStatus);
-
 				accessLogs.Add(new AccessLog
 				{
 					Status = status,
 					LogTime = DateTime.Now,
 					TerminalID = TerminalSettings.TerminalId,
-					TerminalSN = Terminal.SN,
 					JobCode = 0,
-					BodyTemperature = (float)Math.Round(((random.NextDouble() * 4) + 36), 2),
-					DwStatus = dwStatus,
+					BodyTemperature = (decimal)Math.Round(((random.NextDouble() * 4) + 36), 2),
 					SmartCardSN = ulong.Parse(cardSN),
 					Thumbnail = null,
-					PhotoId = Guid.NewGuid(),
-					AccessPhoto = null,
 					ByWhat = "S"
 				});
 			}

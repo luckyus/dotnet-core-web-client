@@ -92,16 +92,18 @@
 				<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn"></select>
 				<label for="in-out-status">Status:</label>
 				<select name="in-out-status" id="in-out-status">
-					<option value="0">In</option>
-					<option value="1">Out</option>
-					<option value="2">F1</option>
-					<option value="3">F2</option>
-					<option value="4">F3</option>
-					<option value="5">F4</option>
+					<option value="IN">In</option>
+					<option value="OUT">Out</option>
+					<option value="F1">F1</option>
+					<option value="F2">F2</option>
+					<option value="F3">F3</option>
+					<option value="F4">F4</option>
+					<option value="F5">F5</option>
 				</select>
 				<input type="button" id="btn-accesslog" value="AccessLog" />
 				<input type="button" id="btn-accesslogs" value="AccessLogs" />
 				<input type="button" id="btn-get-access-right" value="GetAccessRight" />
+				<input type="button" id="btn-get-in-out-status" value="GetInOutStatus" />
 			</div>
 		</div>
 		<div id="ws-discussion">
@@ -125,6 +127,7 @@
 			const accessLogButton = document.querySelector("#btn-accesslog");
 			const accessLogsButton = document.querySelector("#btn-accesslogs");
 			const getAccessRightButton = document.querySelector("#btn-get-access-right");
+			const getInOutStatusButton = document.querySelector("#btn-get-in-out-status");
 
 			var storageSN;
 			var storageIpPort;
@@ -243,8 +246,10 @@
 			}
 
 			accessLogsButton.onclick = () => {
-				var statusArray = ["0", "1", "2", "3", "4", "5"];
-				var data = Array.from(accessLogCardSN.options).map((e) => {
+				const statusArray = Array.from(accessLogStatus.options).map((e) => {
+					return e.value;
+				});
+				const data = Array.from(accessLogCardSN.options).map((e) => {
 					return {
 						cardSN: e.value,
 						status: statusArray[Math.floor(Math.random() * statusArray.length)]
@@ -262,7 +267,18 @@
 				const jsonObj = {
 					eventType: "GetAccessRight",
 					data: [{
-						cardSN: accessLogCardSN.value
+						smartCardSN: accessLogCardSN.value
+					}]
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
+			}
+
+			getInOutStatusButton.onclick = () => {
+				const jsonObj = {
+					eventType: "GetInOutStatus",
+					data: [{
+						smartCardSN: accessLogCardSN.value
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);

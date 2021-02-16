@@ -28,6 +28,14 @@ namespace dotnet_core_web_client.Models
 		public SmartCardControl SmartCardControl { get; set; } = new SmartCardControl();
 		[JsonPropertyName("inOutControl")]
 		public InOutControl InOutControl { get; set; } = new InOutControl();
+		[JsonPropertyName("inOutTrigger")]
+		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>()
+		{
+			["7:00"] = InOutStatus.IN,
+			["11:30"] = InOutStatus.OUT,
+			["12:30"] = InOutStatus.IN,
+			["16:30"] = InOutStatus.OUT
+		};
 		[JsonPropertyName("remoteDoorRelayControl")]
 		public RemoteDoorRelayControl RemoteDoorRelayControl { get; set; } = new RemoteDoorRelayControl();
 		[JsonPropertyName("dailyReboot")]
@@ -116,14 +124,6 @@ namespace dotnet_core_web_client.Models
 		public InOutStrategy? DefaultInOut { get; set; } = InOutStrategy.SystemInOut;
 		[JsonPropertyName("isEnableFx")]
 		public bool[] IsEnableFx { get; set; } = new bool[] { true, false, true, false };
-		[JsonPropertyName("inOutTrigger")]
-		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>()
-		{
-			["7:00"] = InOutStatus.IN,
-			["11:30"] = InOutStatus.OUT,
-			["12:30"] = InOutStatus.IN,
-			["16:30"] = InOutStatus.OUT
-		};
 		[JsonPropertyName("dailyResetAutoInOut")]
 		public bool DailyResetAutoInOut { get; set; } = true;
 		[JsonPropertyName("dailyResetAutoInOutTime")]

@@ -272,7 +272,12 @@ namespace dotnet_core_web_client.Services
 			string message = data[0].ToString();
 			var newTerminalSettings = JsonSerializer.Deserialize<TerminalSettings>(message);
 
-			if (newTerminalSettings.TerminalId != webSocketHandler.TerminalSettings.TerminalId)
+			bool isRestartRequired = false;
+
+			if (newTerminalSettings.TerminalId != webSocketHandler.TerminalSettings.TerminalId) isRestartRequired = true;
+			else if (newTerminalSettings.TimeSync.TimeZone != webSocketHandler.TerminalSettings.TimeSync.TimeZone) isRestartRequired = true;
+
+			if (isRestartRequired)
 			{
 				webSocketMessage = new WebSocketMessage
 				{

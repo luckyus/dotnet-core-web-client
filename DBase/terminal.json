@@ -1,1 +1,10 @@
-{"serialNo":"5400-5401-5402","firmwareVersion":"7.0.0000","hasRS485":true,"masterServer":"www.iguardpayroll.com","photoServer":"photo.iguardpayroll.com","supportedCardType":2,"regDate":"2020-12-16T17:05:12.657","environment":"development"}
+{
+	"serialNo": "5400-5401-5402",
+	"firmwareVersion": "20210222.1-1895",
+	"hasRS485": true,
+	"masterServer": "www.iguardpayroll.com",
+	"photoServer": "photo.iguardpayroll.com",
+	"supportedCardType": 2,
+	"regDate": "2020-12-16T17:05:12.657",
+	"environment": "development"
+}

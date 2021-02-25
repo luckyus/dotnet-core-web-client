@@ -13,7 +13,4 @@
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 
-  <ItemGroup>
-    <Folder Include="DBase\" />
-  </ItemGroup>
 </Project>

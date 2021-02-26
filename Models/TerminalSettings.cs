@@ -124,10 +124,10 @@ namespace dotnet_core_web_client.Models
 		public InOutStrategy? DefaultInOut { get; set; } = InOutStrategy.SystemInOut;
 		[JsonPropertyName("isEnableFx")]
 		public bool[] IsEnableFx { get; set; } = new bool[] { true, false, true, false };
-		[JsonPropertyName("dailyResetAutoInOut")]
-		public bool DailyResetAutoInOut { get; set; } = true;
-		[JsonPropertyName("dailyResetAutoInOutTime")]
-		public string DailyResetAutoInOutTime { get; set; } = "00:00";
+		[JsonPropertyName("dailyResetEnabled")]
+		public bool? DailyResetAutoInOut { get; set; }
+		[JsonPropertyName("dailyResetTime")]
+		public string DailyResetAutoInOutTime { get; set; }
 	}
 
 	public enum AccessRight

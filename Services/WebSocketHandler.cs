@@ -238,7 +238,7 @@ namespace dotnet_core_web_client.Services
 		{
 			var id = Guid.NewGuid();
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
-			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString();
+			var smartCardSN = (jsonElement?.GetProperty("smartCardSN").GetInt64()) ?? 0;
 
 			// convert to ISO 8601 (210125)
 			var dateTimeISO8601 = DateTimeOffset.Now.ToString("s");

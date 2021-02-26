@@ -267,7 +267,7 @@
 				const jsonObj = {
 					eventType: "GetAccessRight",
 					data: [{
-						smartCardSN: accessLogCardSN.value
+						smartCardSN: parseInt(accessLogCardSN.value)
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);

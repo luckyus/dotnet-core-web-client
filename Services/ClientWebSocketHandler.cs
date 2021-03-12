@@ -189,6 +189,7 @@ namespace dotnet_core_web_client.Services
 							"Reboot" => OnReboot(webSocketMessage.Data, webSocketMessage.Id),
 							"Acknowledge" => OnAcknowledge(webSocketMessage.Id),
 							"SetTimeStamp" => SetTimeStamp(webSocketMessage.Data, webSocketMessage.Id),
+							"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
 							_ => OnDefault(webSocketMessage.Id),
 						});
 					}
@@ -199,6 +200,27 @@ namespace dotnet_core_web_client.Services
 				}
 			}
 		}
+
+		private async Task OnNewUpdate(Guid? id)
+		{
+			try
+			{
+				WebSocketMessage webSocketMessage = new WebSocketMessage
+				{
+					EventType = "Acknowledge",
+					Data = Array.Empty<object>(),
+					AckId = id
+				};
+
+				Random r = new Random();
+				await Task.Delay(r.Next(2000, 4000));
+
+				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+				await SendAsync(jsonStr);
+			}
+			catch { /* don't care */ }
+		}
+
 
 		private object SetTimeStamp(object[] data, Guid? id)
 		{

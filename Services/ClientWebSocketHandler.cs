@@ -207,13 +207,13 @@ namespace dotnet_core_web_client.Services
 			{
 				WebSocketMessage webSocketMessage = new WebSocketMessage
 				{
-					EventType = "Acknowledge",
+					EventType = "FileNotFound",
 					Data = Array.Empty<object>(),
 					AckId = id
 				};
 
-				Random r = new Random();
-				await Task.Delay(r.Next(2000, 4000));
+				Random r = new();
+				await Task.Delay(r.Next(5000, 3000));
 
 				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 				await SendAsync(jsonStr);

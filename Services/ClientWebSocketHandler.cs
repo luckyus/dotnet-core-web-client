@@ -213,7 +213,7 @@ namespace dotnet_core_web_client.Services
 				};
 
 				Random r = new();
-				await Task.Delay(r.Next(5000, 5100));
+				await Task.Delay(r.Next(5000, 7000));
 
 				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
 				await SendAsync(jsonStr);

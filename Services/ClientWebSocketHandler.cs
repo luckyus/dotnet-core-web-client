@@ -54,8 +54,10 @@ namespace dotnet_core_web_client.Services
 
 					try
 					{
-						string queryString = $"sn={sn}";
-						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
+						// queryString not required anymore after accepting websocket connection even for orphan device (210330)
+						//string queryString = $"sn={sn}";
+						//await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket?" + queryString), CancellationToken.None);
+						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket"), CancellationToken.None);
 
 						// connected! acknowledge the browser (201021)
 						data = new object[] { "Connected to iGuardPayroll!" };
@@ -207,7 +209,7 @@ namespace dotnet_core_web_client.Services
 			{
 				WebSocketMessage webSocketMessage = new WebSocketMessage
 				{
-					EventType = "FileNotFound",
+					EventType = "Acknowledge",
 					Data = Array.Empty<object>(),
 					AckId = id
 				};

@@ -273,7 +273,7 @@ namespace dotnet_core_web_client.Services
 				LogTime = DateTime.Now,
 				TerminalID = TerminalSettings.TerminalId,
 				JobCode = 0,
-				BodyTemperature = (decimal)Math.Round(((random.NextDouble() * 4) + 36.5), 1),
+				BodyTemperature = Math.Round(((decimal)random.Next(365, 380)) / 10, 1),
 				SmartCardSN = ulong.Parse(cardSN),
 				Thumbnail = null,
 				ByWhat = "S"
@@ -310,7 +310,7 @@ namespace dotnet_core_web_client.Services
 					LogTime = DateTime.Now,
 					TerminalID = TerminalSettings.TerminalId,
 					JobCode = 0,
-					BodyTemperature = (decimal)Math.Round(((random.NextDouble() * 4) + 36.5), 2),
+					BodyTemperature = Math.Round(((decimal)random.Next(365, 380)) / 10, 1),
 					SmartCardSN = ulong.Parse(cardSN),
 					Thumbnail = null,
 					ByWhat = "S"

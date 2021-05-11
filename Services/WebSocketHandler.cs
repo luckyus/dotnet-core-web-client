@@ -310,7 +310,7 @@ namespace dotnet_core_web_client.Services
 					LogTime = DateTime.Now,
 					TerminalID = TerminalSettings.TerminalId,
 					JobCode = 0,
-					BodyTemperature = (decimal)Math.Round(((random.NextDouble() * 4) + 36.5), 2),
+					BodyTemperature = (decimal)Math.Round(((random.NextDouble() * 4) + 36.4), 2),
 					SmartCardSN = ulong.Parse(cardSN),
 					Thumbnail = null,
 					ByWhat = "S"

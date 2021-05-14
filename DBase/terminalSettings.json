@@ -51,5 +51,6 @@
 		"isSyncMasterTime": true
 	},
 	"tempDetectEnabled": false,
-	"faceDetectEnabled": false
+	"faceDetectEnabled": false,
+	"flashLightEnabled": false
 }

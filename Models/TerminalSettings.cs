@@ -48,6 +48,8 @@ namespace dotnet_core_web_client.Models
 		public bool FaceDetectEnable { get; set; }
 		[JsonPropertyName("flashLightEnabled")]
 		public bool FlashLightEnabled { get; set; }
+		[JsonPropertyName("tempCacheDuration")]
+		public int TempCacheDuration { get; set; }
 	}
 
 	public enum CameraEnvironment

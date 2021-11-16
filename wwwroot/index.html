@@ -110,6 +110,13 @@
 				<input type="button" id="btn-get-in-out-status" value="GetInOutStatus" />
 			</div>
 		</div>
+		<div class="flex-container">
+			<div>
+				<label for="ws-employee-id">Employee ID:</label>
+				<input type="text" id="ws-employee-id" />
+				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" />
+			</div>
+		</div>
 		<div id="ws-discussion">
 			<ul id="ws-ul"></ul>
 		</div>
@@ -132,6 +139,8 @@
 			const accessLogsButton = document.querySelector("#btn-accesslogs");
 			const getAccessRightButton = document.querySelector("#btn-get-access-right");
 			const getInOutStatusButton = document.querySelector("#btn-get-in-out-status");
+			const employeeId = document.querySelector("#ws-employee-id");
+			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id')
 
 			var storageSN;
 			var storageIpPort;
@@ -289,6 +298,17 @@
 					eventType: "GetInOutStatus",
 					data: [{
 						smartCardSN: parseInt(accessLogCardSN.value)
+					}]
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
+			}
+
+			getStatusByIdButton.onclick = () => {
+				const jsonObj = {
+					eventType: "GetInOutStatus",
+					data: [{
+						employeeId: employeeId.value
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);

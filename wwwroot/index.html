@@ -63,6 +63,18 @@
 			justify-content: space-between;
 			align-items: baseline;
 		}
+
+			.flex-container #ws-serial-no {
+				width: 120px;
+			}
+
+			.flex-container #ws-ip-port {
+				width: 200px;
+			}
+
+			.flex-container #ws-reg-code {
+				width: 100px;
+			}
 	</style>
 	<script src="https://kit.fontawesome.com/bf1dd6efb7.js" crossorigin="anonymous"></script>
 </head>
@@ -70,7 +82,7 @@
 	<div class="ws-container">
 		<div class="flex-container">
 			<div class="ws-title-container">
-				<div class="ws-header">iGuardExpress 540</div>
+				<div class="ws-header">iGuard 540 / iGuardExpress 540</div>
 				<div id="status"></div>
 				<i class="fas fa-heart"></i>
 			</div>
@@ -83,7 +95,9 @@
 				<label for="ws-serial-no">Serial No.:</label>
 				<input type="text" id="ws-serial-no" />&nbsp;&nbsp;
 				<label for="ws-ip-port">iGuardPayroll:</label>
-				<input type="text" id="ws-ip-port" />
+				<input type="text" id="ws-ip-port" />&nbsp;&nbsp;
+				<label for="ws-reg-code">RegCode:</label>
+				<input type="text" id="ws-reg-code" />
 				<input type="button" id="ws-btn-connect" value="Connect" />
 			</div>
 			<div>
@@ -104,17 +118,17 @@
 					<option value="F4">F4</option>
 					<option value="F5">F5</option>
 				</select>
-				<input type="button" id="btn-accesslog" value="AccessLog" />
-				<input type="button" id="btn-accesslogs" value="AccessLogs" />
-				<input type="button" id="btn-get-access-right" value="GetAccessRight" />
-				<input type="button" id="btn-get-in-out-status" value="GetInOutStatus" />
+				<input type="button" id="btn-accesslog" value="AccessLog" disabled />
+				<input type="button" id="btn-accesslogs" value="AccessLogs" disabled />
+				<input type="button" id="btn-get-access-right" value="GetAccessRight" disabled />
+				<input type="button" id="btn-get-in-out-status" value="GetInOutStatus" disabled />
 			</div>
 		</div>
 		<div class="flex-container">
 			<div>
 				<label for="ws-employee-id">Employee ID:</label>
 				<input type="text" id="ws-employee-id" />
-				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" />
+				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
 			</div>
 		</div>
 		<div id="ws-discussion">
@@ -128,6 +142,7 @@
 			const wsStatus = document.getElementById("status");
 			const wsSerialNo = document.getElementById("ws-serial-no");
 			const wsIpPort = document.getElementById("ws-ip-port");
+			const wsRegCode = document.getElementById("ws-reg-code");
 			const wsAckMsg = document.getElementById("ws-ackmsg");
 			const wsUl = document.getElementById("ws-ul");
 			const wsConnectBtn = document.getElementById("ws-btn-connect");
@@ -142,21 +157,25 @@
 			const employeeId = document.querySelector("#ws-employee-id");
 			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id')
 
-			var storageSN;
-			var storageIpPort;
-
 			// get/set fake sn @localStorage (201105)
-			storageSN = wsSerialNo.value = window.localStorage.getItem("sn");
+			var storageSN = wsSerialNo.value = window.localStorage.getItem("sn");
 			if (!wsSerialNo.value) {
 				wsSerialNo.value = "7100-" + Math.floor(Math.random() * (8999) + 1000) + "-" + Math.floor(Math.random() * (8999) + 1000);
 				window.localStorage.setItem("sn", wsSerialNo.value);
 			}
 
 			// ditto (201105)
-			storageIpPort = wsIpPort.value = window.localStorage.getItem("ipPort");
+			var storageIpPort = wsIpPort.value = window.localStorage.getItem("ipPort");
 			if (!wsIpPort.value) {
 				wsIpPort.value = "localhost:50595";
 				window.localStorage.setItem("ipPort", wsIpPort.value);
+			}
+
+			// ditto (221014)
+			var storageRegCode = wsRegCode.value = window.localStorage.getItem("regCode");
+			if (!wsRegCode.value) {
+				wsRegCode.value = "123456";
+				window.localStorage.setItem("regCode", wsRegCode.value);
 			}
 
 			// setup smartCard SN dropdown (210127)
@@ -169,8 +188,25 @@
 				});
 			};
 
+			const onConnected = () => {
+				accessLogButton.disabled = false;
+				accessLogsButton.disabled = false;
+				getAccessRightButton.disabled = false;
+				getInOutStatusButton.disabled = false;
+				getStatusByIdButton.disabled = false;
+			}
+
+			const onDisconnected = () => {
+				accessLogButton.disabled = true;
+				accessLogsButton.disabled = true;
+				getAccessRightButton.disabled = true;
+				getInOutStatusButton.disabled = true;
+				getStatusByIdButton.disabled = true;
+			}
+
 			const connectServer = async () => {
 				try {
+					// for the browser to connect to the app via websocket, not connecting to iGuardPayroll (comment (221007))
 					wsStatus.innerHTML = "Connecting...";
 					const wsUrl = "wss://" + location.host;
 					webSocket = new WebSocket(wsUrl);
@@ -181,11 +217,11 @@
 						let obj;
 						try {
 							obj = JSON.parse(event.data);
-							// console.log("obj:", obj);
 							if (obj) {
 								if (obj.eventType === 'onConnected') {
 									wsAckMsg.innerHTML = obj.data[0];
 									wsAckMsg.classList.remove('alert');
+									onConnected();
 									wsUl.innerHTML = '';
 								} else if (obj.eventType === 'onConnecting') {
 									wsAckMsg.innerHTML = obj.data[0];
@@ -196,7 +232,6 @@
 									wsAckMsg.innerHTML = obj.data[0];
 								} else if (obj.eventType === 'onError') {
 									wsAckMsg.innerHTML = obj.data[0];
-									console.log("innerHTML:", wsAckMsg.innerHTML)
 									if (wsAckMsg.innerHTML === "The server returned status code '404' when status code '101' was expected.") wsAckMsg.innerHTML += " (orphan?)";
 									wsAckMsg.classList.add('alert');
 									wsConnectBtn.disabled = false;
@@ -206,6 +241,14 @@
 										wsHeartBeat[0].style.display = "none"
 									}, 400);
 								} else {
+									// either Tx or Rx (comment (221014))
+									var data = JSON.parse(obj.data);
+									if (obj.eventType === 'Rx' && data?.eventType === 'RegistrationFailed') {
+										wsAckMsg.innerHTML = data.data[0];
+										wsAckMsg.classList.add('alert');
+										wsConnectBtn.disabled = false;
+										onDisconnected();
+									}
 									wsUl.innerHTML += '<li>' + '<span class="ws-name">' + obj.eventType + '</span>' + ': ' + obj.data + '</li>';
 								}
 							}
@@ -228,20 +271,26 @@
 			connectServer();
 
 			wsConnectBtn.onclick = () => {
+				wsUl.innerHTML = null;
 				wsConnectBtn.disabled = true;
 				if (storageIpPort !== wsIpPort.value) {
 					storageIpPort = wsIpPort.value;
 					window.localStorage.setItem("ipPort", wsIpPort.value);
 				}
 				if (storageSN !== wsSerialNo.value) {
-					storageSN = wsSerialNo.value
+					storageSN = wsSerialNo.value;
 					window.localStorage.setItem("sn", wsSerialNo.value);
+				}
+				if (storageRegCode !== wsRegCode.value) {
+					storageRegCode = wsRegCode.value;
+					window.localStorage.setItem("regCode", wsRegCode.value);
 				}
 				const jsonObj = {
 					eventType: "onInit",
 					data: [{
 						SN: wsSerialNo.value,
-						IpPort: wsIpPort.value
+						IpPort: wsIpPort.value,
+						RegCode: wsRegCode.value
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);

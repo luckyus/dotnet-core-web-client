@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,15 +19,17 @@ namespace dotnet_core_web_client.Services
 		protected ClientWebSocket clientWebSocket;
 		protected string sn;
 		protected string ipPort;
+		protected string regCode;
 		protected bool isToReconnect = true;
 
 		readonly string timeStampPath = Directory.GetCurrentDirectory() + "/DBase/timeStamp.json";
 
-		public ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort)
+		public ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort, string regCode)
 		{
 			this.webSocketHandler = webSocketHandler;
 			this.ipPort = ipPort;
 			this.sn = sn;
+			this.regCode = regCode;
 
 			_ = Initialize();
 		}
@@ -72,13 +75,21 @@ namespace dotnet_core_web_client.Services
 
 						// send terminal details to iGuardPayroll (201201)
 						// - finally marcus agrees to send everything to me (210104)
-						WebSocketMessage webSocketMessage = new WebSocketMessage
+						WebSocketMessage webSocketMessage = new()
 						{
 							EventType = "OnDeviceConnected",
 							Data = new object[] { webSocketHandler.Terminal, webSocketHandler.TerminalSettings, webSocketHandler.Network, timeStamp }
 						};
 
-						string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+						// append regCode to the data array for iGuard540 (221011)
+						if (regCode != null)
+						{
+							var dataList = webSocketMessage.Data.ToList();
+							dataList.Add(regCode);
+							webSocketMessage.Data = dataList.ToArray();
+						}
+
+						string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 						_ = SendAsync(jsonString);
 
 						isConnected = true;
@@ -147,60 +158,84 @@ namespace dotnet_core_web_client.Services
 
 		public async Task ReceiveAsync()
 		{
-			var receiveBuffer = new ArraySegment<Byte>(new byte[100]);
-
-			while (clientWebSocket.State == WebSocketState.Open)
+			try
 			{
-				using var ms = new MemoryStream();
-				WebSocketReceiveResult result;
+				var receiveBuffer = new ArraySegment<Byte>(new byte[100]);
 
-				do
+				while (clientWebSocket.State == WebSocketState.Open)
 				{
-					result = await clientWebSocket.ReceiveAsync(receiveBuffer, CancellationToken.None);
-					ms.Write(receiveBuffer.Array, receiveBuffer.Offset, result.Count);
-				} while (!result.EndOfMessage);
+					using var ms = new MemoryStream();
+					WebSocketReceiveResult result;
 
-				_ = ms.Seek(0, SeekOrigin.Begin);
-
-				if (result.MessageType == WebSocketMessageType.Text)
-				{
-					// {"eventType":"onTerminal","data":[{"inOutControl":{"inOutTrigger":{"06:00":0,"11:30":1}},"goodList":[2163965516,750006734]},"342001084"]} (201030)
-					// {"eventType":"requestTerminalInfo","data":["GSD_80478134"]}
-					using var reader = new StreamReader(ms, Encoding.UTF8);
-					var jsonStr = reader.ReadToEnd();
-
-					// handle the request (201124)
-					var webSocketMessage = JsonSerializer.Deserialize<WebSocketMessage>(jsonStr);
-
-					// just to acknowledge via webpage (201124)
-					if (webSocketMessage.EventType == "heartBeat")
+					do
 					{
-						await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
-					}
-					else
-					{
-						await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
+						result = await clientWebSocket.ReceiveAsync(receiveBuffer, CancellationToken.None);
+						ms.Write(receiveBuffer.Array, receiveBuffer.Offset, result.Count);
+					} while (!result.EndOfMessage);
 
-						_ = (webSocketMessage.EventType switch
+					_ = ms.Seek(0, SeekOrigin.Begin);
+
+					if (result.MessageType == WebSocketMessageType.Text)
+					{
+						// {"eventType":"onTerminal","data":[{"inOutControl":{"inOutTrigger":{"06:00":0,"11:30":1}},"goodList":[2163965516,750006734]},"342001084"]} (201030)
+						// {"eventType":"requestTerminalInfo","data":["GSD_80478134"]}
+						using var reader = new StreamReader(ms, Encoding.UTF8);
+						var jsonStr = reader.ReadToEnd();
+
+						// handle the request (201124)
+						var webSocketMessage = JsonSerializer.Deserialize<WebSocketMessage>(jsonStr);
+
+						// just to acknowledge via webpage (201124)
+						if (webSocketMessage.EventType == "heartBeat")
 						{
-							"GetTerminalSettings" => OnGetTerminalSettings(webSocketMessage.Id),
-							"GetTerminal" => OnGetTerminal(webSocketMessage.Id),
-							"GetNetwork" => OnGetNetwork(webSocketMessage.Id),
-							"SetTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data, webSocketMessage.Id),
-							"GetLogFile" => OnGetLogFile(webSocketMessage.Data, webSocketMessage.Id),
-							"Reboot" => OnReboot(webSocketMessage.Data, webSocketMessage.Id),
-							"Acknowledge" => OnAcknowledge(webSocketMessage.Id),
-							"SetTimeStamp" => SetTimeStamp(webSocketMessage.Data, webSocketMessage.Id),
-							"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
-							_ => OnDefault(webSocketMessage.Id),
-						});
+							await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
+						}
+						else
+						{
+							await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
+
+							_ = (webSocketMessage.EventType switch
+							{
+								"GetTerminalSettings" => OnGetTerminalSettings(webSocketMessage.Id),
+								"GetTerminal" => OnGetTerminal(webSocketMessage.Id),
+								"GetNetwork" => OnGetNetwork(webSocketMessage.Id),
+								"SetTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data, webSocketMessage.Id),
+								"GetLogFile" => OnGetLogFile(webSocketMessage.Data, webSocketMessage.Id),
+								"Reboot" => OnReboot(webSocketMessage.Data, webSocketMessage.Id),
+								"Acknowledge" => OnAcknowledge(webSocketMessage.Id),
+								"SetTimeStamp" => SetTimeStamp(webSocketMessage.Data, webSocketMessage.Id),
+								"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
+								"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
+								_ => OnDefault(webSocketMessage.Id),
+							});
+						}
 					}
-				}
-				else if (result.MessageType == WebSocketMessageType.Close)
-				{
-					await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, "", CancellationToken.None);
+					else if (result.MessageType == WebSocketMessageType.Close)
+					{
+						await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, "", CancellationToken.None);
+					}
 				}
 			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine(ex.Message);
+			}
+		}
+
+		private async Task OniGuardPayrollRegistrationFailed(Guid? id)
+		{
+			WebSocketMessage webSocketMessage = new WebSocketMessage
+			{
+				EventType = "Acknowledge",
+				Data = Array.Empty<object>(),
+				AckId = id
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+			await SendAsync(jsonStr);
+
+			// this will set isToReconnect to false to avoid re-connect (221018)
+			await CloseAsync();
 		}
 
 		private async Task OnNewUpdate(Guid? id)

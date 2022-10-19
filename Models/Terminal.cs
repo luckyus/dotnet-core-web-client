@@ -29,5 +29,8 @@ namespace dotnet_core_web_client.Models
 		public DateTimeOffset RegDate { get; set; } = DateTimeOffset.Now;
 		[JsonPropertyName("environment")]
 		public string Environment { get; set; } = "development";
+
+		// debug
+		public string StupidMe { get; set; }
 	}
 }

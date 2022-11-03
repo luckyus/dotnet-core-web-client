@@ -243,7 +243,7 @@
 								} else {
 									// either Tx or Rx (comment (221014))
 									var data = JSON.parse(obj.data);
-									if (obj.eventType === 'Rx' && data?.eventType === 'RegistrationFailed') {
+									if (obj.eventType === 'Rx' && ['RegistrationFailed', 'UnRegistered'].includes(data?.eventType)) {
 										wsAckMsg.innerHTML = data.data[0];
 										wsAckMsg.classList.add('alert');
 										wsConnectBtn.disabled = false;
@@ -286,7 +286,7 @@
 					window.localStorage.setItem("regCode", wsRegCode.value);
 				}
 				const jsonObj = {
-					eventType: "onInit",
+					eventType: "onConnectClick",
 					data: [{
 						SN: wsSerialNo.value,
 						IpPort: wsIpPort.value,

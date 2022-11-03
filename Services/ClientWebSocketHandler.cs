@@ -82,7 +82,7 @@ namespace dotnet_core_web_client.Services
 						};
 
 						// append regCode to the data array for iGuard540 (221011)
-						if (regCode != null)
+						if (regCode != null && regCode != "")
 						{
 							var dataList = webSocketMessage.Data.ToList();
 							dataList.Add(regCode);
@@ -130,10 +130,10 @@ namespace dotnet_core_web_client.Services
 			}
 		}
 
-		public async Task CloseAsync()
+		public async Task CloseAsync(bool isToReconnect = false)
 		{
 			// no need to further reconnect because it is closed on purpose (eg browser refresh) (201219)
-			isToReconnect = false;
+			this.isToReconnect = isToReconnect;
 			await clientWebSocket?.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "don't know don't care", CancellationToken.None);
 		}
 
@@ -206,6 +206,7 @@ namespace dotnet_core_web_client.Services
 								"SetTimeStamp" => SetTimeStamp(webSocketMessage.Data, webSocketMessage.Id),
 								"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
 								"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
+								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
 								_ => OnDefault(webSocketMessage.Id),
 							});
 						}
@@ -220,6 +221,12 @@ namespace dotnet_core_web_client.Services
 			{
 				System.Diagnostics.Debug.WriteLine(ex.Message);
 			}
+		}
+
+		private async Task OnUnRegistered(Guid? id)
+		{
+			// this will set isToReconnect to false to avoid re-connect (221018)
+			await CloseAsync();
 		}
 
 		private async Task OniGuardPayrollRegistrationFailed(Guid? id)

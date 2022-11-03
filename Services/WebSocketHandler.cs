@@ -27,42 +27,7 @@ namespace dotnet_core_web_client.Services
 		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase/network.json";
 		readonly string smartCardSNConfigPath = Directory.GetCurrentDirectory() + "/DBase/smartCardSN.json";
 
-		// iGuardPayroll registration code (221010)
-		readonly string regCodePath = Directory.GetCurrentDirectory() + "/DBase/regCode.json";
-
 		public WebSocketHandler() { }
-
-		private string _RegCode = null;
-		public string RegCode
-		{
-			get
-			{
-				if (_RegCode == null)
-				{
-					if (File.Exists(regCodePath))
-					{
-						string jsonStr = File.ReadAllText(regCodePath);
-						var regCodeJsonElement = JsonSerializer.Deserialize<JsonElement>(jsonStr) as JsonElement?;
-						var regCode = regCodeJsonElement?.GetProperty("regCode");
-						_RegCode = regCode == null ? "123456" : regCode.ToString();
-					}
-					else
-					{
-						_RegCode = "123456";
-						string jsonStr = JsonSerializer.Serialize(new { regCode = _RegCode });
-						File.WriteAllText(regCodePath, jsonStr);
-					}
-				}
-
-				return _RegCode;
-			}
-			set
-			{
-				_RegCode = value;
-				string jsonStr = JsonSerializer.Serialize(new { regCode = value });
-				File.WriteAllText(regCodePath, jsonStr);
-			}
-		}
 
 		private TerminalSettings _TerminalSettings = null;
 		public TerminalSettings TerminalSettings
@@ -207,7 +172,7 @@ namespace dotnet_core_web_client.Services
 
 						string eventType = jsonObj.EventType;
 
-						if (eventType == "onInit")
+						if (eventType == "onConnectClick")
 						{
 							// get the smartCard sn array (210127)
 							string smartCardSNJsonStr = File.ReadAllText(smartCardSNConfigPath);

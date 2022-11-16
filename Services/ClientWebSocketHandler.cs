@@ -1,11 +1,9 @@
 ﻿using dotnet_core_web_client.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -207,7 +205,7 @@ namespace dotnet_core_web_client.Services
 								"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
 								"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
 								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
-								_ => OnDefault(webSocketMessage.Id),
+								_ => OnDefaultAsync(webSocketMessage.Id),
 							});
 						}
 					}
@@ -231,15 +229,7 @@ namespace dotnet_core_web_client.Services
 
 		private async Task OniGuardPayrollRegistrationFailed(Guid? id)
 		{
-			WebSocketMessage webSocketMessage = new WebSocketMessage
-			{
-				EventType = "Acknowledge",
-				Data = Array.Empty<object>(),
-				AckId = id
-			};
-
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-			await SendAsync(jsonStr);
+			await SendAcknowledgeAsync(id);
 
 			// this will set isToReconnect to false to avoid re-connect (221018)
 			await CloseAsync();
@@ -247,35 +237,22 @@ namespace dotnet_core_web_client.Services
 
 		private async Task OnNewUpdate(Guid? id)
 		{
-			try
-			{
-				WebSocketMessage webSocketMessage = new WebSocketMessage
-				{
-					EventType = "Acknowledge",
-					Data = Array.Empty<object>(),
-					AckId = id
-				};
+			Random r = new();
+			await Task.Delay(r.Next(5000, 7000));
 
-				Random r = new();
-				await Task.Delay(r.Next(5000, 7000));
-
-				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-				await SendAsync(jsonStr);
-			}
-			catch { /* don't care */ }
+			await SendAcknowledgeAsync(id);
 		}
 
-
-		private object SetTimeStamp(object[] data, Guid? id)
+		private async Task SetTimeStamp(object[] data, Guid? id)
 		{
-			if (data?.Length == 0 || id == null) return null;
+			if (data?.Length == 0 || id == null) return;
 
 			int timeStamp = int.Parse(data[0].ToString());
 
 			string jsonStr = JsonSerializer.Serialize(new { timeStamp });
 			File.WriteAllText(timeStampPath, jsonStr);
 
-			return null;
+			await SendAcknowledgeAsync(id);
 		}
 
 		private static object OnAcknowledge(Guid? id)
@@ -294,21 +271,13 @@ namespace dotnet_core_web_client.Services
 				AckId = id
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 			await SendAsync(jsonStr);
 
 			// simulate machine reboot time (201228)
 			await Task.Delay(3000);
 
-			webSocketMessage = new WebSocketMessage
-			{
-				EventType = "Acknowledge",
-				Data = Array.Empty<object>(),
-				AckId = id
-			};
-
-			jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-			await SendAsync(jsonStr);
+			await SendAcknowledgeAsync(id);
 		}
 
 		private async Task OnGetLogFile(object[] data, Guid? id)
@@ -324,7 +293,7 @@ namespace dotnet_core_web_client.Services
 				AckId = id
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 			await SendAsync(jsonStr);
 		}
 
@@ -352,20 +321,12 @@ namespace dotnet_core_web_client.Services
 					AckId = id
 				};
 
-				jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+				jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 				await SendAsync(jsonStr);
 				await Task.Delay(5000);
 			}
 
-			webSocketMessage = new WebSocketMessage
-			{
-				EventType = "Acknowledge",
-				Data = Array.Empty<object>(),
-				AckId = id
-			};
-
-			jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-			await SendAsync(jsonStr);
+			await SendAcknowledgeAsync(id);
 
 			webSocketHandler.TerminalSettings = newTerminalSettings;
 		}
@@ -374,7 +335,7 @@ namespace dotnet_core_web_client.Services
 		{
 			if (id == null) return;
 
-			Random r = new Random();
+			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
 			Network network = webSocketHandler.Network;
@@ -386,7 +347,7 @@ namespace dotnet_core_web_client.Services
 				AckId = id
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 			await SendAsync(jsonStr);
 		}
 
@@ -394,7 +355,7 @@ namespace dotnet_core_web_client.Services
 		{
 			if (id == null) return;
 
-			Random r = new Random();
+			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
 			Terminal terminal = webSocketHandler.Terminal;
@@ -406,7 +367,7 @@ namespace dotnet_core_web_client.Services
 				AckId = id
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 			await SendAsync(jsonStr);
 		}
 
@@ -414,7 +375,7 @@ namespace dotnet_core_web_client.Services
 		{
 			if (id == null) return;
 
-			Random r = new Random();
+			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
 			TerminalSettings terminalSettings = webSocketHandler.TerminalSettings;
@@ -426,7 +387,7 @@ namespace dotnet_core_web_client.Services
 				AckId = id
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 			await SendAsync(jsonStr);
 		}
 
@@ -435,24 +396,28 @@ namespace dotnet_core_web_client.Services
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		private async Task OnDefault(Guid? id)
+		private async Task OnDefaultAsync(Guid? id)
 		{
-			if (id != null)
-			{
-				try
-				{
-					WebSocketMessage webSocketMessage = new WebSocketMessage
-					{
-						EventType = "Acknowledge",
-						Data = Array.Empty<object>(),
-						AckId = id
-					};
+			await SendAcknowledgeAsync(id);
+		}
 
-					string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-					await SendAsync(jsonStr);
-				}
-				catch { /* don't care */ }
+		private async Task SendAcknowledgeAsync(Guid? ackId)
+		{
+			if (ackId == null) return;
+
+			try
+			{
+				WebSocketMessage webSocketMessage = new()
+				{
+					EventType = "Acknowledge",
+					Data = Array.Empty<object>(),
+					AckId = ackId
+				};
+
+				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+				await SendAsync(jsonStr);
 			}
+			catch { /* don't care */ }
 		}
 	}
 }

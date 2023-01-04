@@ -238,7 +238,7 @@ namespace dotnet_core_web_client.Services
 		private async Task OnNewUpdate(Guid? id)
 		{
 			Random r = new();
-			await Task.Delay(r.Next(5000, 7000));
+			await Task.Delay(r.Next(1000, 2000));
 
 			await SendAcknowledgeAsync(id);
 		}
@@ -403,7 +403,7 @@ namespace dotnet_core_web_client.Services
 
 		private async Task SendAcknowledgeAsync(Guid? ackId)
 		{
-			if (ackId == null) return;
+			if (ackId == null || ackId == Guid.Empty) return;
 
 			try
 			{

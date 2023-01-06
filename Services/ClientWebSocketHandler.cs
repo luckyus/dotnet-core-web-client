@@ -403,7 +403,9 @@ namespace dotnet_core_web_client.Services
 
 		private async Task SendAcknowledgeAsync(Guid? ackId)
 		{
-			if (ackId == null || ackId == Guid.Empty) return;
+			// debug
+			// if (ackId == null || ackId == Guid.Empty) return;
+			if (ackId == null) return;
 
 			try
 			{

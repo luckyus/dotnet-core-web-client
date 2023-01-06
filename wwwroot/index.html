@@ -101,6 +101,7 @@
 				<input type="button" id="ws-btn-connect" value="Connect" />
 			</div>
 			<div>
+				<input type="button" id="ws-btn-test" value="Test" />
 				<input type="button" id="ws-btn-clear" value="Clear" />
 			</div>
 		</div>
@@ -146,6 +147,7 @@
 			const wsAckMsg = document.getElementById("ws-ackmsg");
 			const wsUl = document.getElementById("ws-ul");
 			const wsConnectBtn = document.getElementById("ws-btn-connect");
+			const wsTestBtn = document.getElementById("ws-btn-test");
 			const wsClearBtn = document.getElementById("ws-btn-clear");
 			const wsHeartBeat = document.querySelectorAll(".ws-container .fa-heart");
 			const accessLogCardSN = document.querySelector("#ws-accesslog-card-sn");
@@ -360,6 +362,15 @@
 						smartCardSN: 0,
 						employeeId: employeeId.value
 					}]
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
+			}
+
+			wsTestBtn.onclick = () => {
+				const jsonObj = {
+					eventType: "onTestClick",
+					data: []
 				}
 				const jsonStr = JSON.stringify(jsonObj);
 				webSocket.send(jsonStr);

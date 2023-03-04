@@ -245,7 +245,7 @@ namespace dotnet_core_web_client.Services
 
 		private async Task SetTimeStamp(object[] data, Guid? id)
 		{
-			if (data?.Length == 0 || id == null) return;
+			if (data?.Length == 0) return;
 
 			int timeStamp = int.Parse(data[0].ToString());
 

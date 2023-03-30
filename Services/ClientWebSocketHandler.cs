@@ -205,7 +205,8 @@ namespace dotnet_core_web_client.Services
 								"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
 								"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
 								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
-								_ => OnDefaultAsync(webSocketMessage.Id),
+                                "EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
+                                _ => OnDefaultAsync(webSocketMessage.Id),
 							});
 						}
 					}
@@ -221,7 +222,12 @@ namespace dotnet_core_web_client.Services
 			}
 		}
 
-		private async Task OnUnRegistered(Guid? id)
+        private async Task OnEndUploadUserData(object[] data, Guid? id)
+        {
+			await SetTimeStamp(data, id);
+        }
+
+        private async Task OnUnRegistered(Guid? id)
 		{
 			// this will set isToReconnect to false to avoid re-connect (221018)
 			await CloseAsync();

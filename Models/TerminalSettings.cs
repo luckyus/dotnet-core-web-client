@@ -149,6 +149,11 @@ namespace dotnet_core_web_client.Models
 		public int DelayTimer { get; set; } = 3000;
 		[JsonPropertyName("accessRight")]
 		public AccessRight AccessRight { get; set; } = AccessRight.System;
+		// added for iGuard540 (230331)
+		[JsonPropertyName("openDoorWhen")]
+		public string[] OpenDoorWhen { get; set; } = new string[] { "IN", "OUT", "F1-F4" };
+		[JsonPropertyName("duration")]
+		public int Duration { get; set; } = 3000;
 	}
 
 	public class DailyReboot

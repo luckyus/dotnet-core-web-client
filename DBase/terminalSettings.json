@@ -17,7 +17,7 @@
 		"isReadCardSNOnly": true,
 		"acceptUnknownCard": false,
 		"cardType": 0,
-		"acceptUnregisteredCard": true
+		"acceptUnregisteredCard": false
 	},
 	"inOutControl": {
 		"inOutStrategy": 4,
@@ -40,7 +40,11 @@
 		"enabled": true,
 		"id": 123,
 		"delayTimer": 3000,
-		"accessRight": 0
+		"accessRight": 0,
+		"openDoorWhen": [
+			"OUT"
+		],
+		"duration": 3000
 	},
 	"dailyReboot": {
 		"enabled": true,
@@ -52,8 +56,8 @@
 		"isEnableSNTP": true,
 		"isSyncMasterTime": true
 	},
-	"tempDetectEnabled": true,
+	"tempDetectEnabled": false,
 	"faceDetectEnabled": false,
 	"flashLightEnabled": false,
-	"tempCacheDuration": 3
+	"tempCacheDuration": 0
 }

@@ -36,6 +36,8 @@ namespace dotnet_core_web_client.Models
 			["12:30"] = InOutStatus.IN,
 			["16:30"] = InOutStatus.OUT
 		};
+		[JsonPropertyName("localDoorRelayControl")]
+		public LocalDoorRelayControl LocalDoorRelayControl { get; set; }
 		[JsonPropertyName("remoteDoorRelayControl")]
 		public RemoteDoorRelayControl RemoteDoorRelayControl { get; set; } = new RemoteDoorRelayControl();
 		[JsonPropertyName("dailyReboot")]

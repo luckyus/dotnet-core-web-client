@@ -52,6 +52,8 @@ namespace dotnet_core_web_client.Models
 		public bool FlashLightEnabled { get; set; }
 		[JsonPropertyName("tempCacheDuration")]
 		public int TempCacheDuration { get; set; }
+		[JsonPropertyName("autoUpdateEnabled")]
+		public bool? AutoUpdateEnabled { get; set; }
 	}
 
 	public enum CameraEnvironment

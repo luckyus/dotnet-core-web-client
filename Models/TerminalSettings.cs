@@ -176,6 +176,8 @@ namespace dotnet_core_web_client.Models
 	{
 		[JsonPropertyName("timeZone")]
 		public string TimeZone { get; set; } = "HK";
+		[JsonPropertyName("timeOffSet")]
+		public decimal TimeOffSet { get; set; }
 		[JsonPropertyName("timeServer")]
 		public string TimeServer { get; set; } = "time.google.com";
 		[JsonPropertyName("isEnableSNTP")]

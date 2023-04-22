@@ -94,7 +94,7 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("cardType")]
 		public SmartCardType CardType { get; set; } = SmartCardType.OctopusOnly;
 		[JsonPropertyName("acceptUnregisteredCard")]
-		public bool AcceptUnregisteredCard { get; set; } = false;
+		public bool? AcceptUnregisteredCard { get; set; }
 	}
 
 	public enum InOutStrategy

@@ -44,6 +44,10 @@ namespace dotnet_core_web_client.Models
 		public DailyReboot DailyReboot { get; set; } = new DailyReboot();
 		[JsonPropertyName("timeSync")]
 		public TimeSync TimeSync { get; set; } = new TimeSync();
+		[JsonPropertyName("antiPassback")]
+		public AntiPassback AntiPassback { get; set; }  // only for iGuard540, not for iGuardExpress540 (230423)
+		[JsonPropertyName("dailySingleAccess")]
+		public DailySingleAccess DailySingleAccess { get; set; }    // ditto (230423)
 		[JsonPropertyName("tempDetectEnabled")]
 		public bool TempDetectEnable { get; set; }
 		[JsonPropertyName("faceDetectEnabled")]
@@ -54,6 +58,32 @@ namespace dotnet_core_web_client.Models
 		public int TempCacheDuration { get; set; }
 		[JsonPropertyName("autoUpdateEnabled")]
 		public bool? AutoUpdateEnabled { get; set; }
+	}
+
+	/// <summary>
+	/// only for iGuard540, not for iGuardExpress540 (230423)
+	/// </summary>
+	public class AntiPassback
+	{
+		[JsonPropertyName("type")]
+		public string Type { get; set; }
+		[JsonPropertyName("isDailyReset")]
+		public bool IsDailyReset { get; set; }
+		[JsonPropertyName("dailyResetTime")]
+		public string DailyResetTime { get; set; }
+	}
+
+	/// <summary>
+	/// only for iGuard540, not for iGuardExpress540 (230423)
+	/// </summary>
+	public class DailySingleAccess
+	{
+		[JsonPropertyName("type")]
+		public string Type { get; set; }
+		[JsonPropertyName("isDailyReset")]
+		public bool IsDailyReset { get; set; }
+		[JsonPropertyName("dailyResetTime")]
+		public string DailyResetTime { get; set; }
 	}
 
 	public enum CameraEnvironment

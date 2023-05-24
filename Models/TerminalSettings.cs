@@ -101,13 +101,13 @@ namespace dotnet_core_web_client.Models
 	public class CameraControl
 	{
 		[JsonPropertyName("enable")]
-		public bool Enable { get; set; } = true;
-		[JsonPropertyName("resolution")]
-		public CameraResolution Resolution { get; set; } = CameraResolution.r640x480;
+		public bool Enable { get; set; }
 		[JsonPropertyName("frameRate")]
-		public int FrameRate { get; set; } = 1;
+		public int? FrameRate { get; set; }
 		[JsonPropertyName("environment")]
-		public CameraEnvironment Environment { get; set; } = CameraEnvironment.Normal;
+		public CameraEnvironment? Environment { get; set; }
+		[JsonPropertyName("resolution")]
+		public CameraResolution? Resolution { get; set; }
 	}
 
 	public enum SmartCardType
@@ -119,10 +119,10 @@ namespace dotnet_core_web_client.Models
 	{
 		[JsonPropertyName("isReadCardSNOnly")]
 		public bool IsReadCardSNOnly { get; set; } = false;
-		[JsonPropertyName("acceptUnknownCard")]
-		public bool AcceptUnknownCard { get; set; } = false;
 		[JsonPropertyName("cardType")]
 		public SmartCardType CardType { get; set; } = SmartCardType.OctopusOnly;
+		[JsonPropertyName("acceptUnknownCard")]
+		public bool? AcceptUnknownCard { get; set; } = false;
 		[JsonPropertyName("acceptUnregisteredCard")]
 		public bool? AcceptUnregisteredCard { get; set; }
 	}

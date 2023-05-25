@@ -205,8 +205,9 @@ namespace dotnet_core_web_client.Services
 								"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
 								"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
 								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
-                                "EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
-                                _ => OnDefaultAsync(webSocketMessage.Id),
+								"EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
+								"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
+								_ => OnDefaultAsync(webSocketMessage.Id),
 							});
 						}
 					}
@@ -222,12 +223,35 @@ namespace dotnet_core_web_client.Services
 			}
 		}
 
-        private async Task OnEndUploadUserData(object[] data, Guid? id)
-        {
-			await SetTimeStamp(data, id);
-        }
+		private async Task OnVerifyPassword(object[] data, Guid? ackId)
+		{
+			if (data?.Length == 0 || ackId == null) return;
 
-        private async Task OnUnRegistered(Guid? id)
+			string password = data[0].ToString();
+
+			bool result = password == "123";
+
+			try
+			{
+				WebSocketMessage webSocketMessage = new()
+				{
+					EventType = "Acknowledge",
+					Data = new object[] { result },
+					AckId = ackId
+				};
+
+				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+				await SendAsync(jsonStr);
+			}
+			catch { /* don't care */ }
+		}
+
+		private async Task OnEndUploadUserData(object[] data, Guid? id)
+		{
+			await SetTimeStamp(data, id);
+		}
+
+		private async Task OnUnRegistered(Guid? id)
 		{
 			// this will set isToReconnect to false to avoid re-connect (221018)
 			await CloseAsync();
@@ -270,7 +294,7 @@ namespace dotnet_core_web_client.Services
 		{
 			if (id == null) return;
 
-			WebSocketMessage webSocketMessage = new WebSocketMessage
+			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "Rebooting",
 				Data = Array.Empty<object>(),
@@ -386,7 +410,7 @@ namespace dotnet_core_web_client.Services
 
 			TerminalSettings terminalSettings = webSocketHandler.TerminalSettings;
 
-			WebSocketMessage webSocketMessage = new WebSocketMessage
+			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "OnGetTerminalSettings",
 				Data = new object[] { terminalSettings },

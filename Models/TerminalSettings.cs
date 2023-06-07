@@ -37,7 +37,7 @@ namespace dotnet_core_web_client.Models
 			["16:30"] = InOutStatus.OUT
 		};
 		[JsonPropertyName("localDoorRelayControl")]
-		public LocalDoorRelayControl LocalDoorRelayControl { get; set; }
+		public LocalDoorRelayControl LocalDoorRelayControl { get; set; } = new LocalDoorRelayControl();
 		[JsonPropertyName("remoteDoorRelayControl")]
 		public RemoteDoorRelayControl RemoteDoorRelayControl { get; set; } = new RemoteDoorRelayControl();
 		[JsonPropertyName("dailyReboot")]
@@ -176,10 +176,17 @@ namespace dotnet_core_web_client.Models
 	public class LocalDoorRelayControl
 	{
 		// added for iGuard540 (230331)
-		[JsonPropertyName("openDoorWhen")]
-		public string[] OpenDoorWhen { get; set; } = new string[] { "IN", "OUT", "F1-F4" };
-		[JsonPropertyName("duration")]
+		[JsonPropertyName("openDoorStatus")]
+		public DoorRelayStatus DoorRelayStatus { get; set; } = new DoorRelayStatus() { In = true };
+		[JsonPropertyName("delayTimer")]
 		public int Duration { get; set; } = 3000;
+	}
+
+	public class DoorRelayStatus
+	{
+		public bool? In { get; set; }
+		public bool? Out { get; set; }
+		public bool? F1toF4 { get; set; }
 	}
 
 	public class RemoteDoorRelayControl

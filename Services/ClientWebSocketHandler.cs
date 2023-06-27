@@ -158,7 +158,7 @@ namespace dotnet_core_web_client.Services
 		{
 			try
 			{
-				var receiveBuffer = new ArraySegment<Byte>(new byte[100]);
+				ArraySegment<Byte> receiveBuffer = new(new byte[100]);
 
 				while (clientWebSocket.State == WebSocketState.Open)
 				{
@@ -168,7 +168,11 @@ namespace dotnet_core_web_client.Services
 					do
 					{
 						result = await clientWebSocket.ReceiveAsync(receiveBuffer, CancellationToken.None);
-						ms.Write(receiveBuffer.Array, receiveBuffer.Offset, result.Count);
+
+						if (receiveBuffer.Array != null)
+						{
+							ms.Write(receiveBuffer.Array, receiveBuffer.Offset, result.Count);
+						}
 					} while (!result.EndOfMessage);
 
 					_ = ms.Seek(0, SeekOrigin.Begin);
@@ -183,32 +187,35 @@ namespace dotnet_core_web_client.Services
 						// handle the request (201124)
 						var webSocketMessage = JsonSerializer.Deserialize<WebSocketMessage>(jsonStr);
 
-						// just to acknowledge via webpage (201124)
-						if (webSocketMessage.EventType == "heartBeat")
+						if (webSocketMessage != null)
 						{
-							await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
-						}
-						else
-						{
-							await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
-
-							_ = (webSocketMessage.EventType switch
+							// just to acknowledge via webpage (201124)
+							if (webSocketMessage.EventType == "heartBeat")
 							{
-								"GetTerminalSettings" => OnGetTerminalSettings(webSocketMessage.Id),
-								"GetTerminal" => OnGetTerminal(webSocketMessage.Id),
-								"GetNetwork" => OnGetNetwork(webSocketMessage.Id),
-								"SetTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data, webSocketMessage.Id),
-								"GetLogFile" => OnGetLogFile(webSocketMessage.Data, webSocketMessage.Id),
-								"Reboot" => OnReboot(webSocketMessage.Data, webSocketMessage.Id),
-								"Acknowledge" => OnAcknowledge(webSocketMessage.Id),
-								"SetTimeStamp" => SetTimeStamp(webSocketMessage.Data, webSocketMessage.Id),
-								"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
-								"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
-								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
-								"EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
-								"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
-								_ => OnDefaultAsync(webSocketMessage.Id),
-							});
+								await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "heartBeat", data = jsonStr }));
+							}
+							else
+							{
+								await webSocketHandler.SendAsync(JsonSerializer.Serialize(new { eventType = "Rx", data = jsonStr }));
+
+								_ = (webSocketMessage.EventType switch
+								{
+									"GetTerminalSettings" => OnGetTerminalSettings(webSocketMessage.Id),
+									"GetTerminal" => OnGetTerminal(webSocketMessage.Id),
+									"GetNetwork" => OnGetNetwork(webSocketMessage.Id),
+									"SetTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data, webSocketMessage.Id),
+									"GetLogFile" => OnGetLogFile(webSocketMessage.Data, webSocketMessage.Id),
+									"Reboot" => OnReboot(webSocketMessage.Data, webSocketMessage.Id),
+									"Acknowledge" => OnAcknowledge(webSocketMessage.Id),
+									"SetTimeStamp" => SetTimeStamp(webSocketMessage.Data, webSocketMessage.Id),
+									"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
+									"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
+									"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
+									"EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
+									"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
+									_ => OnDefaultAsync(webSocketMessage.Id),
+								});
+							}
 						}
 					}
 					else if (result.MessageType == WebSocketMessageType.Close)
@@ -225,9 +232,9 @@ namespace dotnet_core_web_client.Services
 
 		private async Task OnVerifyPassword(object[] data, Guid? ackId)
 		{
-			if (data?.Length == 0 || ackId == null) return;
+			if (data == null || data?.Length == 0 || ackId == null) return;
 
-			string password = data[0].ToString();
+			string? password = data?[0].ToString();
 
 			bool result = password == "123";
 
@@ -235,7 +242,7 @@ namespace dotnet_core_web_client.Services
 			{
 				WebSocketMessage webSocketMessage = new()
 				{
-					EventType = "Acknowledge",
+					EventType = "OnVerifyPassword",
 					Data = new object[] { result },
 					AckId = ackId
 				};

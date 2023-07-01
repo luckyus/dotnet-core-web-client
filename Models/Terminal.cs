@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -8,10 +9,7 @@ namespace dotnet_core_web_client.Models
 {
 	public class Terminal
 	{
-		//[JsonPropertyName("terminalId")]
-		//public string TerminalId { get; set; } = "iGuard540";
-		//[JsonPropertyName("description")]
-		//public string Description { get; set; } = "My iGuardExpress 540 Machine";
+		[Key]
 		[JsonPropertyName("serialNo")]
 		public string SN { get; set; } = "7100-0000-0000";
 		[JsonPropertyName("firmwareVersion")]

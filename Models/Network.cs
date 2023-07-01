@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -8,6 +10,9 @@ namespace dotnet_core_web_client.Models
 {
 	public class Network
 	{
+		[Key]
+		[JsonIgnore]
+		public string SN { get; set; } = "7100-0000-0000";
 		[JsonPropertyName("interface")]
 		public string Interface { get; set; } = "eth0";
 		[JsonPropertyName("ip")]

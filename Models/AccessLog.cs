@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Models
 {
+	[Keyless]
 	public class AccessLog
 	{
 		[JsonPropertyName("employeeId")]

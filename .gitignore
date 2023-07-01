@@ -10,9 +10,7 @@
 *.userosscache
 *.sln.docstates
 *.config
-[Dd][Bb]ase/
-DBase/terminalSettings.json
-DBase/timeStamp.json
+DBase/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -342,3 +340,8 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/DBase/network.json
+/DBase/smartCardSN.json
+/DBase/terminal.json
+/DBase/terminalSettings.json
+/DBase/timeStamp.json

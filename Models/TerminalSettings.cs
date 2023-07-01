@@ -167,6 +167,12 @@ namespace dotnet_core_web_client.Models
 		public InOutStrategy? DefaultInOut { get; set; } = InOutStrategy.SystemInOut;
 		[JsonPropertyName("isEnableFx")]
 		public bool[] IsEnableFx { get; set; } = new bool[] { true, false, true, false };
+
+		public bool IsEnableF0 { get; set; }
+		public bool IsEnableF1 { get; set; }
+		public bool IsEnableF2 { get; set; }
+		public bool IsEnableF3 { get; set; }
+
 		[JsonPropertyName("dailyResetEnabled")]
 		public bool? DailyResetAutoInOut { get; set; }
 		[JsonPropertyName("dailyResetTime")]

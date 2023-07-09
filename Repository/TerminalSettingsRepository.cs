@@ -27,18 +27,26 @@ namespace dotnet_core_web_client.Repository
 
 			TerminalSettings existing = await _dBContext.TerminalSettings.FirstOrDefaultAsync(x => x.SN == sn);
 
-			if (existing == null)
+			try
 			{
-				_dBContext.TerminalSettings.Add(terminalSettings);
+				if (existing == null)
+				{
+					_dBContext.TerminalSettings.Add(terminalSettings);
+				}
+				else
+				{
+					_dBContext.TerminalSettings.Update(terminalSettings);
+				}
+
+				await _dBContext.SaveChangesAsync();
+
+				return (TerminalSettingsDto)terminalSettings;
 			}
-			else
+			catch
 			{
-				_dBContext.TerminalSettings.Update(terminalSettings);
+				return null;
 			}
 
-			await _dBContext.SaveChangesAsync();
-
-			return (TerminalSettingsDto)terminalSettings;
 		}
 	}
 }

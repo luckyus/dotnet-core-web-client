@@ -60,20 +60,16 @@ namespace dotnet_core_web_client.Services
 			}
 			set
 			{
-				try
-				{
-					using var scope = _scopeFactory.CreateScope();
-					_terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
+				using var scope = _scopeFactory.CreateScope();
+				_terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
 
-					_ = Task.Run(async () =>
+				_ = Task.Run(async () =>
+				{
+					if (await _terminalSettingsRepository.UpsertTerminalSettingsAsync(value, sn) != null)
 					{
-						if (await _terminalSettingsRepository.UpsertTerminalSettingsAsync(value, sn) != null)
-						{
-							_TerminalSettingsDto = value;
-						}
-					});
-				}
-				catch { }
+						_TerminalSettingsDto = value;
+					}
+				});
 			}
 		}
 

@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using dotnet_core_web_client.DBCotexts;
 using dotnet_core_web_client.Middleware;
+using dotnet_core_web_client.Repository;
 using dotnet_core_web_client.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -35,17 +36,18 @@ namespace dotnet_core_web_client
 				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
 			});
 
-			services.AddControllers();
-
 			// WebSocket webSocket = null;
 			// services.AddScoped<IWebSocketHandler>(x => new WebSocketHandler(webSocket));
 
-			services.AddScoped<IWebSocketHandler, WebSocketHandler>();
+			// services.AddScoped<IWebSocketHandler, WebSocketHandler>();
 			services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
+			services.AddScoped<ITerminalSettingsRepository, TerminalSettingsRepository>();
+
+			services.AddControllers();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IWebSocketHandler webSocketHandler)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env /*, IWebSocketHandler webSocketHandler */)
 		{
 			if (env.IsDevelopment())
 			{

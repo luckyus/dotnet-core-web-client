@@ -1,15 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using dotnet_core_web_client.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace dotnet_core_web_client.DBCotexts
 {
 	public class IGuardDBContext : DbContext
 	{
-        public IGuardDBContext(DbContextOptions<IGuardDBContext> options) : base(options)
-        {            
-        }
+		public IGuardDBContext(DbContextOptions<IGuardDBContext> options) : base(options)
+		{
+		}
 
-		public DbSet<Models.Network> Network { get; set; }
-		public DbSet<Models.Terminal> Terminal { get; set; }
-		public DbSet<Models.TerminalSettings> TerminalSettings { get; set; }
-    }
+		// public DbSet<Models.Network> Network { get; set; }
+		// public DbSet<Models.Terminal> Terminal { get; set; }
+		public DbSet<TerminalSettings> TerminalSettings { get; set; }
+	}
 }

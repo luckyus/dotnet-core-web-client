@@ -61,77 +61,75 @@ namespace dotnet_core_web_client.Models
 				FaceDetectEnable = terminalSettings.FaceDetectEnable,
 				FlashLightEnabled = terminalSettings.FlashLightEnabled,
 				TempCacheDuration = terminalSettings.TempCacheDuration,
-				AutoUpdateEnabled = terminalSettings.AutoUpdateEnabled
+				AutoUpdateEnabled = terminalSettings.AutoUpdateEnabled,
+
+				InOutControl = new InOutControlDto
+				{
+					DefaultInOut = terminalSettings.InOutControl.DefaultInOut,
+					DailyResetAutoInOut = terminalSettings.InOutControl.DailyResetAutoInOut,
+					DailyResetAutoInOutTime = terminalSettings.InOutControl.DailyResetAutoInOutTime,
+					IsEnableFx = terminalSettings.InOutControl.IsEnableFx
+				},
+
+				LocalDoorRelayControl = new LocalDoorRelayControlDto
+				{
+					DoorRelayStatus = terminalSettings.LocalDoorRelayControl.DoorRelayStatus,
+					Duration = terminalSettings.LocalDoorRelayControl.Duration
+				},
+
+				RemoteDoorRelayControl = new RemoteDoorRelayControlDto
+				{
+					Enabled = terminalSettings.RemoteDoorRelayControl.Enabled,
+					Id = terminalSettings.RemoteDoorRelayControl.Id,
+					DelayTimer = terminalSettings.RemoteDoorRelayControl.DelayTimer,
+					AccessRight = terminalSettings.RemoteDoorRelayControl.AccessRight
+				},
+
+				DailyReboot = new DailyRebootDto
+				{
+					Enabled = terminalSettings.DailyReboot.Enabled,
+					Time = terminalSettings.DailyReboot.Time
+				},
+
+				TimeSync = new TimeSyncDto
+				{
+					TimeZone = terminalSettings.TimeSync.TimeZone,
+					TimeOffSet = terminalSettings.TimeSync.TimeOffSet,
+					TimeServer = terminalSettings.TimeSync.TimeServer,
+					IsEnableSNTP = terminalSettings.TimeSync.IsEnableSNTP,
+					IsSyncMasterTime = terminalSettings.TimeSync.IsSyncMasterTime
+				},
+
+				AntiPassback = new AntiPassbackDto
+				{
+					Type = terminalSettings.AntiPassback.Type,
+					IsDailyReset = terminalSettings.AntiPassback.IsDailyReset,
+					DailyResetTime = terminalSettings.AntiPassback.DailyResetTime
+				},
+
+				DailySingleAccess = new DailySingleAccessDto
+				{
+					Type = terminalSettings.DailySingleAccess.Type,
+					IsDailyReset = terminalSettings.DailySingleAccess.IsDailyReset,
+					DailyResetTime = terminalSettings.DailySingleAccess.DailyResetTime
+				},
+
+				CameraControl = new CameraControlDto
+				{
+					Enable = terminalSettings.CameraControl.Enable,
+					FrameRate = terminalSettings.CameraControl.FrameRate,
+					Environment = terminalSettings.CameraControl.Environment,
+					Resolution = terminalSettings.CameraControl.Resolution
+				},
+
+				SmartCardControl = new SmartCardControlDto
+				{
+					IsReadCardSNOnly = terminalSettings.SmartCardControl.IsReadCardSNOnly,
+					CardType = terminalSettings.SmartCardControl.CardType,
+					AcceptUnknownCard = terminalSettings.SmartCardControl.AcceptUnknownCard,
+					AcceptUnregisteredCard = terminalSettings.SmartCardControl.AcceptUnregisteredCard
+				}
 			};
-
-			dto.InOutControl = new InOutControlDto
-			{
-				DefaultInOut = terminalSettings.InOutControl.DefaultInOut,
-				IsEnableFx = terminalSettings.InOutControl.IsEnableFx,
-				DailyResetAutoInOut = terminalSettings.InOutControl.DailyResetAutoInOut,
-				DailyResetAutoInOutTime = terminalSettings.InOutControl.DailyResetAutoInOutTime
-			};
-
-			dto.LocalDoorRelayControl = new LocalDoorRelayControlDto
-			{
-				DoorRelayStatus = terminalSettings.LocalDoorRelayControl.DoorRelayStatus,
-				Duration = terminalSettings.LocalDoorRelayControl.Duration
-			};
-
-			dto.RemoteDoorRelayControl = new RemoteDoorRelayControlDto
-			{
-				Enabled = terminalSettings.RemoteDoorRelayControl.Enabled,
-				Id = terminalSettings.RemoteDoorRelayControl.Id,
-				DelayTimer = terminalSettings.RemoteDoorRelayControl.DelayTimer,
-				AccessRight = terminalSettings.RemoteDoorRelayControl.AccessRight
-			};
-
-			dto.DailyReboot = new DailyRebootDto
-			{
-				Enabled = terminalSettings.DailyReboot.Enabled,
-				Time = terminalSettings.DailyReboot.Time
-			};
-
-			dto.TimeSync = new TimeSyncDto
-			{
-				TimeZone = terminalSettings.TimeSync.TimeZone,
-				TimeOffSet = terminalSettings.TimeSync.TimeOffSet,
-				TimeServer = terminalSettings.TimeSync.TimeServer,
-				IsEnableSNTP = terminalSettings.TimeSync.IsEnableSNTP,
-				IsSyncMasterTime = terminalSettings.TimeSync.IsSyncMasterTime
-			};
-
-			dto.AntiPassback = new AntiPassbackDto
-			{
-				Type = terminalSettings.AntiPassback.Type,
-				IsDailyReset = terminalSettings.AntiPassback.IsDailyReset,
-				DailyResetTime = terminalSettings.AntiPassback.DailyResetTime
-			};
-
-			dto.DailySingleAccess = new DailySingleAccessDto
-			{
-				Type = terminalSettings.DailySingleAccess.Type,
-				IsDailyReset = terminalSettings.DailySingleAccess.IsDailyReset,
-				DailyResetTime = terminalSettings.DailySingleAccess.DailyResetTime
-			};
-
-			dto.CameraControl = new CameraControlDto
-			{
-				Enable = terminalSettings.CameraControl.Enable,
-				FrameRate = terminalSettings.CameraControl.FrameRate,
-				Environment = terminalSettings.CameraControl.Environment,
-				Resolution = terminalSettings.CameraControl.Resolution
-			};
-
-			dto.SmartCardControl = new SmartCardControlDto
-			{
-				IsReadCardSNOnly = terminalSettings.SmartCardControl.IsReadCardSNOnly,
-				CardType = terminalSettings.SmartCardControl.CardType,
-				AcceptUnknownCard = terminalSettings.SmartCardControl.AcceptUnknownCard,
-				AcceptUnregisteredCard = terminalSettings.SmartCardControl.AcceptUnregisteredCard
-			};
-
-
 
 			return dto;
 		}

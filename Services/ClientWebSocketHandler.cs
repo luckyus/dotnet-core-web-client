@@ -61,7 +61,7 @@ namespace dotnet_core_web_client.Services
 						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket"), CancellationToken.None);
 
 						// connected! acknowledge the browser (201021)
-						data = new object[] { "Connected to iGuardPayroll!" };
+						data = new object[] { sn.StartsWith("81") ? "iGuard540" : "iGuardExpress540" + " Connected to iGuardPayroll!" };
 						jsonObj = new { eventType = "onConnected", data };
 						jsonStr = JsonSerializer.Serialize(jsonObj);
 						await webSocketHandler.SendAsync(jsonStr);
@@ -76,7 +76,7 @@ namespace dotnet_core_web_client.Services
 						WebSocketMessage webSocketMessage = new()
 						{
 							EventType = "OnDeviceConnected",
-							Data = new object[] { webSocketHandler.Terminal, webSocketHandler.TerminalSettings, webSocketHandler.Network, timeStamp }
+							Data = new object[] { webSocketHandler.Terminal, webSocketHandler.TerminalSettingsDto, webSocketHandler.Network, timeStamp }
 						};
 
 						// append regCode to the data array for iGuard540 (221011)
@@ -342,12 +342,12 @@ namespace dotnet_core_web_client.Services
 			string jsonStr;
 
 			string message = data[0].ToString();
-			var newTerminalSettings = JsonSerializer.Deserialize<TerminalSettings>(message);
+			var newTerminalSettings = JsonSerializer.Deserialize<TerminalSettingsDto>(message);
 
 			bool isRestartRequired = false;
 
-			if (newTerminalSettings.TerminalId != webSocketHandler.TerminalSettings.TerminalId) isRestartRequired = true;
-			else if (newTerminalSettings.TimeSync.TimeZone != webSocketHandler.TerminalSettings.TimeSync.TimeZone) isRestartRequired = true;
+			if (newTerminalSettings.TerminalId != webSocketHandler.TerminalSettingsDto.TerminalId) isRestartRequired = true;
+			else if (newTerminalSettings.TimeSync.TimeZone != webSocketHandler.TerminalSettingsDto.TimeSync.TimeZone) isRestartRequired = true;
 
 			if (isRestartRequired)
 			{
@@ -365,7 +365,7 @@ namespace dotnet_core_web_client.Services
 
 			await SendAcknowledgeAsync(id);
 
-			webSocketHandler.TerminalSettings = newTerminalSettings;
+			webSocketHandler.TerminalSettingsDto = newTerminalSettings;
 		}
 
 		private async Task OnGetNetwork(Guid? id)
@@ -415,12 +415,12 @@ namespace dotnet_core_web_client.Services
 			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
-			TerminalSettings terminalSettings = webSocketHandler.TerminalSettings;
+			TerminalSettingsDto terminalSettingsDto = webSocketHandler.TerminalSettingsDto;
 
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "OnGetTerminalSettings",
-				Data = new object[] { terminalSettings },
+				Data = new object[] { terminalSettingsDto },
 				AckId = id
 			};
 

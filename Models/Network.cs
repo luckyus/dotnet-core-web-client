@@ -26,7 +26,7 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("gateway")]
 		public string Gateway { get; set; } = "192.168.0.11";
 		[JsonPropertyName("dns")]
-		public string[] Dns { get; set; } = new string[] { "8.8.8.8", "8.8.4.4" };
+		public List<string> Dns { get; set; } = new List<string> { "8.8.8.8", "8.8.4.4" };
 		[JsonPropertyName("ssid")]
 		public string Ssid { get; set; } = "LuckyTech";
 		[JsonPropertyName("password")]

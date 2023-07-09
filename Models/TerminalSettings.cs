@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -11,58 +14,195 @@ namespace dotnet_core_web_client.Models
 	public class TerminalSettings
 	{
 		[Key]
-		[JsonIgnore]
-		public string SN { get; set; } = "7100-0000-0000";
-		[JsonPropertyName("terminalId")]
-		public string TerminalId { get; set; } = "iGuard540";
-		[JsonPropertyName("description")]
-		public string Description { get; set; } = "My iGuardExpress 540 Machine";
-		[JsonPropertyName("language")]
-		public string Language { get; set; } = "en-us";
-		//[JsonPropertyName("server")]
+		public string SN { get; set; }
+		public string TerminalId { get; set; }
+		public string Description { get; set; }
+		public string Language { get; set; }
 		//public string Server { get; set; } = "www.iguardpayroll.com";
-		//[JsonPropertyName("photoServer")]
 		//public string PhotoServer { get; set; } = "photo.iguardpayroll.com";
-		[JsonPropertyName("dateTimeFormat")]
-		public string DateTimeFormat { get; set; } = "dd/mm/yy";
-		[JsonPropertyName("allowedOrigins")]
-		public string[] AllowedOrigins { get; set; } = new string[] { "one", "two" };
-		[JsonPropertyName("cameraControl")]
-		public CameraControl CameraControl { get; set; } = new CameraControl();
-		[JsonPropertyName("smartCardControl")]
-		public SmartCardControl SmartCardControl { get; set; } = new SmartCardControl();
-		[JsonPropertyName("inOutControl")]
-		public InOutControl InOutControl { get; set; } = new InOutControl();
-		[JsonPropertyName("inOutTrigger")]
-		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>()
-		{
-			["7:00"] = InOutStatus.IN,
-			["11:30"] = InOutStatus.OUT,
-			["12:30"] = InOutStatus.IN,
-			["16:30"] = InOutStatus.OUT
-		};
-		[JsonPropertyName("localDoorRelayControl")]
-		public LocalDoorRelayControl LocalDoorRelayControl { get; set; } = new LocalDoorRelayControl();
-		[JsonPropertyName("remoteDoorRelayControl")]
-		public RemoteDoorRelayControl RemoteDoorRelayControl { get; set; } = new RemoteDoorRelayControl();
-		[JsonPropertyName("dailyReboot")]
-		public DailyReboot DailyReboot { get; set; } = new DailyReboot();
-		[JsonPropertyName("timeSync")]
-		public TimeSync TimeSync { get; set; } = new TimeSync();
-		[JsonPropertyName("antiPassback")]
-		public AntiPassback AntiPassback { get; set; }  // only for iGuard540, not for iGuardExpress540 (230423)
-		[JsonPropertyName("dailySingleAccess")]
-		public DailySingleAccess DailySingleAccess { get; set; }    // ditto (230423)
-		[JsonPropertyName("tempDetectEnabled")]
+		public string DateTimeFormat { get; set; }
 		public bool TempDetectEnable { get; set; }
-		[JsonPropertyName("faceDetectEnabled")]
 		public bool FaceDetectEnable { get; set; }
-		[JsonPropertyName("flashLightEnabled")]
 		public bool FlashLightEnabled { get; set; }
-		[JsonPropertyName("tempCacheDuration")]
 		public int TempCacheDuration { get; set; }
-		[JsonPropertyName("autoUpdateEnabled")]
 		public bool? AutoUpdateEnabled { get; set; }
+		public string AllowedOriginsStr { get; set; }
+		[NotMapped]
+		public string[] AllowedOrigins
+		{
+			get
+			{
+				return AllowedOriginsStr.Split(',');
+			}
+			set
+			{
+				AllowedOriginsStr = string.Join(",", value);
+			}
+		}
+		public string CameraControlStr { get; set; }
+		[NotMapped]
+		public CameraControl CameraControl
+		{
+			get { return JsonSerializer.Deserialize<CameraControl>(CameraControlStr); }
+			set { CameraControlStr = JsonSerializer.Serialize<CameraControl>(value); }
+		}
+		public string SmartCardControlStr { get; set; }
+		[NotMapped]
+		public SmartCardControl SmartCardControl
+		{
+			get { return JsonSerializer.Deserialize<SmartCardControl>(SmartCardControlStr); }
+			set { SmartCardControlStr = JsonSerializer.Serialize(value); }
+		}
+		public string InOutControlStr { get; set; }
+		[NotMapped]
+		public InOutControl InOutControl
+		{
+			get { return JsonSerializer.Deserialize<InOutControl>(InOutControlStr); }
+			set { InOutControlStr = JsonSerializer.Serialize(value); }
+		}
+		public string InOutTiggerStr { get; set; }
+		[NotMapped]
+		public SortedDictionary<string, InOutStatus> InOutTigger
+		{
+			get { return JsonSerializer.Deserialize<SortedDictionary<string, InOutStatus>>(InOutTiggerStr); }
+			set { InOutTiggerStr = JsonSerializer.Serialize(value); }
+		}
+		//public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>()
+		//{
+		//	["7:00"] = InOutStatus.IN,
+		//	["11:30"] = InOutStatus.OUT,
+		//	["12:30"] = InOutStatus.IN,
+		//	["16:30"] = InOutStatus.OUT
+		//};
+		public string LocalDoorRelayControlStr { get; set; }
+		[NotMapped]
+		public LocalDoorRelayControl LocalDoorRelayControl
+		{
+			get { return JsonSerializer.Deserialize<LocalDoorRelayControl>(LocalDoorRelayControlStr); }
+			set { LocalDoorRelayControlStr = JsonSerializer.Serialize(value); }
+		}
+		public string RemoteDoorRelayControlStr { get; set; }
+		[NotMapped]
+		public RemoteDoorRelayControl RemoteDoorRelayControl
+		{
+			get { return JsonSerializer.Deserialize<RemoteDoorRelayControl>(RemoteDoorRelayControlStr); }
+			set { RemoteDoorRelayControlStr = JsonSerializer.Serialize(value); }
+		}
+		public string DailyRebootStr { get; set; }
+		[NotMapped]
+		public DailyReboot DailyReboot
+		{
+			get { return JsonSerializer.Deserialize<DailyReboot>(DailyRebootStr); }
+			set { DailyRebootStr = JsonSerializer.Serialize(value); }
+		}
+		public string TimeSyncStr { get; set; }
+		[NotMapped]
+		public TimeSync TimeSync
+		{
+			get { return JsonSerializer.Deserialize<TimeSync>(TimeSyncStr); }
+			set { TimeSyncStr = JsonSerializer.Serialize(value); }
+		}
+		public string AntiPassbackStr { get; set; }     // only for iGuard540, not for iGuardExpress540 (230423)
+		[NotMapped]
+		public AntiPassback AntiPassback
+		{
+			get { return JsonSerializer.Deserialize<AntiPassback>(AntiPassbackStr); }
+			set { AntiPassbackStr = JsonSerializer.Serialize(value); }
+		}
+		public string DailySingleAccessStr { get; set; }    // ditto (230423)
+		[NotMapped]
+		public DailySingleAccess DailySingleAccess
+		{
+			get { return JsonSerializer.Deserialize<DailySingleAccess>(DailySingleAccessStr); }
+			set { DailySingleAccessStr = JsonSerializer.Serialize(value); }
+		}
+
+		public static explicit operator TerminalSettings(TerminalSettingsDto terminalSettingsDto)
+		{
+			TerminalSettings terminalSettings = new()
+			{
+				TerminalId = terminalSettingsDto.TerminalId,
+				Description = terminalSettingsDto.Description,
+				Language = terminalSettingsDto.Language,
+				DateTimeFormat = terminalSettingsDto.DateTimeFormat,
+				TempDetectEnable = terminalSettingsDto.TempDetectEnable,
+				FaceDetectEnable = terminalSettingsDto.FaceDetectEnable,
+				FlashLightEnabled = terminalSettingsDto.FlashLightEnabled,
+				TempCacheDuration = terminalSettingsDto.TempCacheDuration,
+				AutoUpdateEnabled = terminalSettingsDto.AutoUpdateEnabled,
+				AllowedOrigins = terminalSettingsDto.AllowedOrigins,
+				InOutTigger = terminalSettingsDto.InOutTigger,
+
+				InOutControl = new InOutControl
+				{
+					DefaultInOut = terminalSettingsDto.InOutControl.DefaultInOut,
+					DailyResetAutoInOut = terminalSettingsDto.InOutControl.DailyResetAutoInOut,
+					DailyResetAutoInOutTime = terminalSettingsDto.InOutControl.DailyResetAutoInOutTime,
+					IsEnableFx = terminalSettingsDto.InOutControl.IsEnableFx
+				},
+
+				LocalDoorRelayControl = new LocalDoorRelayControl
+				{
+					DoorRelayStatus = terminalSettingsDto.LocalDoorRelayControl.DoorRelayStatus,
+					Duration = terminalSettingsDto.LocalDoorRelayControl.Duration
+				},
+
+				RemoteDoorRelayControl = new RemoteDoorRelayControl
+				{
+					Enabled = terminalSettingsDto.RemoteDoorRelayControl.Enabled,
+					Id = terminalSettingsDto.RemoteDoorRelayControl.Id,
+					DelayTimer = terminalSettingsDto.RemoteDoorRelayControl.DelayTimer,
+					AccessRight = terminalSettingsDto.RemoteDoorRelayControl.AccessRight
+				},
+
+				DailyReboot = new DailyReboot
+				{
+					Enabled = terminalSettingsDto.DailyReboot.Enabled,
+					Time = terminalSettingsDto.DailyReboot.Time
+				},
+
+				TimeSync = new TimeSync
+				{
+					TimeZone = terminalSettingsDto.TimeSync.TimeZone,
+					TimeOffSet = terminalSettingsDto.TimeSync.TimeOffSet,
+					TimeServer = terminalSettingsDto.TimeSync.TimeServer,
+					IsEnableSNTP = terminalSettingsDto.TimeSync.IsEnableSNTP,
+					IsSyncMasterTime = terminalSettingsDto.TimeSync.IsSyncMasterTime
+				},
+
+				AntiPassback = new AntiPassback
+				{
+					Type = terminalSettingsDto.AntiPassback.Type,
+					IsDailyReset = terminalSettingsDto.AntiPassback.IsDailyReset,
+					DailyResetTime = terminalSettingsDto.AntiPassback.DailyResetTime
+				},
+
+				DailySingleAccess = new DailySingleAccess
+				{
+					Type = terminalSettingsDto.DailySingleAccess.Type,
+					IsDailyReset = terminalSettingsDto.DailySingleAccess.IsDailyReset,
+					DailyResetTime = terminalSettingsDto.DailySingleAccess.DailyResetTime
+				},
+
+				CameraControl = new CameraControl
+				{
+					Enable = terminalSettingsDto.CameraControl.Enable,
+					FrameRate = terminalSettingsDto.CameraControl.FrameRate,
+					Environment = terminalSettingsDto.CameraControl.Environment,
+					Resolution = terminalSettingsDto.CameraControl.Resolution
+				},
+
+				SmartCardControl = new SmartCardControl
+				{
+					IsReadCardSNOnly = terminalSettingsDto.SmartCardControl.IsReadCardSNOnly,
+					CardType = terminalSettingsDto.SmartCardControl.CardType,
+					AcceptUnknownCard = terminalSettingsDto.SmartCardControl.AcceptUnknownCard,
+					AcceptUnregisteredCard = terminalSettingsDto.SmartCardControl.AcceptUnregisteredCard
+				}
+			};
+
+			return terminalSettings;
+		}
 	}
 
 	/// <summary>
@@ -70,11 +210,8 @@ namespace dotnet_core_web_client.Models
 	/// </summary>
 	public class AntiPassback
 	{
-		[JsonPropertyName("type")]
 		public string Type { get; set; }
-		[JsonPropertyName("isDailyReset")]
 		public bool IsDailyReset { get; set; }
-		[JsonPropertyName("dailyResetTime")]
 		public string DailyResetTime { get; set; }
 	}
 
@@ -83,11 +220,8 @@ namespace dotnet_core_web_client.Models
 	/// </summary>
 	public class DailySingleAccess
 	{
-		[JsonPropertyName("type")]
 		public string Type { get; set; }
-		[JsonPropertyName("isDailyReset")]
 		public bool IsDailyReset { get; set; }
-		[JsonPropertyName("dailyResetTime")]
 		public string DailyResetTime { get; set; }
 	}
 
@@ -105,13 +239,9 @@ namespace dotnet_core_web_client.Models
 
 	public class CameraControl
 	{
-		[JsonPropertyName("enable")]
 		public bool Enable { get; set; }
-		[JsonPropertyName("frameRate")]
 		public int? FrameRate { get; set; }
-		[JsonPropertyName("environment")]
 		public CameraEnvironment? Environment { get; set; }
-		[JsonPropertyName("resolution")]
 		public CameraResolution? Resolution { get; set; }
 	}
 
@@ -122,13 +252,9 @@ namespace dotnet_core_web_client.Models
 
 	public class SmartCardControl
 	{
-		[JsonPropertyName("isReadCardSNOnly")]
 		public bool IsReadCardSNOnly { get; set; } = false;
-		[JsonPropertyName("cardType")]
 		public SmartCardType CardType { get; set; } = SmartCardType.OctopusOnly;
-		[JsonPropertyName("acceptUnknownCard")]
 		public bool? AcceptUnknownCard { get; set; } = false;
-		[JsonPropertyName("acceptUnregisteredCard")]
 		public bool? AcceptUnregisteredCard { get; set; }
 	}
 
@@ -163,19 +289,9 @@ namespace dotnet_core_web_client.Models
 	public class InOutControl
 	{
 		// nullable for json's IgnoreNullValues (201106)
-		[JsonPropertyName("inOutStrategy")]
 		public InOutStrategy? DefaultInOut { get; set; } = InOutStrategy.SystemInOut;
-		[JsonPropertyName("isEnableFx")]
 		public bool[] IsEnableFx { get; set; } = new bool[] { true, false, true, false };
-
-		public bool IsEnableF0 { get; set; }
-		public bool IsEnableF1 { get; set; }
-		public bool IsEnableF2 { get; set; }
-		public bool IsEnableF3 { get; set; }
-
-		[JsonPropertyName("dailyResetEnabled")]
 		public bool? DailyResetAutoInOut { get; set; }
-		[JsonPropertyName("dailyResetTime")]
 		public string DailyResetAutoInOutTime { get; set; }
 	}
 
@@ -187,9 +303,7 @@ namespace dotnet_core_web_client.Models
 	public class LocalDoorRelayControl
 	{
 		// added for iGuard540 (230331)
-		[JsonPropertyName("openDoorStatus")]
 		public DoorRelayStatus DoorRelayStatus { get; set; } = new DoorRelayStatus() { In = true };
-		[JsonPropertyName("delayTimer")]
 		public int Duration { get; set; } = 3000;
 	}
 
@@ -202,35 +316,24 @@ namespace dotnet_core_web_client.Models
 
 	public class RemoteDoorRelayControl
 	{
-		[JsonPropertyName("enabled")]
 		public bool Enabled { get; set; } = true;
-		[JsonPropertyName("id")]
 		public int Id { get; set; } = 123;
-		[JsonPropertyName("delayTimer")]
 		public int DelayTimer { get; set; } = 3000;
-		[JsonPropertyName("accessRight")]
 		public AccessRight AccessRight { get; set; } = AccessRight.System;
 	}
 
 	public class DailyReboot
 	{
-		[JsonPropertyName("enabled")]
 		public bool Enabled { get; set; } = true;
-		[JsonPropertyName("time")]
 		public string Time { get; set; } = "02:00";
 	}
 
 	public class TimeSync
 	{
-		[JsonPropertyName("timeZone")]
 		public string TimeZone { get; set; } = "HK";
-		[JsonPropertyName("timeOffSet")]
 		public decimal TimeOffSet { get; set; }
-		[JsonPropertyName("timeServer")]
 		public string TimeServer { get; set; } = "time.google.com";
-		[JsonPropertyName("isEnableSNTP")]
 		public bool IsEnableSNTP { get; set; } = true;
-		[JsonPropertyName("isSyncMasterTime")]
 		public bool IsSyncMasterTime { get; set; } = true;
 	}
 }

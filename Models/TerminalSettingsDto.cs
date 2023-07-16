@@ -16,14 +16,16 @@ namespace dotnet_core_web_client.Models
 		public string DateTimeFormat { get; set; }
 		[JsonPropertyName("allowedOrigins")]
 		public string[] AllowedOrigins { get; set; }
+		[JsonPropertyName("inOutTrigger")]
+		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; }
+
 		[JsonPropertyName("cameraControl")]
 		public CameraControlDto CameraControl { get; set; }
 		[JsonPropertyName("smartCardControl")]
 		public SmartCardControlDto SmartCardControl { get; set; }
 		[JsonPropertyName("inOutControl")]
 		public InOutControlDto InOutControl { get; set; }
-		[JsonPropertyName("inOutTrigger")]
-		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; }
+
 		[JsonPropertyName("localDoorRelayControl")]
 		public LocalDoorRelayControlDto LocalDoorRelayControl { get; set; }
 		[JsonPropertyName("remoteDoorRelayControl")]
@@ -36,6 +38,7 @@ namespace dotnet_core_web_client.Models
 		public AntiPassbackDto AntiPassback { get; set; }
 		[JsonPropertyName("dailySingleAccess")]
 		public DailySingleAccessDto DailySingleAccess { get; set; }
+
 		[JsonPropertyName("tempDetectEnabled")]
 		public bool TempDetectEnable { get; set; }
 		[JsonPropertyName("faceDetectEnabled")]
@@ -49,6 +52,11 @@ namespace dotnet_core_web_client.Models
 
 		public static explicit operator TerminalSettingsDto(TerminalSettings terminalSettings)
 		{
+			if (terminalSettings == null)
+			{
+				return null;
+			}
+
 			TerminalSettingsDto dto = new()
 			{
 				TerminalId = terminalSettings.TerminalId,
@@ -57,11 +65,28 @@ namespace dotnet_core_web_client.Models
 				DateTimeFormat = terminalSettings.DateTimeFormat,
 				AllowedOrigins = terminalSettings.AllowedOrigins,
 				InOutTigger = terminalSettings.InOutTigger,
+
 				TempDetectEnable = terminalSettings.TempDetectEnable,
 				FaceDetectEnable = terminalSettings.FaceDetectEnable,
 				FlashLightEnabled = terminalSettings.FlashLightEnabled,
 				TempCacheDuration = terminalSettings.TempCacheDuration,
 				AutoUpdateEnabled = terminalSettings.AutoUpdateEnabled,
+
+				CameraControl = new CameraControlDto
+				{
+					Enable = terminalSettings.CameraControl.Enable,
+					FrameRate = terminalSettings.CameraControl.FrameRate,
+					Environment = terminalSettings.CameraControl.Environment,
+					Resolution = terminalSettings.CameraControl.Resolution
+				},
+
+				SmartCardControl = new SmartCardControlDto
+				{
+					IsReadCardSNOnly = terminalSettings.SmartCardControl.IsReadCardSNOnly,
+					CardType = terminalSettings.SmartCardControl.CardType,
+					AcceptUnknownCard = terminalSettings.SmartCardControl.AcceptUnknownCard,
+					AcceptUnregisteredCard = terminalSettings.SmartCardControl.AcceptUnregisteredCard
+				},
 
 				InOutControl = new InOutControlDto
 				{
@@ -113,22 +138,6 @@ namespace dotnet_core_web_client.Models
 					IsDailyReset = terminalSettings.DailySingleAccess.IsDailyReset,
 					DailyResetTime = terminalSettings.DailySingleAccess.DailyResetTime
 				},
-
-				CameraControl = new CameraControlDto
-				{
-					Enable = terminalSettings.CameraControl.Enable,
-					FrameRate = terminalSettings.CameraControl.FrameRate,
-					Environment = terminalSettings.CameraControl.Environment,
-					Resolution = terminalSettings.CameraControl.Resolution
-				},
-
-				SmartCardControl = new SmartCardControlDto
-				{
-					IsReadCardSNOnly = terminalSettings.SmartCardControl.IsReadCardSNOnly,
-					CardType = terminalSettings.SmartCardControl.CardType,
-					AcceptUnknownCard = terminalSettings.SmartCardControl.AcceptUnknownCard,
-					AcceptUnregisteredCard = terminalSettings.SmartCardControl.AcceptUnregisteredCard
-				}
 			};
 
 			return dto;

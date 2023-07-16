@@ -39,9 +39,8 @@ namespace dotnet_core_web_client
 			// WebSocket webSocket = null;
 			// services.AddScoped<IWebSocketHandler>(x => new WebSocketHandler(webSocket));
 
-			// services.AddScoped<IWebSocketHandler, WebSocketHandler>();
-			services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
-			services.AddScoped<ITerminalSettingsRepository, TerminalSettingsRepository>();
+			services.AddScoped<IWebSocketHandler, WebSocketHandler>();
+			services.AddTransient<ITerminalSettingsRepository, TerminalSettingsRepository>();
 
 			services.AddControllers();
 		}

@@ -1,5 +1,7 @@
-﻿using dotnet_core_web_client.Services;
+﻿using dotnet_core_web_client.Repository;
+using dotnet_core_web_client.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,7 @@ namespace dotnet_core_web_client.Middleware
 	public class WebSocketMiddleware
 	{
 		private readonly RequestDelegate next;
+
 		// private readonly IWebSocketHandler webSocketHandler;
 
 		// only singleton DI (services.AddSingleton<IWebSocketHandler, WebSocketHandler>()) can be injected in the constructor,
@@ -22,10 +25,13 @@ namespace dotnet_core_web_client.Middleware
 			// this.webSocketHandler = _webSocketHandler;
 		}
 
-		public async Task InvokeAsync(HttpContext context, IWebSocketHandler webSocketHandler)
+		public async Task InvokeAsync(HttpContext context, IServiceScopeFactory scopeFactory /*, IWebSocketHandler webSocketHandler */)
 		{
 			if (context.WebSockets.IsWebSocketRequest)
 			{
+				using var scope = scopeFactory.CreateScope();
+				IWebSocketHandler webSocketHandler = scope.ServiceProvider.GetRequiredService<IWebSocketHandler>();
+
 				WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
 				webSocketHandler.OnConnected(webSocket);
 				await webSocketHandler.ReceiveAsync();

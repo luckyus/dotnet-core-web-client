@@ -208,7 +208,10 @@
             }
 
             const connectServer = async () => {
-                try {
+				try {
+
+					console.log("connectServer()");
+
                     // for the browser to connect to the app via websocket, not connecting to iGuardPayroll (comment (221007))
                     wsStatus.innerHTML = "Connecting...";
                     const wsUrl = "wss://" + location.host;

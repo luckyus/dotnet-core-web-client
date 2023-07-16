@@ -37,25 +37,121 @@ namespace dotnet_core_web_client.Services
 		private readonly IServiceScopeFactory _scopeFactory;
 		private ITerminalSettingsRepository _terminalSettingsRepository;
 
-		private readonly IServiceProvider _serviceProvider;
+        public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository)
+        {
+            _terminalSettingsRepository = terminalSettingsRepository;
+        }
 
-		public WebSocketHandler(IServiceScopeFactory scopeFactory)
-		{
-			// ref: https://our.umbraco.com/forum/using-umbraco-and-getting-started/109237-trouble-with-dependency-injection (230709)
-			_scopeFactory = scopeFactory;
-		}
+        //public WebSocketHandler(IServiceScopeFactory scopeFactory)
+        //{
+        //	// ref: https://our.umbraco.com/forum/using-umbraco-and-getting-started/109237-trouble-with-dependency-injection (230709)
+        //	_scopeFactory = scopeFactory;
+        //}
 
-		private TerminalSettingsDto _TerminalSettingsDto = null;
+        private TerminalSettingsDto _TerminalSettingsDto = null;
 		public TerminalSettingsDto TerminalSettingsDto
 		{
 			get
 			{
 				if (_TerminalSettingsDto == null)
 				{
-					using var scope = _scopeFactory.CreateScope();
-					_terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
+					// using var scope = _scopeFactory.CreateScope();
+
+					// _terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
+
 					_TerminalSettingsDto = _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn).Result;
+
+					// scope.Dispose();
+
+					_ = _terminalSettingsRepository.UpsertTerminalSettingsAsync(_TerminalSettingsDto, sn);
+
+					if (_TerminalSettingsDto == null)
+					{
+						_TerminalSettingsDto = new TerminalSettingsDto
+						{
+							TerminalId = "DOTNET",
+							Description = "My iGuardExpress 540 Machine",
+							Language = "en-us",
+							DateTimeFormat = "dd/mm/yy",
+							AllowedOrigins = new string[] { "http://iguardexpress.azurewebsites.net", "http://localhost:3000" },
+							CameraControl = new CameraControlDto
+							{
+								Enable = true,
+								Resolution = CameraResolution.r640x480,
+								FrameRate = 1,
+								Environment = CameraEnvironment.Normal
+							},
+							SmartCardControl = new SmartCardControlDto
+							{
+								IsReadCardSNOnly = true,
+								AcceptUnknownCard = false,
+								CardType = SmartCardType.MifareOnly,
+								AcceptUnregisteredCard = false
+							},
+							InOutControl = new InOutControlDto
+							{
+								DefaultInOut = InOutStrategy.SystemInOut,
+								IsEnableFx = new bool[] { true, false, true, false },
+								DailyResetAutoInOut = true,
+								DailyResetAutoInOutTime = "00:00",
+							},
+							InOutTigger = new SortedDictionary<string, InOutStatus>
+								{
+									{ "00:00", InOutStatus.IN },
+									{ "12:00", InOutStatus.OUT },
+									{ "13:00", InOutStatus.IN },
+									{ "23:59", InOutStatus.OUT }
+								},
+							LocalDoorRelayControl = new LocalDoorRelayControlDto
+							{
+								DoorRelayStatus = new DoorRelayStatus() { In = true },
+								Duration = 3000
+							},
+							RemoteDoorRelayControl = new RemoteDoorRelayControlDto
+							{
+								Enabled = true,
+								Id = 123,
+								DelayTimer = 3000,
+								AccessRight = AccessRight.System
+							},
+							DailyReboot = new DailyRebootDto
+							{
+								Enabled = true,
+								Time = "02:00"
+							},
+							TimeSync = new TimeSyncDto
+							{
+								TimeZone = "Asia/Hong_Kong",
+								TimeOffSet = 8,
+								TimeServer = "time.google.com",
+								IsEnableSNTP = true,
+								IsSyncMasterTime = true
+							},
+							AntiPassback = new AntiPassbackDto
+							{
+								Type = "System",
+								IsDailyReset = true,
+								DailyResetTime = "02:00"
+							},
+							DailySingleAccess = new DailySingleAccessDto
+							{
+								Type = "System",
+								IsDailyReset = true,
+								DailyResetTime = "02:00"
+							},
+							TempDetectEnable = false,
+							FaceDetectEnable = false,
+							FlashLightEnabled = false,
+							TempCacheDuration = 3000,
+							AutoUpdateEnabled = false,
+						};
+
+						_ = _terminalSettingsRepository.UpsertTerminalSettingsAsync(_TerminalSettingsDto, sn);
+					}
+
+					// scope.Dispose();
 				}
+
 				return _TerminalSettingsDto;
 			}
 			set
@@ -169,18 +265,18 @@ namespace dotnet_core_web_client.Services
 		}
 
 		/*
-        private void SaveTerminal()
-        {
-            string jsonStr = JsonSerializer.Serialize<Terminal>(Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
-            try
-            {
-                File.WriteAllText(terminalConfigPath, jsonStr);
-            }
-            catch (Exception ex)
-            {
-                _ = ex.Message;
-            }
-        }
+		private void SaveTerminal()
+		{
+			string jsonStr = JsonSerializer.Serialize<Terminal>(Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
+			try
+			{
+				File.WriteAllText(terminalConfigPath, jsonStr);
+			}
+			catch (Exception ex)
+			{
+				_ = ex.Message;
+			}
+		}
 		*/
 
 		public async Task SendAsync(string message)

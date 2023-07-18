@@ -91,6 +91,37 @@ namespace dotnet_core_web_client.Migrations
 
                     b.ToTable("TerminalSettings");
                 });
+
+            modelBuilder.Entity("dotnet_core_web_client.Models.Terminals", b =>
+                {
+                    b.Property<string>("SN")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Environment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirmwareVersion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasRS485")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MasterServer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhotoServer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("RegDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("SupportedCardType")
+                        .HasColumnType("int");
+
+                    b.HasKey("SN");
+
+                    b.ToTable("Terminals");
+                });
 #pragma warning restore 612, 618
         }
     }

@@ -7,48 +7,53 @@ namespace dotnet_core_web_client.Models
 	public class TerminalSettingsDto
 	{
 		[JsonPropertyName("terminalId")]
-		public string TerminalId { get; set; }
+		public string TerminalId { get; set; } = "DOTNET";
 		[JsonPropertyName("description")]
-		public string Description { get; set; }
+		public string Description { get; set; } = "My iGuardExpress 540 Machine";
 		[JsonPropertyName("language")]
-		public string Language { get; set; }
+		public string Language { get; set; } = "en-us";
 		[JsonPropertyName("dateTimeFormat")]
-		public string DateTimeFormat { get; set; }
+		public string DateTimeFormat { get; set; } = "dd/mm/yy";
 		[JsonPropertyName("allowedOrigins")]
-		public string[] AllowedOrigins { get; set; }
+		public string[] AllowedOrigins { get; set; } = new string[] { "http://iguardexpress.azurewebsites.net", "http://localhost:3000" };
 		[JsonPropertyName("inOutTrigger")]
-		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; }
-
+		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>
+		{
+			{ "00:00", InOutStatus.IN },
+			{ "12:00", InOutStatus.OUT },
+			{ "13:00", InOutStatus.IN },
+			{ "23:59", InOutStatus.OUT }
+		};
 		[JsonPropertyName("cameraControl")]
-		public CameraControlDto CameraControl { get; set; }
+		public CameraControlDto CameraControl { get; set; } = new();
 		[JsonPropertyName("smartCardControl")]
-		public SmartCardControlDto SmartCardControl { get; set; }
+		public SmartCardControlDto SmartCardControl { get; set; } = new();
 		[JsonPropertyName("inOutControl")]
-		public InOutControlDto InOutControl { get; set; }
+		public InOutControlDto InOutControl { get; set; } = new();
 
 		[JsonPropertyName("localDoorRelayControl")]
-		public LocalDoorRelayControlDto LocalDoorRelayControl { get; set; }
+		public LocalDoorRelayControlDto LocalDoorRelayControl { get; set; } = new();
 		[JsonPropertyName("remoteDoorRelayControl")]
-		public RemoteDoorRelayControlDto RemoteDoorRelayControl { get; set; }
+		public RemoteDoorRelayControlDto RemoteDoorRelayControl { get; set; } = new();
 		[JsonPropertyName("dailyReboot")]
-		public DailyRebootDto DailyReboot { get; set; }
+		public DailyRebootDto DailyReboot { get; set; } = new();
 		[JsonPropertyName("timeSync")]
-		public TimeSyncDto TimeSync { get; set; }
+		public TimeSyncDto TimeSync { get; set; } = new();
 		[JsonPropertyName("antiPassback")]
-		public AntiPassbackDto AntiPassback { get; set; }
+		public AntiPassbackDto AntiPassback { get; set; } = new();
 		[JsonPropertyName("dailySingleAccess")]
-		public DailySingleAccessDto DailySingleAccess { get; set; }
+		public DailySingleAccessDto DailySingleAccess { get; set; } = new();
 
 		[JsonPropertyName("tempDetectEnabled")]
-		public bool TempDetectEnable { get; set; }
+		public bool TempDetectEnable { get; set; } = false;
 		[JsonPropertyName("faceDetectEnabled")]
-		public bool FaceDetectEnable { get; set; }
+		public bool FaceDetectEnable { get; set; } = false;
 		[JsonPropertyName("flashLightEnabled")]
-		public bool FlashLightEnabled { get; set; }
+		public bool FlashLightEnabled { get; set; } = false;
 		[JsonPropertyName("tempCacheDuration")]
-		public int TempCacheDuration { get; set; }
+		public int TempCacheDuration { get; set; } = 3000;
 		[JsonPropertyName("autoUpdateEnabled")]
-		public bool? AutoUpdateEnabled { get; set; }
+		public bool? AutoUpdateEnabled { get; set; } = false;
 
 		public static explicit operator TerminalSettingsDto(TerminalSettings terminalSettings)
 		{
@@ -150,11 +155,11 @@ namespace dotnet_core_web_client.Models
 	public class AntiPassbackDto
 	{
 		[JsonPropertyName("type")]
-		public string Type { get; set; }
+		public string Type { get; set; } = "System";
 		[JsonPropertyName("isDailyReset")]
-		public bool IsDailyReset { get; set; }
+		public bool IsDailyReset { get; set; } = true;
 		[JsonPropertyName("dailyResetTime")]
-		public string DailyResetTime { get; set; }
+		public string DailyResetTime { get; set; } = "02:00";
 	}
 
 	/// <summary>
@@ -163,35 +168,35 @@ namespace dotnet_core_web_client.Models
 	public class DailySingleAccessDto
 	{
 		[JsonPropertyName("type")]
-		public string Type { get; set; }
+		public string Type { get; set; } = "System";
 		[JsonPropertyName("isDailyReset")]
-		public bool IsDailyReset { get; set; }
+		public bool IsDailyReset { get; set; } = true;
 		[JsonPropertyName("dailyResetTime")]
-		public string DailyResetTime { get; set; }
+		public string DailyResetTime { get; set; } = "02:00";
 	}
 
 	public class CameraControlDto
 	{
 		[JsonPropertyName("enable")]
-		public bool Enable { get; set; }
+		public bool Enable { get; set; } = true;
 		[JsonPropertyName("frameRate")]
-		public int? FrameRate { get; set; }
+		public int? FrameRate { get; set; } = 1;
 		[JsonPropertyName("environment")]
-		public CameraEnvironment? Environment { get; set; }
+		public CameraEnvironment? Environment { get; set; } = CameraEnvironment.Normal;
 		[JsonPropertyName("resolution")]
-		public CameraResolution? Resolution { get; set; }
+		public CameraResolution? Resolution { get; set; } = CameraResolution.r640x480;
 	}
 
 	public class SmartCardControlDto
 	{
 		[JsonPropertyName("isReadCardSNOnly")]
-		public bool IsReadCardSNOnly { get; set; } = false;
+		public bool IsReadCardSNOnly { get; set; } = true;
 		[JsonPropertyName("cardType")]
-		public SmartCardType CardType { get; set; } = SmartCardType.OctopusOnly;
+		public SmartCardType CardType { get; set; } = SmartCardType.MifareOnly;
 		[JsonPropertyName("acceptUnknownCard")]
 		public bool? AcceptUnknownCard { get; set; } = false;
 		[JsonPropertyName("acceptUnregisteredCard")]
-		public bool? AcceptUnregisteredCard { get; set; }
+		public bool? AcceptUnregisteredCard { get; set; } = false;
 	}
 
 	public class InOutControlDto
@@ -202,9 +207,9 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("isEnableFx")]
 		public bool[] IsEnableFx { get; set; } = new bool[] { true, false, true, false };
 		[JsonPropertyName("dailyResetEnabled")]
-		public bool? DailyResetAutoInOut { get; set; }
+		public bool? DailyResetAutoInOut { get; set; } = true;
 		[JsonPropertyName("dailyResetTime")]
-		public string DailyResetAutoInOutTime { get; set; }
+		public string DailyResetAutoInOutTime { get; set; } = "00:00";
 	}
 
 	public class LocalDoorRelayControlDto
@@ -246,9 +251,9 @@ namespace dotnet_core_web_client.Models
 	public class TimeSyncDto
 	{
 		[JsonPropertyName("timeZone")]
-		public string TimeZone { get; set; } = "HK";
+		public string TimeZone { get; set; } = "Asia/Hong_Kong";
 		[JsonPropertyName("timeOffSet")]
-		public decimal TimeOffSet { get; set; }
+		public decimal TimeOffSet { get; set; } = 8;
 		[JsonPropertyName("timeServer")]
 		public string TimeServer { get; set; } = "time.google.com";
 		[JsonPropertyName("isEnableSNTP")]

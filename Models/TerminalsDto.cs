@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+using System;
 
 namespace dotnet_core_web_client.Models
 {
-	public class Terminal
+	public class TerminalsDto
 	{
-		[Key]
 		[JsonPropertyName("serialNo")]
 		public string SN { get; set; } = "7100-0000-0000";
 		[JsonPropertyName("firmwareVersion")]
@@ -28,7 +24,26 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("environment")]
 		public string Environment { get; set; } = "development";
 
-		// debug
-		public string StupidMe { get; set; }
+		public static explicit operator TerminalsDto(Terminals terminal)
+		{
+			if (terminal == null)
+			{
+				return null;
+			}
+
+			TerminalsDto dto = new()
+			{
+				SN = terminal.SN,
+				FirmwareVersion = terminal.FirmwareVersion,
+				HasRS485 = terminal.HasRS485,
+				MasterServer = terminal.MasterServer,
+				PhotoServer = terminal.PhotoServer,
+				SupportedCardType = terminal.SupportedCardType,
+				RegDate = terminal.RegDate,
+				Environment = terminal.Environment
+			};
+
+			return dto;
+		}
 	}
 }

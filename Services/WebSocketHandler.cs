@@ -36,34 +36,22 @@ namespace dotnet_core_web_client.Services
 
 		private readonly IServiceScopeFactory _scopeFactory;
 		private ITerminalSettingsRepository _terminalSettingsRepository;
+		private ITerminalRepository _terminalRepository;
 
-        public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository)
-        {
-            _terminalSettingsRepository = terminalSettingsRepository;
-        }
+		public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository)
+		{
+			_terminalSettingsRepository = terminalSettingsRepository;
+			_terminalRepository = terminalRepository;
+		}
 
-        //public WebSocketHandler(IServiceScopeFactory scopeFactory)
-        //{
-        //	// ref: https://our.umbraco.com/forum/using-umbraco-and-getting-started/109237-trouble-with-dependency-injection (230709)
-        //	_scopeFactory = scopeFactory;
-        //}
-
-        private TerminalSettingsDto _TerminalSettingsDto = null;
+		private TerminalSettingsDto _TerminalSettingsDto = null;
 		public TerminalSettingsDto TerminalSettingsDto
 		{
 			get
 			{
 				if (_TerminalSettingsDto == null)
 				{
-					// using var scope = _scopeFactory.CreateScope();
-
-					// _terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
-
 					_TerminalSettingsDto = _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn).Result;
-
-					// scope.Dispose();
-
-					_ = _terminalSettingsRepository.UpsertTerminalSettingsAsync(_TerminalSettingsDto, sn);
 
 					if (_TerminalSettingsDto == null)
 					{
@@ -148,17 +136,12 @@ namespace dotnet_core_web_client.Services
 
 						_ = _terminalSettingsRepository.UpsertTerminalSettingsAsync(_TerminalSettingsDto, sn);
 					}
-
-					// scope.Dispose();
 				}
 
 				return _TerminalSettingsDto;
 			}
 			set
 			{
-				using var scope = _scopeFactory.CreateScope();
-				_terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
-
 				_ = Task.Run(async () =>
 				{
 					if (await _terminalSettingsRepository.UpsertTerminalSettingsAsync(value, sn) != null)
@@ -169,64 +152,32 @@ namespace dotnet_core_web_client.Services
 			}
 		}
 
-		/*
-        private TerminalSettings _TerminalSettings = null;
-        public TerminalSettings TerminalSettings
-        {
-            get
-            {
-                if (_TerminalSettings == null)
-                {
-                    if (File.Exists(terminalSettingsConfigPath))
-                    {
-                        string jsonStr = File.ReadAllText(terminalSettingsConfigPath);
-                        _TerminalSettings = JsonSerializer.Deserialize<TerminalSettings>(jsonStr);
-                    }
-                    else
-                    {
-                        _TerminalSettings = new TerminalSettings();
-                        string jsonStr = JsonSerializer.Serialize<TerminalSettings>(_TerminalSettings, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-                        File.WriteAllText(terminalSettingsConfigPath, jsonStr);
-                    }
-
-                }
-                return _TerminalSettings;
-            }
-            set
-            {
-                string jsonStr = JsonSerializer.Serialize<TerminalSettings>(value, new JsonSerializerOptions { IgnoreNullValues = true });
-                File.WriteAllText(terminalSettingsConfigPath, jsonStr);
-                _TerminalSettings = value;
-            }
-        }
-		*/
-
-		private Terminal _Terminal = null;
-		public Terminal Terminal
+		private TerminalsDto _TerminalDto = null;
+		public TerminalsDto TerminalDto
 		{
 			get
 			{
-				if (_Terminal == null)
+				if (_TerminalDto == null)
 				{
-					if (File.Exists(terminalConfigPath))
+					_TerminalDto = _terminalRepository.GetTerminalsBySnAsync(sn).Result;
+
+					if (_TerminalDto == null)
 					{
-						string jsonStr = File.ReadAllText(terminalConfigPath);
-						_Terminal = JsonSerializer.Deserialize<Terminal>(jsonStr);
-					}
-					else
-					{
-						_Terminal = new Terminal();
-						string jsonStr = JsonSerializer.Serialize<Terminal>(_Terminal, new JsonSerializerOptions { IgnoreNullValues = true });
-						File.WriteAllText(terminalConfigPath, jsonStr);
+						_TerminalDto = new() { SN = sn };
+						_ = _terminalRepository.UpsertTerminalsAsync(_TerminalDto);
 					}
 				}
-				return _Terminal;
+				return _TerminalDto;
 			}
 			set
 			{
-				string jsonStr = JsonSerializer.Serialize<Terminal>(value, new JsonSerializerOptions { IgnoreNullValues = true });
-				File.WriteAllText(terminalConfigPath, jsonStr);
-				_Terminal = value;
+				_ = Task.Run(async () =>
+				{
+					if (await _terminalRepository.UpsertTerminalsAsync(value) != null)
+					{
+						_TerminalDto = value;
+					}
+				});
 			}
 		}
 

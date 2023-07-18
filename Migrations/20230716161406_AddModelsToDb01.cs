@@ -1,15 +1,34 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace dotnet_core_web_client.Migrations
 {
     /// <inheritdoc />
-    public partial class AddModelsToDb : Migration
+    public partial class AddModelsToDb01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Terminals",
+                columns: table => new
+                {
+                    SN = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FirmwareVersion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    HasRS485 = table.Column<bool>(type: "bit", nullable: false),
+                    MasterServer = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhotoServer = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SupportedCardType = table.Column<int>(type: "int", nullable: true),
+                    RegDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    Environment = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Terminals", x => x.SN);
+                });
+
             migrationBuilder.CreateTable(
                 name: "TerminalSettings",
                 columns: table => new
@@ -45,6 +64,9 @@ namespace dotnet_core_web_client.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Terminals");
+
             migrationBuilder.DropTable(
                 name: "TerminalSettings");
         }

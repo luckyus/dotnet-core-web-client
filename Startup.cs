@@ -41,6 +41,7 @@ namespace dotnet_core_web_client
 
 			services.AddScoped<IWebSocketHandler, WebSocketHandler>();
 			services.AddTransient<ITerminalSettingsRepository, TerminalSettingsRepository>();
+			services.AddTransient<ITerminalRepository, TerminalRepository>();
 
 			services.AddControllers();
 		}

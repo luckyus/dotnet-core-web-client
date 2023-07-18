@@ -76,7 +76,7 @@ namespace dotnet_core_web_client.Services
 						WebSocketMessage webSocketMessage = new()
 						{
 							EventType = "OnDeviceConnected",
-							Data = new object[] { webSocketHandler.Terminal, webSocketHandler.TerminalSettingsDto, webSocketHandler.Network, timeStamp }
+							Data = new object[] { webSocketHandler.TerminalDto, webSocketHandler.TerminalSettingsDto, webSocketHandler.Network, timeStamp }
 						};
 
 						// append regCode to the data array for iGuard540 (221011)
@@ -395,12 +395,12 @@ namespace dotnet_core_web_client.Services
 			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
-			Terminal terminal = webSocketHandler.Terminal;
+			TerminalsDto terminalDto = webSocketHandler.TerminalDto;
 
-			WebSocketMessage webSocketMessage = new WebSocketMessage
+			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "OnGetTerminal",
-				Data = new object[] { terminal },
+				Data = new object[] { terminalDto },
 				AckId = id
 			};
 

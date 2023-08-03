@@ -11,6 +11,6 @@ namespace dotnet_core_web_client.DBCotexts
 
 		public DbSet<TerminalSettings> TerminalSettings { get; set; }
 		public DbSet<Terminals> Terminals { get; set; }
-		// public DbSet<Network> Network { get; set; }
+		public DbSet<Networks> Networks { get; set; }
 	}
 }

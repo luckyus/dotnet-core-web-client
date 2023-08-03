@@ -18,8 +18,6 @@ namespace dotnet_core_web_client.Models
 		public string TerminalId { get; set; }
 		public string Description { get; set; }
 		public string Language { get; set; }
-		//public string Server { get; set; } = "www.iguardpayroll.com";
-		//public string PhotoServer { get; set; } = "photo.iguardpayroll.com";
 		public string DateTimeFormat { get; set; }
 		public bool TempDetectEnable { get; set; }
 		public bool FaceDetectEnable { get; set; }
@@ -30,14 +28,8 @@ namespace dotnet_core_web_client.Models
 		[NotMapped]
 		public string[] AllowedOrigins
 		{
-			get
-			{
-				return AllowedOriginsStr.Split(',');
-			}
-			set
-			{
-				AllowedOriginsStr = string.Join(",", value);
-			}
+			get { return AllowedOriginsStr.Split(','); }
+			set { AllowedOriginsStr = string.Join(",", value); }
 		}
 		public string CameraControlStr { get; set; }
 		[NotMapped]
@@ -67,13 +59,6 @@ namespace dotnet_core_web_client.Models
 			get { return JsonSerializer.Deserialize<SortedDictionary<string, InOutStatus>>(InOutTiggerStr); }
 			set { InOutTiggerStr = JsonSerializer.Serialize(value); }
 		}
-		//public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>()
-		//{
-		//	["7:00"] = InOutStatus.IN,
-		//	["11:30"] = InOutStatus.OUT,
-		//	["12:30"] = InOutStatus.IN,
-		//	["16:30"] = InOutStatus.OUT
-		//};
 		public string LocalDoorRelayControlStr { get; set; }
 		[NotMapped]
 		public LocalDoorRelayControl LocalDoorRelayControl

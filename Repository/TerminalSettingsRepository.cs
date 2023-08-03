@@ -1,28 +1,57 @@
 ﻿using dotnet_core_web_client.DBCotexts;
 using dotnet_core_web_client.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Repository
 {
-	public class TerminalSettingsRepository : ITerminalSettingsRepository
+	public class TerminalSettingsRepository : BaseRepository, ITerminalSettingsRepository
 	{
 		private readonly IGuardDBContext _dBContext;
+		private readonly string cacheKeyPrefix = "TerminalSettings_";
 
-		public TerminalSettingsRepository(IGuardDBContext dBContext)
+		public TerminalSettingsRepository(IGuardDBContext dBContext, IMemoryCache memoryCache) : base(memoryCache)
 		{
 			_dBContext = dBContext;
 		}
 
 		public async Task<TerminalSettingsDto> GetTerminalSettingsBySnAsync(string sn)
 		{
-			TerminalSettings terminalSettings = await _dBContext.TerminalSettings.FirstOrDefaultAsync(x => x.SN == sn);
-			return (TerminalSettingsDto)terminalSettings;
+			string key = $"{cacheKeyPrefix}{sn}";
+
+			if (_memoryCache.TryGetValue(key, out TerminalSettingsDto terminalSettingsDto) && terminalSettingsDto != null)
+			{
+				return terminalSettingsDto;
+			}
+
+			TerminalSettings terminalSettings = await _dBContext.TerminalSettings.AsNoTracking().FirstOrDefaultAsync(x => x.SN == sn);
+
+			if (terminalSettings == null)
+			{
+				terminalSettingsDto = new TerminalSettingsDto();
+
+				terminalSettings = (TerminalSettings)terminalSettingsDto;
+				terminalSettings.SN = sn;
+
+				_dBContext.TerminalSettings.Add(terminalSettings);
+				await _dBContext.SaveChangesAsync();
+			}
+			else
+			{
+				terminalSettingsDto = (TerminalSettingsDto)terminalSettings;
+			}
+
+			SetCache(key, terminalSettingsDto);
+			return terminalSettingsDto;
 		}
 
 		public async Task<TerminalSettingsDto> UpsertTerminalSettingsAsync(TerminalSettingsDto terminalSettingsDto, string sn)
 		{
+			string key = $"{cacheKeyPrefix}{sn}";
+
 			TerminalSettings terminalSettings = (TerminalSettings)terminalSettingsDto;
 			terminalSettings.SN = sn;
 
@@ -60,11 +89,12 @@ namespace dotnet_core_web_client.Repository
 					_dBContext.TerminalSettings.Update(existing);
 				}
 
+				ResetCache(cacheKeyPrefix);
 				await _dBContext.SaveChangesAsync();
 
 				return (TerminalSettingsDto)terminalSettings;
 			}
-			catch
+			catch (Exception ex)
 			{
 				return null;
 			}

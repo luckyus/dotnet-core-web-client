@@ -24,9 +24,6 @@ namespace dotnet_core_web_client.Services
 	{
 		protected WebSocket webSocket;
 		protected ClientWebSocketHandler clientWebSocketHandler = null;
-		readonly string terminalConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminal.json";
-		readonly string terminalSettingsConfigPath = Directory.GetCurrentDirectory() + "/DBase/terminalSettings.json";
-		readonly string networkConfigPath = Directory.GetCurrentDirectory() + "/DBase/network.json";
 		readonly string smartCardSNConfigPath = Directory.GetCurrentDirectory() + "/DBase/smartCardSN.json";
 
 		// to be assigned in onConnectClick eventType (230709)
@@ -35,179 +32,16 @@ namespace dotnet_core_web_client.Services
 		protected string regCode;
 
 		private readonly IServiceScopeFactory _scopeFactory;
-		private ITerminalSettingsRepository _terminalSettingsRepository;
-		private ITerminalRepository _terminalRepository;
+		public ITerminalSettingsRepository _terminalSettingsRepository;
+		public ITerminalRepository _terminalRepository;
+		public INetworkRepository _networkRepository;
 
-		public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository)
+		public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository, INetworkRepository networkRepository)
 		{
+			//_scopeFactory = serviceScopeFactory;
 			_terminalSettingsRepository = terminalSettingsRepository;
 			_terminalRepository = terminalRepository;
-		}
-
-		private TerminalSettingsDto _TerminalSettingsDto = null;
-		public TerminalSettingsDto TerminalSettingsDto
-		{
-			get
-			{
-				if (_TerminalSettingsDto == null)
-				{
-					_TerminalSettingsDto = _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn).Result;
-
-					if (_TerminalSettingsDto == null)
-					{
-						_TerminalSettingsDto = new TerminalSettingsDto
-						{
-							TerminalId = "DOTNET",
-							Description = "My iGuardExpress 540 Machine",
-							Language = "en-us",
-							DateTimeFormat = "dd/mm/yy",
-							AllowedOrigins = new string[] { "http://iguardexpress.azurewebsites.net", "http://localhost:3000" },
-							CameraControl = new CameraControlDto
-							{
-								Enable = true,
-								Resolution = CameraResolution.r640x480,
-								FrameRate = 1,
-								Environment = CameraEnvironment.Normal
-							},
-							SmartCardControl = new SmartCardControlDto
-							{
-								IsReadCardSNOnly = true,
-								AcceptUnknownCard = false,
-								CardType = SmartCardType.MifareOnly,
-								AcceptUnregisteredCard = false
-							},
-							InOutControl = new InOutControlDto
-							{
-								DefaultInOut = InOutStrategy.SystemInOut,
-								IsEnableFx = new bool[] { true, false, true, false },
-								DailyResetAutoInOut = true,
-								DailyResetAutoInOutTime = "00:00",
-							},
-							InOutTigger = new SortedDictionary<string, InOutStatus>
-								{
-									{ "00:00", InOutStatus.IN },
-									{ "12:00", InOutStatus.OUT },
-									{ "13:00", InOutStatus.IN },
-									{ "23:59", InOutStatus.OUT }
-								},
-							LocalDoorRelayControl = new LocalDoorRelayControlDto
-							{
-								DoorRelayStatus = new DoorRelayStatus() { In = true },
-								Duration = 3000
-							},
-							RemoteDoorRelayControl = new RemoteDoorRelayControlDto
-							{
-								Enabled = true,
-								Id = 123,
-								DelayTimer = 3000,
-								AccessRight = AccessRight.System
-							},
-							DailyReboot = new DailyRebootDto
-							{
-								Enabled = true,
-								Time = "02:00"
-							},
-							TimeSync = new TimeSyncDto
-							{
-								TimeZone = "Asia/Hong_Kong",
-								TimeOffSet = 8,
-								TimeServer = "time.google.com",
-								IsEnableSNTP = true,
-								IsSyncMasterTime = true
-							},
-							AntiPassback = new AntiPassbackDto
-							{
-								Type = "System",
-								IsDailyReset = true,
-								DailyResetTime = "02:00"
-							},
-							DailySingleAccess = new DailySingleAccessDto
-							{
-								Type = "System",
-								IsDailyReset = true,
-								DailyResetTime = "02:00"
-							},
-							TempDetectEnable = false,
-							FaceDetectEnable = false,
-							FlashLightEnabled = false,
-							TempCacheDuration = 3000,
-							AutoUpdateEnabled = false,
-						};
-
-						_ = _terminalSettingsRepository.UpsertTerminalSettingsAsync(_TerminalSettingsDto, sn);
-					}
-				}
-
-				return _TerminalSettingsDto;
-			}
-			set
-			{
-				_ = Task.Run(async () =>
-				{
-					if (await _terminalSettingsRepository.UpsertTerminalSettingsAsync(value, sn) != null)
-					{
-						_TerminalSettingsDto = value;
-					}
-				});
-			}
-		}
-
-		private TerminalsDto _TerminalDto = null;
-		public TerminalsDto TerminalDto
-		{
-			get
-			{
-				if (_TerminalDto == null)
-				{
-					_TerminalDto = _terminalRepository.GetTerminalsBySnAsync(sn).Result;
-
-					if (_TerminalDto == null)
-					{
-						_TerminalDto = new() { SN = sn };
-						_ = _terminalRepository.UpsertTerminalsAsync(_TerminalDto);
-					}
-				}
-				return _TerminalDto;
-			}
-			set
-			{
-				_ = Task.Run(async () =>
-				{
-					if (await _terminalRepository.UpsertTerminalsAsync(value) != null)
-					{
-						_TerminalDto = value;
-					}
-				});
-			}
-		}
-
-		private Network _Network = null;
-		public Network Network
-		{
-			get
-			{
-				if (_Network == null)
-				{
-					if (File.Exists(networkConfigPath))
-					{
-						string jsonStr = File.ReadAllText(networkConfigPath);
-						_Network = JsonSerializer.Deserialize<Network>(jsonStr);
-					}
-					else
-					{
-						_Network = new Network();
-						string jsonStr = JsonSerializer.Serialize<Network>(_Network, new JsonSerializerOptions { IgnoreNullValues = true });
-						File.WriteAllText(networkConfigPath, jsonStr);
-					}
-				}
-				return _Network;
-			}
-			set
-			{
-				string jsonStr = JsonSerializer.Serialize<Network>(value, new JsonSerializerOptions { IgnoreNullValues = true });
-				File.WriteAllText(networkConfigPath, jsonStr);
-				_Network = value;
-			}
+			_networkRepository = networkRepository;
 		}
 
 		public void OnConnected(WebSocket webSocket)
@@ -365,11 +199,19 @@ namespace dotnet_core_web_client.Services
 			var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 			var status = jsonElement?.GetProperty("status").GetString();
 
-			AccessLog accesslog = new AccessLog
+			TerminalSettingsDto terminalSettingsDto;
+
+			using (var scope = _scopeFactory.CreateScope())
+			{
+				var terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
+				terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+			}
+
+			AccessLog accesslog = new()
 			{
 				Status = status,
 				LogTime = DateTime.Now,
-				TerminalID = TerminalSettingsDto.TerminalId,
+				TerminalID = terminalSettingsDto.TerminalId,
 				JobCode = 0,
 				BodyTemperature = Math.Round(((decimal)random.Next(366, 388)) / 10, 1),
 				SmartCardSN = ulong.Parse(cardSN),
@@ -377,7 +219,7 @@ namespace dotnet_core_web_client.Services
 				ByWhat = "S"
 			};
 
-			List<AccessLog> accessLogs = new List<AccessLog> { accesslog };
+			List<AccessLog> accessLogs = new() { accesslog };
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
@@ -394,7 +236,7 @@ namespace dotnet_core_web_client.Services
 		{
 			var random = new Random();
 			var id = Guid.NewGuid();
-			List<AccessLog> accessLogs = new List<AccessLog>();
+			List<AccessLog> accessLogs = new();
 
 			foreach (var item in data)
 			{
@@ -402,11 +244,13 @@ namespace dotnet_core_web_client.Services
 				var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 				var status = jsonElement?.GetProperty("status").GetString();
 
+				TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+
 				accessLogs.Add(new AccessLog
 				{
 					Status = status,
 					LogTime = DateTime.Now,
-					TerminalID = TerminalSettingsDto.TerminalId,
+					TerminalID = terminalSettingsDto.TerminalId,
 					JobCode = 0,
 					BodyTemperature = Math.Round(((decimal)random.Next(366, 388)) / 10, 1),
 					SmartCardSN = ulong.Parse(cardSN),

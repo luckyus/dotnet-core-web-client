@@ -22,6 +22,49 @@ namespace dotnet_core_web_client.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("dotnet_core_web_client.Models.Networks", b =>
+                {
+                    b.Property<string>("SN")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("DnsStr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gateway")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Interface")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Ip")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDhcp")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsWireless")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Port")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Ssid")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SslPort")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubnetMask")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SN");
+
+                    b.ToTable("Networks");
+                });
+
             modelBuilder.Entity("dotnet_core_web_client.Models.TerminalSettings", b =>
                 {
                     b.Property<string>("SN")

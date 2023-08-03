@@ -1,4 +1,5 @@
 ﻿using dotnet_core_web_client.Models;
+using dotnet_core_web_client.Repository;
 using System;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Services
 {
-	public class ClientWebSocketHandler
+	public class ClientWebSocketHandler : IClientWebSocketHandler
 	{
 		protected WebSocketHandler webSocketHandler;
 		protected ClientWebSocket clientWebSocket;
@@ -22,12 +23,20 @@ namespace dotnet_core_web_client.Services
 
 		readonly string timeStampPath = Directory.GetCurrentDirectory() + "/DBase/timeStamp.json";
 
+		private readonly ITerminalSettingsRepository _terminalSettingsRepository;
+		private readonly ITerminalRepository _terminalRepository;
+		private readonly INetworkRepository _networkRepository;
+
 		public ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort, string regCode)
 		{
 			this.webSocketHandler = webSocketHandler;
 			this.ipPort = ipPort;
 			this.sn = sn;
 			this.regCode = regCode;
+
+			_terminalSettingsRepository = webSocketHandler._terminalSettingsRepository;
+			_terminalRepository = webSocketHandler._terminalRepository;
+			_networkRepository = webSocketHandler._networkRepository;
 
 			_ = Initialize();
 		}
@@ -71,12 +80,17 @@ namespace dotnet_core_web_client.Services
 						var timeStampJsonElement = JsonSerializer.Deserialize<JsonElement>(str) as JsonElement?;
 						var timeStamp = timeStampJsonElement?.GetProperty("timeStamp");
 
+						// get terminal settings (230719)
+						TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+						TerminalsDto terminalsDto = await _terminalRepository.GetTerminalsBySnAsync(sn);
+						NetworksDto networksDto = await _networkRepository.GetNetworkBySnAsync(sn);
+
 						// send terminal details to iGuardPayroll (201201)
 						// - finally marcus agrees to send everything to me (210104)
 						WebSocketMessage webSocketMessage = new()
 						{
 							EventType = "OnDeviceConnected",
-							Data = new object[] { webSocketHandler.TerminalDto, webSocketHandler.TerminalSettingsDto, webSocketHandler.Network, timeStamp }
+							Data = new object[] { terminalsDto, terminalSettingsDto, networksDto, timeStamp }
 						};
 
 						// append regCode to the data array for iGuard540 (221011)
@@ -346,8 +360,10 @@ namespace dotnet_core_web_client.Services
 
 			bool isRestartRequired = false;
 
-			if (newTerminalSettings.TerminalId != webSocketHandler.TerminalSettingsDto.TerminalId) isRestartRequired = true;
-			else if (newTerminalSettings.TimeSync.TimeZone != webSocketHandler.TerminalSettingsDto.TimeSync.TimeZone) isRestartRequired = true;
+			TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+
+			if (newTerminalSettings.TerminalId != terminalSettingsDto.TerminalId) isRestartRequired = true;
+			else if (newTerminalSettings.TimeSync.TimeZone != terminalSettingsDto.TimeSync.TimeZone) isRestartRequired = true;
 
 			if (isRestartRequired)
 			{
@@ -363,9 +379,8 @@ namespace dotnet_core_web_client.Services
 				await Task.Delay(5000);
 			}
 
+			await _terminalSettingsRepository.UpsertTerminalSettingsAsync(newTerminalSettings, sn);
 			await SendAcknowledgeAsync(id);
-
-			webSocketHandler.TerminalSettingsDto = newTerminalSettings;
 		}
 
 		private async Task OnGetNetwork(Guid? id)
@@ -375,12 +390,12 @@ namespace dotnet_core_web_client.Services
 			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
-			Network network = webSocketHandler.Network;
+			NetworksDto networkDto = await _networkRepository.GetNetworkBySnAsync(sn);
 
-			WebSocketMessage webSocketMessage = new WebSocketMessage
+			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "OnGetNetwork",
-				Data = new object[] { network },
+				Data = new object[] { networkDto },
 				AckId = id
 			};
 
@@ -395,7 +410,7 @@ namespace dotnet_core_web_client.Services
 			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
-			TerminalsDto terminalDto = webSocketHandler.TerminalDto;
+			TerminalsDto terminalDto = await _terminalRepository.GetTerminalsBySnAsync(sn);
 
 			WebSocketMessage webSocketMessage = new()
 			{
@@ -415,7 +430,7 @@ namespace dotnet_core_web_client.Services
 			Random r = new();
 			await Task.Delay(r.Next(0, 200));
 
-			TerminalSettingsDto terminalSettingsDto = webSocketHandler.TerminalSettingsDto;
+			TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
 			WebSocketMessage webSocketMessage = new()
 			{

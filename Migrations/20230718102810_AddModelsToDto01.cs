@@ -6,11 +6,33 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace dotnet_core_web_client.Migrations
 {
     /// <inheritdoc />
-    public partial class AddModelsToDb01 : Migration
+    public partial class AddModelsToDto01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Networks",
+                columns: table => new
+                {
+                    SN = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Interface = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Ip = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Port = table.Column<int>(type: "int", nullable: true),
+                    SslPort = table.Column<int>(type: "int", nullable: true),
+                    SubnetMask = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Gateway = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DnsStr = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Ssid = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsWireless = table.Column<bool>(type: "bit", nullable: false),
+                    IsDhcp = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Networks", x => x.SN);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Terminals",
                 columns: table => new
@@ -64,6 +86,9 @@ namespace dotnet_core_web_client.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Networks");
+
             migrationBuilder.DropTable(
                 name: "Terminals");
 

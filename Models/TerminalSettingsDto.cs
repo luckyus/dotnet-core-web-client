@@ -51,7 +51,7 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("flashLightEnabled")]
 		public bool FlashLightEnabled { get; set; } = false;
 		[JsonPropertyName("tempCacheDuration")]
-		public int TempCacheDuration { get; set; } = 3000;
+		public int TempCacheDuration { get; set; } = 3;
 		[JsonPropertyName("autoUpdateEnabled")]
 		public bool? AutoUpdateEnabled { get; set; } = false;
 

@@ -36,12 +36,15 @@ namespace dotnet_core_web_client
 				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
 			});
 
+			services.AddMemoryCache();
+
 			// WebSocket webSocket = null;
 			// services.AddScoped<IWebSocketHandler>(x => new WebSocketHandler(webSocket));
 
 			services.AddScoped<IWebSocketHandler, WebSocketHandler>();
 			services.AddTransient<ITerminalSettingsRepository, TerminalSettingsRepository>();
 			services.AddTransient<ITerminalRepository, TerminalRepository>();
+			services.AddTransient<INetworkRepository, NetworkRepository>();
 
 			services.AddControllers();
 		}

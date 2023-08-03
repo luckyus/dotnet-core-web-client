@@ -1,18 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Models
 {
-	public class Network
+	public class NetworksDto
 	{
-		[Key]
-		[JsonIgnore]
-		public string SN { get; set; } = "7100-0000-0000";
 		[JsonPropertyName("interface")]
 		public string Interface { get; set; } = "eth0";
 		[JsonPropertyName("ip")]
@@ -35,5 +28,30 @@ namespace dotnet_core_web_client.Models
 		public bool IsWireless { get; set; } = true;
 		[JsonPropertyName("isDHCP")]
 		public bool IsDhcp { get; set; } = false;
+
+		public static explicit operator NetworksDto(Networks network)
+		{
+			if (network == null)
+			{
+				return null;
+			}
+
+			NetworksDto dto = new()
+			{
+				Interface = network.Interface,
+				Ip = network.Ip,
+				Port = network.Port,
+				SslPort = network.SslPort,
+				SubnetMask = network.SubnetMask,
+				Gateway = network.Gateway,
+				Dns = network.Dns,
+				Ssid = network.Ssid,
+				Password = network.Password,
+				IsWireless = network.IsWireless,
+				IsDhcp = network.IsDhcp
+			};
+
+			return dto;
+		}
 	}
 }

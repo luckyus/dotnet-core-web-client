@@ -29,6 +29,9 @@ namespace dotnet_core_web_client.Repository
 
 			TerminalSettings terminalSettings = await _dBContext.TerminalSettings.AsNoTracking().FirstOrDefaultAsync(x => x.SN == sn);
 
+			// debug
+			terminalSettings = await _dBContext.Set<TerminalSettings>().AsNoTracking().FirstOrDefaultAsync(x => x.SN == sn);
+
 			if (terminalSettings == null)
 			{
 				terminalSettingsDto = new TerminalSettingsDto();

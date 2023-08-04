@@ -340,7 +340,6 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /DBase/network.json
-/DBase/smartCardSN.json
 /DBase/terminal.json
 /DBase/terminalSettings.json
 /DBase/timeStamp.json

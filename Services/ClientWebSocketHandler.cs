@@ -81,7 +81,7 @@ namespace dotnet_core_web_client.Services
 						var timeStamp = timeStampJsonElement?.GetProperty("timeStamp");
 
 						// get terminal settings (230719)
-						// - can't use WhenAll() since they are using one single injected instance of dbContext which is not thread-safe (230803)
+						// - can't use WhenAll() since dbContext (scoped service) is not thread-safe (230803)
 						TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 						TerminalsDto terminalsDto = await _terminalRepository.GetTerminalsBySnAsync(sn);
 						NetworksDto networksDto = await _networkRepository.GetNetworkBySnAsync(sn);

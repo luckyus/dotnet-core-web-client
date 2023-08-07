@@ -31,6 +31,8 @@ namespace dotnet_core_web_client
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			// this is scoped service, not singleton (comment (230807)
+			// - https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/
 			services.AddDbContext<IGuardDBContext>(options =>
 			{
 				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));

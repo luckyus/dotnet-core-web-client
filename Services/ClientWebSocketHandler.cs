@@ -70,7 +70,7 @@ namespace dotnet_core_web_client.Services
 						await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket"), CancellationToken.None);
 
 						// connected! acknowledge the browser (201021)
-						data = new object[] { sn.StartsWith("81") ? "iGuard540" : "iGuardExpress540" + " Connected to iGuardPayroll!" };
+						data = new object[] { (sn.StartsWith("81") ? "iGuard540" : "iGuardExpress540") + " Connected to iGuardPayroll!" };
 						jsonObj = new { eventType = "onConnected", data };
 						jsonStr = JsonSerializer.Serialize(jsonObj);
 						await webSocketHandler.SendAsync(jsonStr);

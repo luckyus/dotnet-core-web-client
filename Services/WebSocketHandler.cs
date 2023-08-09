@@ -31,7 +31,7 @@ namespace dotnet_core_web_client.Services
 		protected string iGuardPayrollIpPort;
 		protected string regCode;
 
-		private readonly IServiceScopeFactory _scopeFactory;
+		// private readonly IServiceScopeFactory _scopeFactory;
 		public ITerminalSettingsRepository _terminalSettingsRepository;
 		public ITerminalRepository _terminalRepository;
 		public INetworkRepository _networkRepository;
@@ -200,12 +200,7 @@ namespace dotnet_core_web_client.Services
 			var status = jsonElement?.GetProperty("status").GetString();
 
 			TerminalSettingsDto terminalSettingsDto;
-
-			using (var scope = _scopeFactory.CreateScope())
-			{
-				var terminalSettingsRepository = scope.ServiceProvider.GetRequiredService<ITerminalSettingsRepository>();
-				terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
-			}
+			terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
 			AccessLog accesslog = new()
 			{

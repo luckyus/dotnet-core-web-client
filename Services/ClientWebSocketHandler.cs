@@ -230,6 +230,12 @@ namespace dotnet_core_web_client.Services
 									"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
 									_ => OnDefaultAsync(webSocketMessage.Id),
 								});
+
+								if (webSocketMessage.TimeStamp != null && webSocketMessage.TimeStamp != 0)
+								{
+									string jsonStrTimeStamp = JsonSerializer.Serialize(new { timeStamp = webSocketMessage.TimeStamp });
+									File.WriteAllText(timeStampPath, jsonStrTimeStamp);
+								}
 							}
 						}
 					}

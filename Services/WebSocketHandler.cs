@@ -16,6 +16,7 @@ using dotnet_core_web_client.DBCotexts;
 using dotnet_core_web_client.Models;
 using dotnet_core_web_client.Repository;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace dotnet_core_web_client.Services
@@ -35,6 +36,8 @@ namespace dotnet_core_web_client.Services
 		public ITerminalSettingsRepository _terminalSettingsRepository;
 		public ITerminalRepository _terminalRepository;
 		public INetworkRepository _networkRepository;
+
+		protected JsonSerializerOptions jsonSerializerOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
 		public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository, INetworkRepository networkRepository)
 		{
@@ -142,6 +145,10 @@ namespace dotnet_core_web_client.Services
 						{
 							await GetAccessRight(jsonObj.Data);
 						}
+						else if (eventType == "AddEmployee")
+						{
+							await AddEmployee(jsonObj.Data);
+						}
 						else
 						{
 							if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
@@ -164,6 +171,39 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		private async Task AddEmployee(object[] data)
+		{
+			var id = Guid.NewGuid();
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+			var lastName = jsonElement?.GetProperty("lastName").GetString();
+			var firstName = jsonElement?.GetProperty("firstName").GetString();
+
+			TerminalSettingsDto terminalSettingsDto;
+			terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+
+			EmployeeDto employeeDto = new()
+			{
+				EmployeeId = employeeId,
+				LastName = lastName,
+				FirstName = firstName
+			};
+
+			List<EmployeeDto> employees = [employeeDto];
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "AddEmployee",
+				Data = [employees],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptions);
+
+			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 
 		private async Task GetAccessRight(object[] data)
@@ -202,7 +242,7 @@ namespace dotnet_core_web_client.Services
 			TerminalSettingsDto terminalSettingsDto;
 			terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
-			AccessLog accesslog = new()
+			AccessLogDto accesslog = new()
 			{
 				Status = status,
 				LogTime = DateTime.Now,
@@ -214,7 +254,7 @@ namespace dotnet_core_web_client.Services
 				ByWhat = "S"
 			};
 
-			List<AccessLog> accessLogs = new() { accesslog };
+			List<AccessLogDto> accessLogs = new() { accesslog };
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
@@ -223,7 +263,8 @@ namespace dotnet_core_web_client.Services
 				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptions);
+
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 
@@ -231,7 +272,7 @@ namespace dotnet_core_web_client.Services
 		{
 			var random = new Random();
 			var id = Guid.NewGuid();
-			List<AccessLog> accessLogs = new();
+			List<AccessLogDto> accessLogs = new();
 
 			foreach (var item in data)
 			{
@@ -241,7 +282,7 @@ namespace dotnet_core_web_client.Services
 
 				TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
-				accessLogs.Add(new AccessLog
+				accessLogs.Add(new AccessLogDto
 				{
 					Status = status,
 					LogTime = DateTime.Now,

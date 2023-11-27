@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace dotnet_core_web_client.Models
 {
 	[Keyless]
-	public class AccessLog
+	public class AccessLogDto
 	{
 		[JsonPropertyName("employeeId")]
 		public string EmployeeId { get; set; }

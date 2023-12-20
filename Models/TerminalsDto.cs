@@ -4,7 +4,7 @@ using System;
 
 namespace dotnet_core_web_client.Models
 {
-	public class TerminalsDto
+	public record TerminalsDto
 	{
 		[JsonPropertyName("serialNo")]
 		public string SN { get; set; } = "7100-0000-0000";

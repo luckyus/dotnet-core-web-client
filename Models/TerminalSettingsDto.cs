@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace dotnet_core_web_client.Models
 {
-	public class TerminalSettingsDto
+	public record TerminalSettingsDto
 	{
 		[JsonPropertyName("terminalId")]
 		public string TerminalId { get; set; } = "DOTNET";

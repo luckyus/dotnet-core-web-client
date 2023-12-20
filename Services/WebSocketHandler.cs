@@ -37,7 +37,7 @@ namespace dotnet_core_web_client.Services
 		public ITerminalRepository _terminalRepository;
 		public INetworkRepository _networkRepository;
 
-		protected JsonSerializerOptions jsonSerializerOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+		protected JsonSerializerOptions jsonSerializerOptionsIgnoreNull = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
 		public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository, INetworkRepository networkRepository)
 		{
@@ -147,7 +147,15 @@ namespace dotnet_core_web_client.Services
 						}
 						else if (eventType == "AddEmployee")
 						{
-							await AddEmployee(jsonObj.Data);
+							await AddEmployeeAsync(jsonObj.Data);
+						}
+						else if (eventType == "RequestPermission")
+						{
+							await RequestInsertPermissionAsync(jsonObj.Data);
+						}
+						else if (eventType == "DeleteEmployee")
+						{
+							await DeleteEmployeeAsync(jsonObj.Data);
 						}
 						else
 						{
@@ -173,36 +181,72 @@ namespace dotnet_core_web_client.Services
 			return;
 		}
 
-		private async Task AddEmployee(object[] data)
+		private async Task DeleteEmployeeAsync(object[] data)
 		{
 			var id = Guid.NewGuid();
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "DeleteEmployee",
+				Data = [employeeId],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
+		}
+
+		private async Task RequestInsertPermissionAsync(object[] data)
+		{
+			var id = Guid.NewGuid();
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "RequestInsertPermission",
+				Data = [new { employeeId }],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
+		}
+
+		private async Task AddEmployeeAsync(object[] data)
+		{
+			var id = Guid.NewGuid();
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+
+			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
 			var lastName = jsonElement?.GetProperty("lastName").GetString();
 			var firstName = jsonElement?.GetProperty("firstName").GetString();
-
-			TerminalSettingsDto terminalSettingsDto;
-			terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+			var isActive = jsonElement?.GetProperty("isActive").GetString();
 
 			EmployeeDto employeeDto = new()
 			{
 				EmployeeId = employeeId,
 				LastName = lastName,
-				FirstName = firstName
+				FirstName = firstName,
+				Departments = ["TEST01", "TEST02", "TEST03", "EVERYONE"],
+				IsActive = (isActive == "true"),
 			};
 
 			List<EmployeeDto> employees = [employeeDto];
 
 			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "AddEmployee",
+				EventType = "Employee",
 				Data = [employees],
 				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptions);
-
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptionsIgnoreNull);
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 
@@ -222,11 +266,11 @@ namespace dotnet_core_web_client.Services
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
 				EventType = "GetAccessRight",
-				Data = new Object[] { new { smartCardSN, dateTime = dateTimeISO8601 } },
+				Data = [new { smartCardSN, dateTime = dateTimeISO8601 }],
 				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
 		}
 
@@ -259,20 +303,20 @@ namespace dotnet_core_web_client.Services
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
 				EventType = "Accesslogs",
-				Data = new Object[] { accessLogs },
+				Data = [accessLogs],
 				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptions);
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptionsIgnoreNull);
 
-			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task AccessLogs(object[] data)
 		{
 			var random = new Random();
 			var id = Guid.NewGuid();
-			List<AccessLogDto> accessLogs = new();
+			List<AccessLogDto> accessLogs = [];
 
 			foreach (var item in data)
 			{
@@ -295,15 +339,15 @@ namespace dotnet_core_web_client.Services
 				});
 			}
 
-			WebSocketMessage webSocketMessage = new WebSocketMessage
+			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "Accesslogs",
-				Data = new Object[] { accessLogs },
+				Data = [accessLogs],
 				Id = id,
 			};
 
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { IgnoreNullValues = true });
-			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 	}
 }

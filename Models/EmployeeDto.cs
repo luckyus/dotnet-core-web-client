@@ -3,7 +3,7 @@ using System;
 
 namespace dotnet_core_web_client.Models
 {
-	public class EmployeeDto
+	public record EmployeeDto
 	{
 		[JsonPropertyName("employeeId")]
 		public string EmployeeId { get; set; }
@@ -16,7 +16,7 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("email")]
 		public string Email { get; set; }
 		[JsonPropertyName("isActive")]
-		public bool IsActive { get; set; } = true;
+		public bool IsActive { get; set; }
 		[JsonPropertyName("isAutoMatch")]
 		public bool IsAutoMatch { get; set; }
 		[JsonPropertyName("isPassword")]
@@ -24,9 +24,9 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("password")]
 		public string Password { get; set; }
 		[JsonPropertyName("departments")]
-		public string[] Departments { get; set; } = new string[] { };
+		public string[] Departments { get; set; } = [];
 		[JsonPropertyName("base64Image")]
-		public byte[] Base64Image { get; set; } = Array.Empty<byte>();
+		public byte[] Base64Image { get; set; } = [];
 		[JsonPropertyName("fingerPrints")]
 		public FingerPrint[] Fingerprints { get; set; } = new FingerPrint[2];
 		[JsonPropertyName("isFingerprint")]

@@ -76,6 +76,7 @@
 
 			.flex-container #ws-reg-code {
 				width: 100px;
+				text-transform: uppercase;
 			}
 
 		span.func-group {
@@ -90,7 +91,7 @@
 		}
 
 		input.employee-name {
-			width: 80px;
+			width: 60px;
 		}
 	</style>
 	<script src="https://kit.fontawesome.com/bf1dd6efb7.js" crossorigin="anonymous"></script>
@@ -152,10 +153,19 @@
 				<input class="employee-name" type="text" id="ws-employee-lastname" />
 				<label for="ws-employee-firstname">1st Name:</label>
 				<input class="employee-name" type="text" id="ws-employee-firstname" />
-				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
-				<input type="button" id="btn-employee-add" value="Add" disabled />
-				<input type="button" id="btn-employee-update" value="Update" disabled />
+				<label for="is-active">Active:</label>
+				<select name="is-active" id="is-active">
+					<option value="false">False</option>
+					<option value="true">True</option>
+				</select>
 			</div>
+		</div>
+		<div>
+			<span class="func-group"></span>
+			<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
+			<input type="button" id="btn-request-permission" value="RequestPermission" disabled />
+			<input type="button" id="btn-employee-add" value="Add/Update" disabled />
+			<input type="button" id="btn-employee-delete" value="Delete" disabled />
 		</div>
 		<div id="ws-discussion">
 			<ul id="ws-ul"></ul>
@@ -164,7 +174,6 @@
 	<script type="text/javascript">
 		window.onload = function () {
 			let webSocket;
-
 			const wsStatus = document.getElementById("status");
 			const wsSerialNo = document.getElementById("ws-serial-no");
 			const wsIpPort = document.getElementById("ws-ip-port");
@@ -183,8 +192,9 @@
 			const getInOutStatusButton = document.querySelector("#btn-get-in-out-status");
 			const employeeId = document.querySelector("#ws-employee-id");
 			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id');
+			const requestPermissionButton = document.querySelector('#btn-request-permission');
 			const addEmployeeButton = document.querySelector('#btn-employee-add');
-			const updateEmployeeButton = document.querySelector('#btn-employee-update');
+			const deleteEmployeeButton = document.querySelector('#btn-employee-delete');
 
 			// get/set fake sn @localStorage (201105)
 			var storageSN = wsSerialNo.value = window.localStorage.getItem("sn");
@@ -223,8 +233,9 @@
 				getAccessRightButton.disabled = false;
 				getInOutStatusButton.disabled = false;
 				getStatusByIdButton.disabled = false;
+				requestPermissionButton.disabled = false;
 				addEmployeeButton.disabled = false;
-				updateEmployeeButton.disabled = false;
+				deleteEmployeeButton.disabled = false;
 				wsTestBtn.disabled = false;
 			}
 
@@ -234,8 +245,9 @@
 				getAccessRightButton.disabled = true;
 				getInOutStatusButton.disabled = true;
 				getStatusByIdButton.disabled = true;
+				requestPermissionButton.disabled = true;
 				addEmployeeButton.disabled = true;
-				updateEmployeeButton.disabled = true;
+				deleteEmployeeButton.disabled = true;
 				wsTestBtn.disabled = true;
 			}
 
@@ -325,7 +337,7 @@
 					data: [{
 						SN: wsSerialNo.value,
 						IpPort: wsIpPort.value,
-						RegCode: wsRegCode.value
+						RegCode: wsRegCode.value.toUpperCase()
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);
@@ -400,28 +412,40 @@
 				webSocket.send(jsonStr);
 			}
 
-			addEmployeeButton.onclick = () => {
+			requestPermissionButton.onclick = () => {
 				const jsonObj = {
-					eventType: "AddEmployee",
+					eventType: "RequestPermission",
 					data: [{
-						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase(),
-						lastName: document.querySelector('#ws-employee-lastname').value,
-						firstName: document.querySelector('#ws-employee-firstname').value
+						employeeId: document.querySelector('#ws-employee-id').value
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);
 				webSocket.send(jsonStr);
 			}
 
-			updateEmployeeButton.onclick = () => {
+			addEmployeeButton.onclick = () => {
 				const jsonObj = {
-					eventType: "UpdateEmployee",
+					eventType: "AddEmployee",
 					data: [{
-						employeeId: document.querySelector('#ws-employee-id').value,
+						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase(),
 						lastName: document.querySelector('#ws-employee-lastname').value,
-						firstName: document.querySelector('#ws-employee-firstname').value
+						firstName: document.querySelector('#ws-employee-firstname').value,
+						isActive: document.querySelector('#is-active').value
 					}]
 				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
+			}
+
+			deleteEmployeeButton.onclick = () => {
+				const jsonObj = {
+					eventType: "DeleteEmployee",
+					data: [{
+						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase()
+					}]
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
 			}
 
 			wsTestBtn.onclick = () => {

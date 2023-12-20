@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace dotnet_core_web_client.Models
 {
-	public class NetworksDto
+	public record NetworksDto
 	{
 		[JsonPropertyName("interface")]
 		public string Interface { get; set; } = "eth0";

@@ -70,7 +70,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 					await clientWebSocket.ConnectAsync(new Uri("ws://" + ipPort + "/api/websocket"), CancellationToken.None);
 
 					// connected! acknowledge the browser (201021)
-					data = new object[] { (sn.StartsWith("81") ? "iGuard540" : "iGuardExpress540") + " Connected to iGuardPayroll!" };
+					data = [(sn.StartsWith("81") ? "iGuard540" : "iGuardExpress540") + " Connected to iGuardPayroll!"];
 					jsonObj = new { eventType = "onConnected", data };
 					jsonStr = JsonSerializer.Serialize(jsonObj);
 					await webSocketHandler.SendAsync(jsonStr);
@@ -91,7 +91,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 					WebSocketMessage webSocketMessage = new()
 					{
 						EventType = "OnDeviceConnected",
-						Data = new object[] { terminalsDto, terminalSettingsDto, networksDto, timeStamp }
+						Data = [terminalsDto, terminalSettingsDto, networksDto, timeStamp]
 					};
 
 					// append regCode to the data array for iGuard540 (221011)
@@ -99,7 +99,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 					{
 						var dataList = webSocketMessage.Data.ToList();
 						dataList.Add(regCode);
-						webSocketMessage.Data = dataList.ToArray();
+						webSocketMessage.Data = [.. dataList];
 					}
 
 					string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
@@ -325,7 +325,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 		WebSocketMessage webSocketMessage = new()
 		{
 			EventType = "Rebooting",
-			Data = Array.Empty<object>(),
+			Data = [],
 			AckId = id
 		};
 

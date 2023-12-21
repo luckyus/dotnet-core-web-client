@@ -21,7 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace dotnet_core_web_client.Services
 {
-	public class WebSocketHandler : IWebSocketHandler
+	public class WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository, INetworkRepository networkRepository) : IWebSocketHandler
 	{
 		protected WebSocket webSocket;
 		protected ClientWebSocketHandler clientWebSocketHandler = null;
@@ -33,21 +33,13 @@ namespace dotnet_core_web_client.Services
 		protected string regCode;
 
 		// private readonly IServiceScopeFactory _scopeFactory;
-		public ITerminalSettingsRepository _terminalSettingsRepository;
-		public ITerminalRepository _terminalRepository;
-		public INetworkRepository _networkRepository;
+		public ITerminalSettingsRepository _terminalSettingsRepository = terminalSettingsRepository;
+		public ITerminalRepository _terminalRepository = terminalRepository;
+		public INetworkRepository _networkRepository = networkRepository;
 
 		protected JsonSerializerOptions jsonSerializerOptionsIgnoreNull = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
-		public WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository, INetworkRepository networkRepository)
-		{
-			//_scopeFactory = serviceScopeFactory;
-			_terminalSettingsRepository = terminalSettingsRepository;
-			_terminalRepository = terminalRepository;
-			_networkRepository = networkRepository;
-		}
-
-		public void OnConnected(WebSocket webSocket)
+        public void OnConnected(WebSocket webSocket)
 		{
 			this.webSocket = webSocket;
 		}
@@ -145,7 +137,7 @@ namespace dotnet_core_web_client.Services
 						{
 							await GetAccessRight(jsonObj.Data);
 						}
-						else if(eventType == "GetEmployee")
+						else if (eventType == "GetEmployee")
 						{
 							await GetEmployeeAsync(jsonObj.Data);
 						}

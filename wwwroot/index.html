@@ -164,7 +164,8 @@
 			<span class="func-group"></span>
 			<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
 			<input type="button" id="btn-request-permission" value="RequestPermission" disabled />
-			<input type="button" id="btn-employee-add" value="Add/Update" disabled />
+			<input type="button" id="btn-employee-get" value="Get" disabled />
+			<input type="button" id="btn-employee-set" value="Set" disabled />
 			<input type="button" id="btn-employee-delete" value="Delete" disabled />
 		</div>
 		<div id="ws-discussion">
@@ -193,7 +194,8 @@
 			const employeeId = document.querySelector("#ws-employee-id");
 			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id');
 			const requestPermissionButton = document.querySelector('#btn-request-permission');
-			const addEmployeeButton = document.querySelector('#btn-employee-add');
+			const getEmployeeButton = document.querySelector('#btn-employee-get');
+			const setEmployeeButton = document.querySelector('#btn-employee-set');
 			const deleteEmployeeButton = document.querySelector('#btn-employee-delete');
 
 			// get/set fake sn @localStorage (201105)
@@ -234,7 +236,8 @@
 				getInOutStatusButton.disabled = false;
 				getStatusByIdButton.disabled = false;
 				requestPermissionButton.disabled = false;
-				addEmployeeButton.disabled = false;
+				getEmployeeButton.disabled = false;
+				setEmployeeButton.disabled = false;
 				deleteEmployeeButton.disabled = false;
 				wsTestBtn.disabled = false;
 			}
@@ -246,7 +249,8 @@
 				getInOutStatusButton.disabled = true;
 				getStatusByIdButton.disabled = true;
 				requestPermissionButton.disabled = true;
-				addEmployeeButton.disabled = true;
+				getEmployeeButton.disabled = true;
+				setEmployeeButton.disabled = true;
 				deleteEmployeeButton.disabled = true;
 				wsTestBtn.disabled = true;
 			}
@@ -423,9 +427,20 @@
 				webSocket.send(jsonStr);
 			}
 
-			addEmployeeButton.onclick = () => {
+			getEmployeeButton.onclick = () => {
 				const jsonObj = {
-					eventType: "AddEmployee",
+					eventType: "GetEmployee",
+					data: [{
+						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase()
+					}]
+				}
+				const jsonStr = JSON.stringify(jsonObj);
+				webSocket.send(jsonStr);
+			}
+
+			setEmployeeButton.onclick = () => {
+				const jsonObj = {
+					eventType: "SetEmployee",
 					data: [{
 						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase(),
 						lastName: document.querySelector('#ws-employee-lastname').value,

@@ -145,9 +145,13 @@ namespace dotnet_core_web_client.Services
 						{
 							await GetAccessRight(jsonObj.Data);
 						}
-						else if (eventType == "AddEmployee")
+						else if(eventType == "GetEmployee")
 						{
-							await AddEmployeeAsync(jsonObj.Data);
+							await GetEmployeeAsync(jsonObj.Data);
+						}
+						else if (eventType == "SetEmployee")
+						{
+							await SetEmployeeAsync(jsonObj.Data);
 						}
 						else if (eventType == "RequestPermission")
 						{
@@ -179,6 +183,24 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		private async Task GetEmployeeAsync(object[] data)
+		{
+			var id = Guid.NewGuid();
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "GetEmployee",
+				Data = [employeeId],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task DeleteEmployeeAsync(object[] data)
@@ -217,7 +239,7 @@ namespace dotnet_core_web_client.Services
 			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
-		private async Task AddEmployeeAsync(object[] data)
+		private async Task SetEmployeeAsync(object[] data)
 		{
 			var id = Guid.NewGuid();
 

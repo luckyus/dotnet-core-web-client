@@ -39,7 +39,7 @@ namespace dotnet_core_web_client.Services
 
 		protected JsonSerializerOptions jsonSerializerOptionsIgnoreNull = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
-        public void OnConnected(WebSocket webSocket)
+		public void OnConnected(WebSocket webSocket)
 		{
 			this.webSocket = webSocket;
 		}
@@ -187,7 +187,7 @@ namespace dotnet_core_web_client.Services
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "GetEmployee",
-				Data = [employeeId],
+				Data = [new { employeeId }],
 				Id = id,
 			};
 

@@ -56,7 +56,7 @@
 			padding-left: 16px;
 		}
 
-		#ws-accesslog-card-sn {
+		.option-cardsn {
 			width: 130px;
 		}
 
@@ -127,7 +127,7 @@
 			<div>
 				<span class="func-group">AccessLog:</span>
 				<label for="ws-accesslog-card-sn">Card SN:</label>
-				<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn"></select>
+				<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn" class="option-cardsn"></select>
 				<label for="in-out-status">Status:</label>
 				<select name="in-out-status" id="in-out-status">
 					<option value="IN">In</option>
@@ -149,6 +149,10 @@
 				<span class="func-group">Employee:</span>
 				<label for="ws-employee-id">ID:</label>
 				<input class="employee-id" type="text" id="ws-employee-id" />
+				<label for="ws-employee-card-sn">Card SN:</label>
+				<select name="ws-employee-card-sn" id="ws-employee-card-sn" class="option-cardsn">
+					<option value=''>=== select ===</option>
+				</select>				
 				<label for="ws-employee-lastname">Last Name:</label>
 				<input class="employee-name" type="text" id="ws-employee-lastname" />
 				<label for="ws-employee-firstname">1st Name:</label>
@@ -192,6 +196,7 @@
 			const getAccessRightButton = document.querySelector("#btn-get-access-right");
 			const getInOutStatusButton = document.querySelector("#btn-get-in-out-status");
 			const employeeId = document.querySelector("#ws-employee-id");
+			const employeeCardSN = document.querySelector("#ws-employee-card-sn");
 			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id');
 			const requestPermissionButton = document.querySelector('#btn-request-permission');
 			const getEmployeeButton = document.querySelector('#btn-employee-get');
@@ -226,6 +231,7 @@
 					option.innerHTML = "0x" + sn.toString(16).toUpperCase().padStart(10, '0');
 					option.value = sn;
 					accessLogCardSN.add(option);
+					employeeCardSN.add(option.cloneNode(true));
 				});
 			};
 
@@ -420,7 +426,7 @@
 				const jsonObj = {
 					eventType: "RequestPermission",
 					data: [{
-						employeeId: document.querySelector('#ws-employee-id').value
+						employeeId: employeeId.value
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);
@@ -431,7 +437,8 @@
 				const jsonObj = {
 					eventType: "GetEmployee",
 					data: [{
-						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase()
+						employeeId: employeeId.value == ''? null : employeeId.value.toUpperCase(),
+						smartCardSN: employeeCardSN.value == '' ? null : employeeCardSN.value
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);
@@ -442,7 +449,8 @@
 				const jsonObj = {
 					eventType: "SetEmployee",
 					data: [{
-						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase(),
+						employeeId: employeeId.value.toUpperCase(),
+						smartCardSN: employeeCardSN.value === '' ? null : employeeCardSN.value,
 						lastName: document.querySelector('#ws-employee-lastname').value,
 						firstName: document.querySelector('#ws-employee-firstname').value,
 						isActive: document.querySelector('#is-active').value
@@ -456,7 +464,7 @@
 				const jsonObj = {
 					eventType: "DeleteEmployee",
 					data: [{
-						employeeId: document.querySelector('#ws-employee-id').value.toUpperCase()
+						employeeId: employeeId.value.toUpperCase()
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);

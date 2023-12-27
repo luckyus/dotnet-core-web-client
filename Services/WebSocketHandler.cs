@@ -104,7 +104,7 @@ namespace dotnet_core_web_client.Services
 							var smartCardSNArray = smartCardSNJsonElement?.GetProperty("smartCardSNArray");
 
 							// array of objects (201103)
-							object[] data = { "iGuardPayroll Connecting...", smartCardSNArray };
+							object[] data = ["iGuardPayroll Connecting...", smartCardSNArray];
 							var obj = new { eventType = "onConnecting", data };
 							var str = JsonSerializer.Serialize(obj);
 							_ = SendAsync(str);
@@ -183,11 +183,12 @@ namespace dotnet_core_web_client.Services
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString();
 
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "GetEmployee",
-				Data = [new { employeeId }],
+				Data = [new { employeeId, smartCardSN }],
 				Id = id,
 			};
 
@@ -238,6 +239,7 @@ namespace dotnet_core_web_client.Services
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 
 			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString(); 
 			var lastName = jsonElement?.GetProperty("lastName").GetString();
 			var firstName = jsonElement?.GetProperty("firstName").GetString();
 			var isActive = jsonElement?.GetProperty("isActive").GetString();
@@ -245,6 +247,7 @@ namespace dotnet_core_web_client.Services
 			EmployeeDto employeeDto = new()
 			{
 				EmployeeId = employeeId,
+				SmartCardSN = string.IsNullOrEmpty(smartCardSN) ? 0 : long.Parse(smartCardSN),
 				LastName = lastName,
 				FirstName = firstName,
 				Departments = ["TEST01", "TEST02", "TEST03", "EVERYONE"],

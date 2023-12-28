@@ -183,12 +183,31 @@ namespace dotnet_core_web_client.Services
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
-			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString();
+			var smartCardSNString = jsonElement?.GetProperty("smartCardSN").GetString();
+
+			long smartCardSN = 0;
+
+			if (!string.IsNullOrEmpty(smartCardSNString))
+			{
+				_ = long.TryParse(smartCardSNString, out smartCardSN);
+			}
+
+			var obj = new Dictionary<string, object>();
+
+			if (!string.IsNullOrEmpty(employeeId))
+			{
+				obj.Add("employeeId", employeeId);
+			}
+
+			if (smartCardSN != 0)
+			{
+				obj.Add("smartCardSN", smartCardSN);
+			}
 
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "GetEmployee",
-				Data = [new { employeeId, smartCardSN }],
+				Data = [obj],
 				Id = id,
 			};
 
@@ -239,7 +258,7 @@ namespace dotnet_core_web_client.Services
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 
 			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
-			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString(); 
+			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString();
 			var lastName = jsonElement?.GetProperty("lastName").GetString();
 			var firstName = jsonElement?.GetProperty("firstName").GetString();
 			var isActive = jsonElement?.GetProperty("isActive").GetString();

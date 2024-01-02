@@ -152,7 +152,7 @@
 				<label for="ws-employee-card-sn">Card SN:</label>
 				<select name="ws-employee-card-sn" id="ws-employee-card-sn" class="option-cardsn">
 					<option value=''>=== select ===</option>
-				</select>				
+				</select>
 				<label for="ws-employee-lastname">Last Name:</label>
 				<input class="employee-name" type="text" id="ws-employee-lastname" />
 				<label for="ws-employee-firstname">1st Name:</label>
@@ -297,6 +297,18 @@
 									setTimeout(() => {
 										wsHeartBeat[0].style.display = "none"
 									}, 400);
+								} else if (obj.eventType === 'onGetEmployee') {
+
+									console.log("TP#02");
+									console.log(obj.data[0]);
+									console.log(obj.data[1]);
+									console.log(obj.data[2]);
+									console.log(obj.data[3]);
+
+									document.querySelector('#ws-employee-lastname').value = obj.data[0];
+									document.querySelector('#ws-employee-firstname').value = obj.data[1];
+									document.querySelector('#ws-employee-card-sn').value = obj.data[2];
+									document.querySelector('#is-active').value = obj.data[3];
 								} else {
 									// either Tx or Rx (comment (221014))
 									var data = JSON.parse(obj.data);
@@ -437,7 +449,7 @@
 				const jsonObj = {
 					eventType: "GetEmployee",
 					data: [{
-						employeeId: employeeId.value == ''? null : employeeId.value.toUpperCase(),
+						employeeId: employeeId.value == '' ? null : employeeId.value.toUpperCase(),
 						smartCardSN: employeeCardSN.value == '' ? null : employeeCardSN.value
 					}]
 				}

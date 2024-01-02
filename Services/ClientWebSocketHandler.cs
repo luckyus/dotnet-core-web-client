@@ -1,5 +1,6 @@
 ﻿using dotnet_core_web_client.Models;
 using dotnet_core_web_client.Repository;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.IO;
 using System.Linq;
@@ -12,34 +13,22 @@ using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Services;
 
-public class ClientWebSocketHandler : IClientWebSocketHandler
+public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort, string regCode, IMemoryCache memoryCache) : IClientWebSocketHandler
 {
-	protected WebSocketHandler webSocketHandler;
+	protected WebSocketHandler webSocketHandler = webSocketHandler;
 	protected ClientWebSocket clientWebSocket;
-	protected string sn;
-	protected string ipPort;
-	protected string regCode;
+	protected string sn = sn;
+	protected string ipPort = ipPort;
+	protected string regCode = regCode;
 	protected bool isToReconnect = true;
 
 	readonly string timeStampPath = Directory.GetCurrentDirectory() + "/DBase/timeStamp.json";
 
-	private readonly ITerminalSettingsRepository _terminalSettingsRepository;
-	private readonly ITerminalRepository _terminalRepository;
-	private readonly INetworkRepository _networkRepository;
+	private readonly ITerminalSettingsRepository terminalSettingsRepository = webSocketHandler.terminalSettingsRepository;
+	private readonly ITerminalRepository terminalRepository = webSocketHandler.terminalRepository;
+	private readonly INetworkRepository networkRepository = webSocketHandler.networkRepository;
 
-	public ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort, string regCode)
-	{
-		this.webSocketHandler = webSocketHandler;
-		this.ipPort = ipPort;
-		this.sn = sn;
-		this.regCode = regCode;
-
-		_terminalSettingsRepository = webSocketHandler._terminalSettingsRepository;
-		_terminalRepository = webSocketHandler._terminalRepository;
-		_networkRepository = webSocketHandler._networkRepository;
-
-		_ = Initialize();
-	}
+	private readonly IMemoryCache memoryCache = memoryCache;
 
 	public async Task Initialize()
 	{
@@ -82,9 +71,9 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 
 					// get terminal settings (230719)
 					// - can't use WhenAll() since dbContext (scoped service) is not thread-safe (230803)
-					TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
-					TerminalsDto terminalsDto = await _terminalRepository.GetTerminalsBySnAsync(sn);
-					NetworksDto networksDto = await _networkRepository.GetNetworkBySnAsync(sn);
+					TerminalSettingsDto terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+					TerminalsDto terminalsDto = await terminalRepository.GetTerminalsBySnAsync(sn);
+					NetworksDto networksDto = await networkRepository.GetNetworkBySnAsync(sn);
 
 					// send terminal details to iGuardPayroll (201201)
 					// - finally marcus agrees to send everything to me (210104)
@@ -116,7 +105,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 				{
 					if (!isConnected && reconnectCount == 0)
 					{
-						data = new object[] { ex.Message };
+						data = [ex.Message];
 						jsonObj = new { eventType = "onError", data };
 						jsonStr = JsonSerializer.Serialize(jsonObj);
 						await webSocketHandler.SendAsync(jsonStr);
@@ -128,7 +117,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 				if (!isToReconnect) break;
 
 				// reconnect (201218)
-				data = new object[] { "Reconnecting (" + ++reconnectCount + ")..." };
+				data = ["Reconnecting (" + ++reconnectCount + ")..."];
 				jsonObj = new { eventType = "onReconnecting", data };
 				jsonStr = JsonSerializer.Serialize(jsonObj);
 				await webSocketHandler.SendAsync(jsonStr);
@@ -221,13 +210,13 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 								"SetTerminalSettings" => OnSetTerminalSettings(webSocketMessage.Data, webSocketMessage.Id),
 								"GetLogFile" => OnGetLogFile(webSocketMessage.Data, webSocketMessage.Id),
 								"Reboot" => OnReboot(webSocketMessage.Data, webSocketMessage.Id),
-								"Acknowledge" => OnAcknowledge(webSocketMessage.Id),
 								"SetTimeStamp" => SetTimeStamp(webSocketMessage.Data, webSocketMessage.Id),
 								"OnNewUpdate" => OnNewUpdate(webSocketMessage.Id),
 								"RegistrationFailed" => OniGuardPayrollRegistrationFailed(webSocketMessage.Id),
 								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
 								"EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
 								"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
+								"Acknowledge" or "OnGetEmployee" => OnAcknowledge(webSocketMessage.Data, webSocketMessage.AckId),
 								_ => OnDefaultAsync(webSocketMessage.Id),
 							});
 
@@ -313,9 +302,24 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 		await SendAcknowledgeAsync(id);
 	}
 
-	private static object OnAcknowledge(Guid? id)
+	private async Task OnAcknowledge(object[] data, Guid? id)
 	{
-		return null;
+		if (id == null) return;
+
+		object obj = memoryCache.Get(id);
+
+		if (obj != null && obj is SemaphoreSlim semaphoreSlim)
+		{
+			memoryCache.Set(id, data, DateTimeOffset.Now.AddSeconds(60));
+
+			try
+			{
+				semaphoreSlim.Release();
+			}
+			catch { /* in case it has been disposed (231229) */ }
+		}
+
+		await Task.CompletedTask;
 	}
 
 	private async Task OnReboot(object[] data, Guid? id)
@@ -367,7 +371,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 
 		bool isRestartRequired = false;
 
-		TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+		TerminalSettingsDto terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
 		if (newTerminalSettings.TerminalId != terminalSettingsDto.TerminalId) isRestartRequired = true;
 		else if (newTerminalSettings.TimeSync.TimeZone != terminalSettingsDto.TimeSync.TimeZone) isRestartRequired = true;
@@ -386,7 +390,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 			await Task.Delay(5000);
 		}
 
-		await _terminalSettingsRepository.UpsertTerminalSettingsAsync(newTerminalSettings, sn);
+		await terminalSettingsRepository.UpsertTerminalSettingsAsync(newTerminalSettings, sn);
 		await SendAcknowledgeAsync(id);
 	}
 
@@ -397,7 +401,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 		Random r = new();
 		await Task.Delay(r.Next(0, 200));
 
-		NetworksDto networkDto = await _networkRepository.GetNetworkBySnAsync(sn);
+		NetworksDto networkDto = await networkRepository.GetNetworkBySnAsync(sn);
 
 		WebSocketMessage webSocketMessage = new()
 		{
@@ -417,7 +421,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 		Random r = new();
 		await Task.Delay(r.Next(0, 200));
 
-		TerminalsDto terminalDto = await _terminalRepository.GetTerminalsBySnAsync(sn);
+		TerminalsDto terminalDto = await terminalRepository.GetTerminalsBySnAsync(sn);
 
 		WebSocketMessage webSocketMessage = new()
 		{
@@ -437,7 +441,7 @@ public class ClientWebSocketHandler : IClientWebSocketHandler
 		Random r = new();
 		await Task.Delay(r.Next(0, 200));
 
-		TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+		TerminalSettingsDto terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
 		WebSocketMessage webSocketMessage = new()
 		{

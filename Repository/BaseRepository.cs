@@ -4,9 +4,9 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace dotnet_core_web_client.Repository
 {
-	public class BaseRepository
+	public class BaseRepository(IMemoryCache memoryCache)
 	{
-		protected readonly IMemoryCache _memoryCache;
+		protected readonly IMemoryCache _memoryCache = memoryCache;
 
 		// keep track of all cache keys (230802)
 		// - this is not a good method, since it won't clear the expired cache keys (230802)
@@ -17,11 +17,6 @@ namespace dotnet_core_web_client.Repository
 			AbsoluteExpiration = null,
 			SlidingExpiration = TimeSpan.FromMinutes(60)
 		};
-
-		public BaseRepository(IMemoryCache memoryCache)
-        {
-			_memoryCache = memoryCache; 
-        }
 
 		public void SetCache<T>(string cacheKey, T value)
 		{

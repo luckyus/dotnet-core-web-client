@@ -8,15 +8,10 @@ using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Repository
 {
-	public class TerminalSettingsRepository : BaseRepository, ITerminalSettingsRepository
+	public class TerminalSettingsRepository(IGuardDBContext dBContext, IMemoryCache memoryCache) : BaseRepository(memoryCache), ITerminalSettingsRepository
 	{
-		private readonly IGuardDBContext _dBContext;
+		private readonly IGuardDBContext _dBContext = dBContext;
 		private readonly string cacheKeyPrefix = "TerminalSettings_";
-
-		public TerminalSettingsRepository(IGuardDBContext dBContext, IMemoryCache memoryCache) : base(memoryCache)
-		{
-			_dBContext = dBContext;
-		}
 
 		public async Task<TerminalSettingsDto> GetTerminalSettingsBySnAsync(string sn)
 		{

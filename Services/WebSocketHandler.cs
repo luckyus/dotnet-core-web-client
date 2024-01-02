@@ -12,16 +12,18 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using dotnet_core_web_client.DBCotexts;
 using dotnet_core_web_client.Models;
 using dotnet_core_web_client.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace dotnet_core_web_client.Services
 {
-	public class WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository, INetworkRepository networkRepository) : IWebSocketHandler
+	public class WebSocketHandler(ITerminalSettingsRepository terminalSettingsRepository, ITerminalRepository terminalRepository, INetworkRepository networkRepository, IMemoryCache memoryCache) : IWebSocketHandler
 	{
 		protected WebSocket webSocket;
 		protected ClientWebSocketHandler clientWebSocketHandler = null;
@@ -33,9 +35,12 @@ namespace dotnet_core_web_client.Services
 		protected string regCode;
 
 		// private readonly IServiceScopeFactory _scopeFactory;
-		public ITerminalSettingsRepository _terminalSettingsRepository = terminalSettingsRepository;
-		public ITerminalRepository _terminalRepository = terminalRepository;
-		public INetworkRepository _networkRepository = networkRepository;
+		public ITerminalSettingsRepository terminalSettingsRepository = terminalSettingsRepository;
+		public ITerminalRepository terminalRepository = terminalRepository;
+		public INetworkRepository networkRepository = networkRepository;
+
+		// cache (231228)
+		protected IMemoryCache memoryCache = memoryCache;
 
 		protected JsonSerializerOptions jsonSerializerOptionsIgnoreNull = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
@@ -123,7 +128,8 @@ namespace dotnet_core_web_client.Services
 							//}
 
 							// connect to iGuardPayroll (201201)
-							clientWebSocketHandler = new ClientWebSocketHandler(this, sn, iGuardPayrollIpPort, regCode);
+							clientWebSocketHandler = new ClientWebSocketHandler(this, sn, iGuardPayrollIpPort, regCode, memoryCache);
+							_ = clientWebSocketHandler.Initialize();
 						}
 						else if (eventType == "accessLog")
 						{
@@ -139,7 +145,7 @@ namespace dotnet_core_web_client.Services
 						}
 						else if (eventType == "GetEmployee")
 						{
-							await GetEmployeeAsync(jsonObj.Data);
+							_ = GetEmployeeAsync(jsonObj.Data);
 						}
 						else if (eventType == "SetEmployee")
 						{
@@ -212,7 +218,32 @@ namespace dotnet_core_web_client.Services
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+
+			using var semaphoreSlim = new SemaphoreSlim(0, 1);
+			memoryCache.Set(id, semaphoreSlim, DateTimeOffset.Now.AddSeconds(60));
+
 			await clientWebSocketHandler?.SendAsync(jsonStr);
+
+			using CancellationTokenSource cancellationTokenSource = new();
+			Task task = semaphoreSlim.WaitAsync(cancellationTokenSource.Token);
+
+			if (await Task.WhenAny(task, Task.Delay(10000, cancellationTokenSource.Token)) == task)
+			{
+				var result = memoryCache.Get(id);
+
+				if (result is object[] v && v.Length > 0 && v[0] is JsonElement v0 && v0.ValueKind == JsonValueKind.String && v0.GetString() == "OK")
+				{
+					EmployeeDto employeeDto = JsonSerializer.Deserialize<EmployeeDto>(v[1].ToString());
+
+					var cardSN = employeeDto.SmartCardSN == 0 ? "" : employeeDto.SmartCardSN.ToString();
+
+					string[] myData = [employeeDto.LastName, employeeDto.FirstName, cardSN, employeeDto.IsActive.ToString().ToLower()];
+
+					await SendAsync(JsonSerializer.Serialize(new { eventType = "onGetEmployee", data = myData }));
+				}
+			}
+
+			cancellationTokenSource.Cancel();
 		}
 
 		private async Task DeleteEmployeeAsync(object[] data)
@@ -262,6 +293,12 @@ namespace dotnet_core_web_client.Services
 			var lastName = jsonElement?.GetProperty("lastName").GetString();
 			var firstName = jsonElement?.GetProperty("firstName").GetString();
 			var isActive = jsonElement?.GetProperty("isActive").GetString();
+
+			if (string.IsNullOrEmpty(employeeId))
+			{
+				await SendAsync(JsonSerializer.Serialize(new { eventType = "Error", data = "Invalid Input!" }));
+				return;
+			}
 
 			EmployeeDto employeeDto = new()
 			{
@@ -320,7 +357,7 @@ namespace dotnet_core_web_client.Services
 			var status = jsonElement?.GetProperty("status").GetString();
 
 			TerminalSettingsDto terminalSettingsDto;
-			terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+			terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
 			AccessLogDto accesslog = new()
 			{
@@ -360,7 +397,7 @@ namespace dotnet_core_web_client.Services
 				var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 				var status = jsonElement?.GetProperty("status").GetString();
 
-				TerminalSettingsDto terminalSettingsDto = await _terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+				TerminalSettingsDto terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 
 				accessLogs.Add(new AccessLogDto
 				{

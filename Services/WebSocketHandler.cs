@@ -314,7 +314,7 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "Employee",
+				EventType = "Employees",
 				Data = [employees],
 				Id = id,
 			};

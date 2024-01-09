@@ -381,7 +381,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 			webSocketMessage = new WebSocketMessage
 			{
 				EventType = "Rebooting",
-				Data = [],
+				Data = Array.Empty<object>(),
 				AckId = id
 			};
 
@@ -406,7 +406,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		WebSocketMessage webSocketMessage = new()
 		{
 			EventType = "OnGetNetwork",
-			Data = [networkDto],
+			Data = new object[] { networkDto },
 			AckId = id
 		};
 
@@ -426,7 +426,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		WebSocketMessage webSocketMessage = new()
 		{
 			EventType = "OnGetTerminal",
-			Data = [terminalDto],
+			Data = new object[] { terminalDto },
 			AckId = id
 		};
 

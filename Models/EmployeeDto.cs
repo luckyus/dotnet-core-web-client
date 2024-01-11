@@ -28,7 +28,7 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("base64Image")]
 		public byte[] Base64Image { get; set; } = [];
 		[JsonPropertyName("fingerPrints")]
-		public FingerPrint[] Fingerprints { get; set; } = new FingerPrint[2];
+		public FingerPrint[] Fingerprints { get; set; } = [];
 		[JsonPropertyName("isFingerprint")]
 		public bool IsFingerprint { get; set; }
 		[JsonPropertyName("modifiedDate")]

@@ -7,6 +7,8 @@ namespace dotnet_core_web_client.Models
 	{
 		[JsonPropertyName("employeeId")]
 		public string EmployeeId { get; set; }
+		[JsonPropertyName("originalId")]
+		public string OriginalId { get; set; } = null;
 		[JsonPropertyName("lastName")]
 		public string LastName { get; set; }
 		[JsonPropertyName("firstName")]

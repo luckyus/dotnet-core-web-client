@@ -303,7 +303,6 @@ namespace dotnet_core_web_client.Services
 			EmployeeDto employeeDto = new()
 			{
 				EmployeeId = employeeId,
-				OriginalId = employeeId,
 				SmartCardSN = string.IsNullOrEmpty(smartCardSN) ? 0 : long.Parse(smartCardSN),
 				LastName = lastName,
 				FirstName = firstName,

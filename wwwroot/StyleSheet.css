@@ -1,0 +1,124 @@
+﻿body {
+	/*background-color: aquamarine;*/
+	/*border: thick solid #808080;*/
+	/*border-top: thick solid #808080;*/
+	/*border-bottom: thick solid #808080;*/
+	/*padding: 0 10px 20px;*/
+	/*margin: 10px 5px;*/
+	font-family: Arial, sans-serif;
+}
+
+	body .top-menu {
+		background-color: aquamarine;
+		padding: 0 10px;
+		box-sizing: border-box;
+	}
+
+	body div {
+		margin-top: 5px;
+	}
+
+	body .fa-heart {
+		margin-left: 10px;
+		color: red;
+		display: none;
+	}
+
+	body .alert {
+		color: red;
+	}
+
+.ws-title-container {
+	display: flex;
+	align-items: baseline;
+}
+
+	.ws-title-container div:first-child {
+		margin-right: 1em;
+	}
+
+.ws-header {
+	font-size: large;
+	font-weight: bold;
+}
+
+.ws-name {
+	font-weight: bold;
+}
+
+.sr-header {
+	font-size: large;
+	font-weight: bold;
+}
+
+#ws-ul {
+	padding-left: 16px;
+}
+
+.option-cardsn {
+	width: 130px;
+}
+
+.flex-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+	.flex-container #ws-serial-no {
+		width: 120px;
+	}
+
+	.flex-container #ws-ip-port {
+		width: 200px;
+	}
+
+	.flex-container #ws-reg-code {
+		width: 100px;
+		text-transform: uppercase;
+	}
+
+input.employee-id {
+	width: 50px;
+	text-transform: uppercase;
+}
+
+input.employee-name {
+	width: 60px;
+}
+
+.tab {
+	overflow: hidden;
+	/*background-color: #f1f1f1;*/
+}
+
+	.tab button {
+		background-color: inherit;
+		float: left;
+		border: none;
+		outline: none;
+		cursor: pointer;
+		padding: 5px 8px;
+		margin-right: 3px;
+		/*transition: 0.3s;*/
+	}
+
+		.tab button:hover {
+			border: solid 1px black;
+			border-bottom: none !important;
+			background-color: lightyellow;
+			box-sizing: border-box;
+		}
+
+		.tab button.active {
+			background-color: white;
+			border: solid 1px black;
+			border-bottom: none !important;
+			box-sizing: border-box;
+		}
+
+.tabcontent {
+	display: none;
+	padding: 6px 12px;
+	border-top: none;
+}

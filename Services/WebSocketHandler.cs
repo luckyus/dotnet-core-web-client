@@ -143,17 +143,21 @@ namespace dotnet_core_web_client.Services
 						{
 							await GetAccessRight(jsonObj.Data);
 						}
+						else if (eventType == "RequestPermission")
+						{
+							await RequestInsertPermissionAsync(jsonObj.Data);
+						}
 						else if (eventType == "GetEmployee")
 						{
 							_ = GetEmployeeAsync(jsonObj.Data);
 						}
-						else if (eventType == "SetEmployee")
+						else if (eventType == "AddEmployee")
 						{
-							await SetEmployeeAsync(jsonObj.Data);
+							await AddEmployeeAsync(jsonObj.Data);
 						}
-						else if (eventType == "RequestPermission")
+						else if (eventType == "UpdateEmployee")
 						{
-							await RequestInsertPermissionAsync(jsonObj.Data);
+							await UpdateEmployeeAsync(jsonObj.Data);
 						}
 						else if (eventType == "DeleteEmployee")
 						{
@@ -161,7 +165,10 @@ namespace dotnet_core_web_client.Services
 						}
 						else
 						{
-							if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+							if (clientWebSocketHandler != null)
+							{
+								await UnknownEventTypeAsync(eventType, jsonObj.Data);
+							}
 						}
 					}
 					else if (result.MessageType == WebSocketMessageType.Close)
@@ -264,6 +271,21 @@ namespace dotnet_core_web_client.Services
 			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
+		private async Task UnknownEventTypeAsync(string eventType, object data)
+		{
+			var id = Guid.NewGuid();
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = eventType,
+				Data = [data],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
+		}
+
 		private async Task RequestInsertPermissionAsync(object[] data)
 		{
 			var id = Guid.NewGuid();
@@ -282,7 +304,17 @@ namespace dotnet_core_web_client.Services
 			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
-		private async Task SetEmployeeAsync(object[] data)
+		private async Task AddEmployeeAsync(object[] data)
+		{
+			await SetEmployeeAsync("AddEmployee", data);
+		}
+
+		private async Task UpdateEmployeeAsync(object[] data)
+		{
+			await SetEmployeeAsync("UpdateEmployee", data);
+		}
+
+		private async Task SetEmployeeAsync(string eventType, object[] data)
 		{
 			var id = Guid.NewGuid();
 
@@ -314,7 +346,7 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "Employees",
+				EventType = eventType,
 				Data = [employees],
 				Id = id,
 			};

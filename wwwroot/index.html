@@ -81,9 +81,10 @@
 				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
 				<input type="button" id="btn-request-permission" value="RequestPermission" disabled />
 				<input type="button" id="btn-employee-get" value="Get" disabled />
-				<input type="button" id="btn-employee-set" value="Set" disabled />
+				<input type="button" id="btn-employee-add" value="Add" disabled />
+				<input type="button" id="btn-employee-update" value="Update" disabled />
 				<input type="button" id="btn-employee-delete" value="Delete" disabled />
-				</div>
+			</div>
 		</div>
 	</div>
 	<div id="Tab3" class="tabcontent flex-container">
@@ -133,7 +134,8 @@
 			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id');
 			const requestPermissionButton = document.querySelector('#btn-request-permission');
 			const getEmployeeButton = document.querySelector('#btn-employee-get');
-			const setEmployeeButton = document.querySelector('#btn-employee-set');
+			const addEmployeeButton = document.querySelector('#btn-employee-add');
+			const updateEmployeeButton = document.querySelector('#btn-employee-update');
 			const deleteEmployeeButton = document.querySelector('#btn-employee-delete');
 
 			// get/set fake sn @localStorage (201105)
@@ -176,7 +178,8 @@
 				getStatusByIdButton.disabled = false;
 				requestPermissionButton.disabled = false;
 				getEmployeeButton.disabled = false;
-				setEmployeeButton.disabled = false;
+				addEmployeeButton.disabled = false;
+				updateEmployeeButton.disabled = false;
 				deleteEmployeeButton.disabled = false;
 				wsTestBtn.disabled = false;
 			}
@@ -189,7 +192,8 @@
 				getStatusByIdButton.disabled = true;
 				requestPermissionButton.disabled = true;
 				getEmployeeButton.disabled = true;
-				setEmployeeButton.disabled = true;
+				addEmployeeButton.disabled = true;
+				updateEmployeeButton.disabled = true;
 				deleteEmployeeButton.disabled = true;
 				wsTestBtn.disabled = true;
 			}
@@ -231,13 +235,6 @@
 										wsHeartBeat[0].style.display = "none"
 									}, 400);
 								} else if (obj.eventType === 'onGetEmployee') {
-
-									console.log("TP#02");
-									console.log(obj.data[0]);
-									console.log(obj.data[1]);
-									console.log(obj.data[2]);
-									console.log(obj.data[3]);
-
 									document.querySelector('#ws-employee-lastname').value = obj.data[0];
 									document.querySelector('#ws-employee-firstname').value = obj.data[1];
 									document.querySelector('#ws-employee-card-sn').value = obj.data[2];
@@ -390,9 +387,12 @@
 				webSocket.send(jsonStr);
 			}
 
-			setEmployeeButton.onclick = () => {
+			addEmployeeButton.onclick = () => setEmployee("AddEmployee");
+			updateEmployeeButton.onclick = () => setEmployee("UpdateEmployee");
+
+			var setEmployee = (eventtype) => {
 				const jsonObj = {
-					eventType: "SetEmployee",
+					eventType: eventtype,
 					data: [{
 						employeeId: employeeId.value.toUpperCase(),
 						smartCardSN: employeeCardSN.value === '' ? null : employeeCardSN.value,

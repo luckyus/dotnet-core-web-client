@@ -306,12 +306,12 @@ namespace dotnet_core_web_client.Services
 
 		private async Task AddEmployeeAsync(object[] data)
 		{
-			await SetEmployeeAsync("AddEmployee", data);
+			await SetEmployeeAsync("AddEmployees", data);
 		}
 
 		private async Task UpdateEmployeeAsync(object[] data)
 		{
-			await SetEmployeeAsync("UpdateEmployee", data);
+			await SetEmployeeAsync("UpdateEmployees", data);
 		}
 
 		private async Task SetEmployeeAsync(string eventType, object[] data)

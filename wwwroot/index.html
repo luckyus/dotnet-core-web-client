@@ -61,10 +61,12 @@
 		</div>
 	</div>
 	<div id="Tab2" class="tabcontent">
-		<div class="flex-container">
+		<div>
 			<div>
 				<label for="ws-employee-id">ID:</label>
 				<input class="employee-id" type="text" id="ws-employee-id" />
+				<label for="ws-employee-original-id">Original ID:</label>
+				<input class="employee-id" type="text" id="ws-employee-original-id" />
 				<label for="ws-employee-card-sn">Card SN:</label>
 				<select name="ws-employee-card-sn" id="ws-employee-card-sn" class="option-cardsn">
 					<option value=''>=== select ===</option>
@@ -78,6 +80,8 @@
 					<option value="false">False</option>
 					<option value="true">True</option>
 				</select>
+			</div>
+			<div>
 				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
 				<input type="button" id="btn-request-permission" value="RequestPermission" disabled />
 				<input type="button" id="btn-employee-get" value="Get" disabled />
@@ -130,6 +134,7 @@
 			const getAccessRightButton = document.querySelector("#btn-get-access-right");
 			const getInOutStatusButton = document.querySelector("#btn-get-in-out-status");
 			const employeeId = document.querySelector("#ws-employee-id");
+			const originalId = document.querySelector("#ws-employee-original-id");
 			const employeeCardSN = document.querySelector("#ws-employee-card-sn");
 			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id');
 			const requestPermissionButton = document.querySelector('#btn-request-permission');
@@ -387,6 +392,7 @@
 				webSocket.send(jsonStr);
 			}
 
+			/* add & update employee */
 			addEmployeeButton.onclick = () => setEmployee("AddEmployee");
 			updateEmployeeButton.onclick = () => setEmployee("UpdateEmployee");
 
@@ -395,6 +401,7 @@
 					eventType: eventtype,
 					data: [{
 						employeeId: employeeId.value.toUpperCase(),
+						originalId: originalId.value === '' ? null : originalId.value.toUpperCase(),
 						smartCardSN: employeeCardSN.value === '' ? null : employeeCardSN.value,
 						lastName: document.querySelector('#ws-employee-lastname').value,
 						firstName: document.querySelector('#ws-employee-firstname').value,

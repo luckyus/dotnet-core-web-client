@@ -321,6 +321,7 @@ namespace dotnet_core_web_client.Services
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 
 			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+			var originalId = jsonElement?.GetProperty("originalId").GetString();
 			var smartCardSN = jsonElement?.GetProperty("smartCardSN").GetString();
 			var lastName = jsonElement?.GetProperty("lastName").GetString();
 			var firstName = jsonElement?.GetProperty("firstName").GetString();
@@ -335,6 +336,7 @@ namespace dotnet_core_web_client.Services
 			EmployeeDto employeeDto = new()
 			{
 				EmployeeId = employeeId,
+				OriginalId = string.IsNullOrEmpty(originalId) ? null : originalId,
 				SmartCardSN = string.IsNullOrEmpty(smartCardSN) ? 0 : long.Parse(smartCardSN),
 				LastName = lastName,
 				FirstName = firstName,

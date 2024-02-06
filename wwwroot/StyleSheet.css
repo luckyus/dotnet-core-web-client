@@ -100,6 +100,7 @@ input.employee-name {
 		cursor: pointer;
 		padding: 5px 8px;
 		margin-right: 3px;
+		font-size: 1rem;
 		/*transition: 0.3s;*/
 	}
 
@@ -122,3 +123,7 @@ input.employee-name {
 	padding: 6px 12px;
 	border-top: none;
 }
+
+	.tabcontent select {
+		height: 22px;
+	}

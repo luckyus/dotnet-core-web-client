@@ -80,6 +80,8 @@
 					<option value="false">False</option>
 					<option value="true">True</option>
 				</select>
+				<label for="ws-employee-password">Password:</label>
+				<input class="employee-password" type="text" id="ws-employee-password" />
 			</div>
 			<div>
 				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
@@ -136,6 +138,7 @@
 			const employeeId = document.querySelector("#ws-employee-id");
 			const originalId = document.querySelector("#ws-employee-original-id");
 			const employeeCardSN = document.querySelector("#ws-employee-card-sn");
+			const employeePassword = document.querySelector("#ws-employee-password");
 			const getStatusByIdButton = document.querySelector('#btn-get-status-by-id');
 			const requestPermissionButton = document.querySelector('#btn-request-permission');
 			const getEmployeeButton = document.querySelector('#btn-employee-get');
@@ -405,7 +408,8 @@
 						smartCardSN: employeeCardSN.value === '' ? null : employeeCardSN.value,
 						lastName: document.querySelector('#ws-employee-lastname').value,
 						firstName: document.querySelector('#ws-employee-firstname').value,
-						isActive: document.querySelector('#is-active').value
+						isActive: document.querySelector('#is-active').value,
+						password: employeePassword.value === '' ? null : employeePassword.value
 					}]
 				}
 				const jsonStr = JSON.stringify(jsonObj);

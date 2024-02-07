@@ -83,7 +83,7 @@ input.employee-id {
 	text-transform: uppercase;
 }
 
-input.employee-name {
+input.employee-name, input.employee-password {
 	width: 60px;
 }
 
@@ -126,4 +126,8 @@ input.employee-name {
 
 	.tabcontent select {
 		height: 22px;
+	}
+
+	.tabcontent input[type=button] {
+		height: 21px;
 	}

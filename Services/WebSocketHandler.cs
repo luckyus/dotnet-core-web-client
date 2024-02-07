@@ -326,6 +326,7 @@ namespace dotnet_core_web_client.Services
 			var lastName = jsonElement?.GetProperty("lastName").GetString();
 			var firstName = jsonElement?.GetProperty("firstName").GetString();
 			var isActive = jsonElement?.GetProperty("isActive").GetString();
+			var password = jsonElement?.GetProperty("password").GetString();
 
 			if (string.IsNullOrEmpty(employeeId))
 			{
@@ -342,6 +343,8 @@ namespace dotnet_core_web_client.Services
 				FirstName = firstName,
 				Departments = ["TEST01", "TEST02", "TEST03", "EVERYONE"],
 				IsActive = (isActive == "true"),
+				Password = password,
+				IsPassword = !string.IsNullOrEmpty(password),
 			};
 
 			List<EmployeeDto> employees = [employeeDto];

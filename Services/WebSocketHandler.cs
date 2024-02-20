@@ -345,6 +345,7 @@ namespace dotnet_core_web_client.Services
 				IsActive = (isActive == "true"),
 				Password = password,
 				IsPassword = !string.IsNullOrEmpty(password),
+				Email = "briandreleung@lucky.com.hk"
 			};
 
 			List<EmployeeDto> employees = [employeeDto];

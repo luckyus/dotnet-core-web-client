@@ -163,6 +163,14 @@ namespace dotnet_core_web_client.Services
 						{
 							await DeleteEmployeeAsync(jsonObj.Data);
 						}
+						else if (eventType == "GetDepartment")
+						{
+							_ = GetDepartmentAsync(jsonObj.Data);
+						}
+						else if (eventType == "AddDepartment")
+						{
+							await AddDepartmentAsync(jsonObj.Data);
+						}
 						else
 						{
 							if (clientWebSocketHandler != null)
@@ -188,6 +196,80 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		private async Task AddDepartmentAsync(object[] data)
+		{
+			await SetDepartmentAsync("AddDepartments", data);
+		}
+
+		private async Task SetDepartmentAsync(string eventType, object[] data)
+		{
+			var id = Guid.NewGuid();
+			string[] terminalIds= [];
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+
+			var departmentId = jsonElement?.GetProperty("departmentId").GetString();
+			var departmentName = jsonElement?.GetProperty("departmentName").GetString();
+
+			if (jsonElement?.TryGetProperty("terminals", out var tempElement) == true)
+			{
+				if (tempElement.ValueKind == JsonValueKind.Array)
+				{
+					terminalIds = tempElement.EnumerateArray().Select(x => x.GetString()).ToArray();
+				}
+			}
+
+			if (string.IsNullOrEmpty(departmentId))
+			{
+				await SendAsync(JsonSerializer.Serialize(new { eventType = "Error", data = "Invalid Input!" }));
+				return;
+			}
+
+			DepartmentDto departmentDto = new()
+			{
+				DeptId = departmentId,
+				DeptName = departmentName,
+				TerminalIds = terminalIds
+			};
+
+			List<DepartmentDto> departments = [departmentDto];
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = eventType,
+				Data = [departments],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+		}
+
+		private async Task GetDepartmentAsync(object[] data)
+		{
+			var id = Guid.NewGuid();
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var departmentId = jsonElement?.GetProperty("departmentId").GetString();
+
+			Dictionary<string, object> obj = null;
+
+			if (!string.IsNullOrEmpty(departmentId))
+			{
+				obj = new Dictionary<string, object> { { "departmentId", departmentId } };
+			}
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "GetDepartment",
+				Data = obj is null ? [] : [obj],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task GetEmployeeAsync(object[] data)

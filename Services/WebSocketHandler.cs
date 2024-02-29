@@ -206,12 +206,13 @@ namespace dotnet_core_web_client.Services
 		private async Task SetDepartmentAsync(string eventType, object[] data)
 		{
 			var id = Guid.NewGuid();
-			string[] terminalIds= [];
+			string[] terminalIds = [];
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 
 			var departmentId = jsonElement?.GetProperty("departmentId").GetString();
 			var departmentName = jsonElement?.GetProperty("departmentName").GetString();
+			var timeslot = jsonElement?.GetProperty("timeslot").GetString();
 
 			if (jsonElement?.TryGetProperty("terminals", out var tempElement) == true)
 			{
@@ -227,11 +228,78 @@ namespace dotnet_core_web_client.Services
 				return;
 			}
 
+			bool[][][] timeRestrictions = null;
+
+			if (!string.IsNullOrEmpty(timeslot))
+			{
+				timeRestrictions = new bool[8][][];
+				for (int i = 0; i < 8; i++)
+				{
+					timeRestrictions[i] = new bool[24][];
+					for (int j = 0; j < 24; j++) { timeRestrictions[i][j] = new bool[2]; }
+				}
+
+				if (timeslot == "none")
+				{
+				}
+				else if (timeslot == "ninetofiveeveryday")
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 9; j < 18; j++)
+						{
+							timeRestrictions[i][j][0] = true;
+							timeRestrictions[i][j][1] = true;
+						}
+					}
+				}
+				else if (timeslot == "ninetofiveweekdays")
+				{
+					for (int i = 1; i < 6; i++)
+					{
+						for (int j = 9; j < 18; j++)
+						{
+							if (i >= 1 && i <= 5)
+							{
+								timeRestrictions[i][j][0] = true;
+								timeRestrictions[i][j][1] = true;
+							}
+						}
+					}
+				}
+				else if (timeslot == "twentyfourhrseveryday")
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 0; j < 24; j++)
+						{
+							timeRestrictions[i][j][0] = true;
+							timeRestrictions[i][j][1] = true;
+						}
+					}
+				}
+				else if (timeslot == "twentyfourhrsweekdays")
+				{
+					for (int i = 1; i < 6; i++)
+					{
+						for (int j = 0; j < 24; j++)
+						{
+							if (i >= 1 && i <= 5)
+							{
+								timeRestrictions[i][j][0] = true;
+								timeRestrictions[i][j][1] = true;
+							}
+						}
+					}
+				}
+			}
+
 			DepartmentDto departmentDto = new()
 			{
 				DeptId = departmentId,
 				DeptName = departmentName,
-				TerminalIds = terminalIds
+				TerminalIds = terminalIds,
+				TimeRestrictions = timeRestrictions
 			};
 
 			List<DepartmentDto> departments = [departmentDto];

@@ -101,12 +101,22 @@
 			<input class="department-name" type="text" id="ws-department-name" />
 			<div class="dropdown">
 				<button id="btn-terminal-list" class="dropbtn" disabled>Terminals</button>
-				<div id="myDropdown" class="dropdown-content">
+				<div id="terminalDropdown" class="dropdown-content">
 					<label><input type="checkbox" name="option1" value="AnyTerminal"> Any Terminal</label>
 					<label><input type="checkbox" name="option2" value="A134"> A134</label>
 					<label><input type="checkbox" name="option3" value="A135"> A135</label>
 					<label><input type="checkbox" name="option4" value="Client_01"> Client_01</label>
-					<label><input type="checkbox" name="option5" value="Client_02"> Client_02</label>
+					<label><input type="checkbox" name="option5" value="CLIENT_02"> CLIENT_02</label>
+				</div>
+			</div>
+			<div class="dropdown">
+				<button id="btn-timeslot" class="dropbtn" disabled>TimeSlot</button>
+				<div id="timeslotDropdown" class="dropdown-content">
+					<label><input type="radio" name="options" value="none"> none</label>
+					<label><input type="radio" name="options" value="ninetofiveeveryday"> 9-5, everyday</label>
+					<label><input type="radio" name="options" value="ninetofiveweekdays"> 9-5, weekdays</label>
+					<label><input type="radio" name="options" value="twentyfourhrseveryday"> 24hrs, everyday</label>
+					<label><input type="radio" name="options" value="twentyfourhrsweekdays"> 24hrs, weekdays</label>
 				</div>
 			</div>
 			<input type="button" id="btn-department-get" value="Get" disabled />

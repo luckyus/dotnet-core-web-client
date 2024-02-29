@@ -30,6 +30,7 @@
 	const addDepartmentButton = document.querySelector('#btn-department-add');
 	const updateDepartmentButton = document.querySelector('#btn-department-update');
 	const terminalListButton = document.querySelector('#btn-terminal-list');
+	const timeslotButton = document.querySelector('#btn-timeslot');
 
 	// get/set fake sn @localStorage (201105)
 	var storageSN = wsSerialNo.value = window.localStorage.getItem("sn");
@@ -50,6 +51,28 @@
 	if (!wsRegCode.value) {
 		wsRegCode.value = "123456";
 		window.localStorage.setItem("regCode", wsRegCode.value);
+	}
+
+	var storageTerminalList = window.localStorage.getItem("terminalList");
+	if (storageTerminalList) {
+		var optionsArray = JSON.parse(storageTerminalList);
+		var checkboxes = document.querySelectorAll('#terminalDropdown input[type="checkbox"]');
+		checkboxes.forEach(checkbox => {
+			if (optionsArray.includes(checkbox.value)) {
+				checkbox.checked = true;
+			}
+		});
+	}
+
+	var storageTimeslotList = window.localStorage.getItem("selectedTimeslot");
+	if (storageTimeslotList) {
+		var optionsArray = JSON.parse(storageTimeslotList);
+		var radioButtons = document.querySelectorAll("#timeslotDropdown input[type='radio']");
+		radioButtons.forEach(radio => {
+			if (optionsArray.includes(radio.value)) {
+				radio.checked = true;
+			}
+		});
 	}
 
 	// setup smartCard SN dropdown (210127)
@@ -79,6 +102,7 @@
 		addDepartmentButton.disabled = false;
 		updateDepartmentButton.disabled = false;
 		terminalListButton.disabled = false;
+		timeslotButton.disabled = false;
 	}
 
 	const onDisconnected = () => {
@@ -97,6 +121,7 @@
 		addDepartmentButton.disabled = true;
 		updateDepartmentButton.disabled = true;
 		terminalListButton.disabled = true;
+		timeslotButton.disabled = true;
 	}
 
 	const connectServer = async () => {
@@ -305,38 +330,30 @@
 	}
 
 	addDepartmentButton.onclick = () => {
-
-		// debug
-		console.log("TP#01");
-
-		const checkboxes = document.querySelectorAll('#myDropdown input[type="checkbox"]');
+		const checkboxes = document.querySelectorAll('#terminalDropdown input[type="checkbox"]');
 		let selectedOptions = [];
 		checkboxes.forEach(checkbox => {
 			if (checkbox.checked) {
 				selectedOptions.push(checkbox.value);
 			}
 		});
+		window.localStorage.setItem("terminalList", JSON.stringify(selectedOptions));
 
-		// debug
-		console.log("TP#02");
+		var selectedTimeslot = document.querySelector('#timeslotDropdown input[type="radio"]:checked');
+		if (selectedTimeslot) {
+			localStorage.setItem('selectedTimeslot', JSON.stringify(selectedTimeslot.value));
+		}
 
 		const jsonObj = {
 			eventType: "AddDepartment",
 			data: [{
 				departmentId: document.querySelector('#ws-department-id').value.toUpperCase(),
 				departmentName: document.querySelector('#ws-department-name').value,
-				terminals: selectedOptions
+				terminals: selectedOptions,
+				timeslot: selectedTimeslot ? selectedTimeslot.value : null
 			}]
 		}
-
-		// debug
-		console.log("TP#03");
-
 		const jsonStr = JSON.stringify(jsonObj);
-
-		// debug
-		console.log("TP#04 jsonStr:", jsonStr);
-
 		webSocket.send(jsonStr);
 	}
 
@@ -434,20 +451,27 @@ document.addEventListener("DOMContentLoaded", (event) => {
 		document.getElementsByClassName("tablinks")[0].click();
 	}
 	document.getElementById('btn-terminal-list').addEventListener('click', function (event) {
-		toggleDropdown(event);
+		toggleDropdown(event, "terminalDropdown");
+	});
+	document.getElementById('btn-timeslot').addEventListener('click', function (event) {
+		toggleDropdown(event, 'timeslotDropdown');
 	});
 });
 
-function toggleDropdown(event) {
-	const dropdownContent = document.getElementById("myDropdown");
-	dropdownContent.classList.toggle("show");
-	const hasDropdownOption = dropdownContent.classList.contains("dropdown-option-applied");
-	if (!hasDropdownOption) {
-		const children = dropdownContent.querySelectorAll("*");
-		children.forEach(child => {
-			child.classList.add("dropdown-option");
-		});
-		dropdownContent.classList.add("dropdown-option-applied");
+function toggleDropdown(event, element) {
+	const dropdownContent = document.getElementById(element);
+	let isShowing = dropdownContent.classList.contains("show");
+	closeAllDropdowns();
+	if (!isShowing) {
+		dropdownContent.classList.add("show");
+		const hasDropdownOption = dropdownContent.classList.contains("dropdown-option-applied");
+		if (!hasDropdownOption) {
+			const children = dropdownContent.querySelectorAll("*");
+			children.forEach(child => {
+				child.classList.add("dropdown-option");
+			});
+			dropdownContent.classList.add("dropdown-option-applied");
+		}
 	}
 	event.stopPropagation();
 }
@@ -455,9 +479,13 @@ function toggleDropdown(event) {
 // close the dropdown if the user clicks outside of it (240223)
 window.onclick = function (event) {
 	if (!event.target.matches('.dropdown-option')) {
-		var dropdowns = document.getElementsByClassName("dropdown-content");
-		if (dropdowns[0]?.classList.contains('show')) {
-			dropdowns[0]?.classList.remove('show');
-		}
+		closeAllDropdowns();
 	}
+}
+
+function closeAllDropdowns() {
+	var dropdowns = document.querySelectorAll(".dropdown-content");
+	dropdowns.forEach(dropdown => {
+		dropdown.classList.remove('show');
+	});
 }

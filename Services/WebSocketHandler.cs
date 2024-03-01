@@ -200,7 +200,7 @@ namespace dotnet_core_web_client.Services
 
 		private async Task AddDepartmentAsync(object[] data)
 		{
-			await SetDepartmentAsync("AddDepartments", data);
+			await SetDepartmentAsync("DepartmentAdd", data);
 		}
 
 		private async Task SetDepartmentAsync(string eventType, object[] data)

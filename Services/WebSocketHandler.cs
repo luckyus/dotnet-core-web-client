@@ -171,9 +171,13 @@ namespace dotnet_core_web_client.Services
 						{
 							await AddDepartmentAsync(jsonObj.Data);
 						}
-						else if(eventType == "UpdateDepartment")
+						else if (eventType == "UpdateDepartment")
 						{
 							await UpdateDepartmentAsync(jsonObj.Data);
+						}
+						else if (eventType == "DeleteDepartment")
+						{
+							await DeleteDepartmentAsync(jsonObj.Data);
 						}
 						else
 						{
@@ -200,6 +204,41 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		private async Task DeleteDepartmentAsync(object[] data)
+		{
+			await GetOrDeleteDepartmentAsync("DeleteDepartment", data);
+		}
+
+		private async Task GetDepartmentAsync(object[] data)
+		{
+			await GetOrDeleteDepartmentAsync("GetDepartment", data);
+		}
+
+		private async Task GetOrDeleteDepartmentAsync(string eventType, object[] data)
+		{
+			var id = Guid.NewGuid();
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var departmentId = jsonElement?.GetProperty("departmentId").GetString();
+
+			Dictionary<string, object> obj = null;
+
+			if (!string.IsNullOrEmpty(departmentId))
+			{
+				obj = new Dictionary<string, object> { { "departmentId", departmentId } };
+			}
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = eventType,
+				Data = obj is null ? [] : [obj],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task UpdateDepartmentAsync(object[] data)
@@ -322,31 +361,6 @@ namespace dotnet_core_web_client.Services
 
 			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptionsIgnoreNull);
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
-		}
-
-		private async Task GetDepartmentAsync(object[] data)
-		{
-			var id = Guid.NewGuid();
-
-			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
-			var departmentId = jsonElement?.GetProperty("departmentId").GetString();
-
-			Dictionary<string, object> obj = null;
-
-			if (!string.IsNullOrEmpty(departmentId))
-			{
-				obj = new Dictionary<string, object> { { "departmentId", departmentId } };
-			}
-
-			WebSocketMessage webSocketMessage = new()
-			{
-				EventType = "GetDepartment",
-				Data = obj is null ? [] : [obj],
-				Id = id,
-			};
-
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
-			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task GetEmployeeAsync(object[] data)

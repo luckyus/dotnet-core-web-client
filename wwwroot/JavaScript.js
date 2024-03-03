@@ -29,6 +29,7 @@
 	const getDepartmentButton = document.querySelector('#btn-department-get');
 	const addDepartmentButton = document.querySelector('#btn-department-add');
 	const updateDepartmentButton = document.querySelector('#btn-department-update');
+	const deleteDepartmentButton = document.querySelector('#btn-department-delete');
 	const terminalListButton = document.querySelector('#btn-terminal-list');
 	const timeslotButton = document.querySelector('#btn-timeslot');
 
@@ -101,6 +102,7 @@
 		getDepartmentButton.disabled = false;
 		addDepartmentButton.disabled = false;
 		updateDepartmentButton.disabled = false;
+		deleteDepartmentButton.disabled = false;
 		terminalListButton.disabled = false;
 		timeslotButton.disabled = false;
 	}
@@ -120,6 +122,7 @@
 		getDepartmentButton.disabled = true;
 		addDepartmentButton.disabled = true;
 		updateDepartmentButton.disabled = true;
+		deleteDepartmentButton.disabled = true;
 		terminalListButton.disabled = true;
 		timeslotButton.disabled = true;
 	}
@@ -354,6 +357,17 @@
 				departmentName: document.querySelector('#ws-department-name').value,
 				terminals: selectedOptions,
 				timeslot: selectedTimeslot ? selectedTimeslot.value : null
+			}]
+		}
+		const jsonStr = JSON.stringify(jsonObj);
+		webSocket.send(jsonStr);
+	}
+
+	deleteDepartmentButton.onclick = () => {
+		const jsonObj = {
+			eventType: "DeleteDepartment",
+			data: [{
+				departmentId: document.querySelector('#ws-department-id').value.toUpperCase()
 			}]
 		}
 		const jsonStr = JSON.stringify(jsonObj);

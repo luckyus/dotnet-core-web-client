@@ -329,7 +329,10 @@
 		webSocket.send(jsonStr);
 	}
 
-	addDepartmentButton.onclick = () => {
+	addDepartmentButton.onclick = () => setDepartment("AddDepartment");
+	updateDepartmentButton.onclick = () => setDepartment("UpdateDepartment");
+
+	var setDepartment = (eventType) => {
 		const checkboxes = document.querySelectorAll('#terminalDropdown input[type="checkbox"]');
 		let selectedOptions = [];
 		checkboxes.forEach(checkbox => {
@@ -345,7 +348,7 @@
 		}
 
 		const jsonObj = {
-			eventType: "AddDepartment",
+			eventType: eventType,
 			data: [{
 				departmentId: document.querySelector('#ws-department-id').value.toUpperCase(),
 				departmentName: document.querySelector('#ws-department-name').value,

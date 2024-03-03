@@ -171,6 +171,10 @@ namespace dotnet_core_web_client.Services
 						{
 							await AddDepartmentAsync(jsonObj.Data);
 						}
+						else if(eventType == "UpdateDepartment")
+						{
+							await UpdateDepartmentAsync(jsonObj.Data);
+						}
 						else
 						{
 							if (clientWebSocketHandler != null)
@@ -198,9 +202,14 @@ namespace dotnet_core_web_client.Services
 			return;
 		}
 
+		private async Task UpdateDepartmentAsync(object[] data)
+		{
+			await SetDepartmentAsync(WebSocketEventType.UpdateDepartment, data);
+		}
+
 		private async Task AddDepartmentAsync(object[] data)
 		{
-			await SetDepartmentAsync("DepartmentAdd", data);
+			await SetDepartmentAsync(WebSocketEventType.AddDepartment, data);
 		}
 
 		private async Task SetDepartmentAsync(string eventType, object[] data)

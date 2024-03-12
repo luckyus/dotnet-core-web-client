@@ -35,12 +35,14 @@
 			</div>
 		</div>
 		<div class="tab">
-			<button class="tablinks" data-tab-name="Tab1" onclick="openTab(this, 'Tab1')">AccessLog</button>
-			<button class="tablinks" data-tab-name="Tab2" onclick="openTab(this, 'Tab2')">Employee</button>
-			<button class="tablinks" data-tab-name="Tab3" onclick="openTab(this, 'Tab3')">Department</button>
+			<button class="tablinks" data-tab-name="TabAccessLog" onclick="openTab(this, 'TabAccessLog')">AccessLog</button>
+			<button class="tablinks" data-tab-name="TabEmployee" onclick="openTab(this, 'TabEmployee')">Employee</button>
+			<button class="tablinks" data-tab-name="TabDepartment" onclick="openTab(this, 'TabDepartment')">Department</button>
+			<button class="tablinks" data-tab-name="TabQuickAccess" onclick="openTab(this, 'TabQuickAccess')">Quick Access</button>
+			<button class="tablinks" data-tab-name="TabInOutTrigger" onclick="openTab(this, 'TabInOutTrigger')">InOut Trigger</button>
 		</div>
 	</div>
-	<div id="Tab1" class="tabcontent flex-container">
+	<div id="TabAccessLog" class="tabcontent flex-container">
 		<div>
 			<label for="ws-accesslog-card-sn">Card SN:</label>
 			<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn" class="option-cardsn"></select>
@@ -54,13 +56,13 @@
 				<option value="F4">F4</option>
 				<option value="F5">F5</option>
 			</select>
-			<input type="button" id="btn-accesslog" value="AccessLog" disabled />
-			<input type="button" id="btn-accesslogs" value="AccessLogs" disabled />
-			<input type="button" id="btn-get-access-right" value="GetAccessRight" disabled />
-			<input type="button" id="btn-get-in-out-status" value="GetInOutStatus" disabled />
+			<input type="button" id="btn-accesslog" class="disabled-when-not-connected" value="AccessLog" disabled />
+			<input type="button" id="btn-accesslogs" class="disabled-when-not-connected" value="AccessLogs" disabled />
+			<input type="button" id="btn-get-access-right" class="disabled-when-not-connected" value="GetAccessRight" disabled />
+			<input type="button" id="btn-get-in-out-status" class="disabled-when-not-connected" value="GetInOutStatus" disabled />
 		</div>
 	</div>
-	<div id="Tab2" class="tabcontent">
+	<div id="TabEmployee" class="tabcontent">
 		<div>
 			<div>
 				<label for="ws-employee-id">ID:</label>
@@ -84,23 +86,23 @@
 				<input class="employee-password" type="text" id="ws-employee-password" />
 			</div>
 			<div>
-				<input type="button" id="btn-get-status-by-id" value="GetInOutStatus" disabled />
-				<input type="button" id="btn-request-permission" value="RequestPermission" disabled />
-				<input type="button" id="btn-employee-get" value="Get" disabled />
-				<input type="button" id="btn-employee-add" value="Add" disabled />
-				<input type="button" id="btn-employee-update" value="Update" disabled />
-				<input type="button" id="btn-employee-delete" value="Delete" disabled />
+				<input type="button" id="btn-get-status-by-id" class="disabled-when-not-connected" value="GetInOutStatus" disabled />
+				<input type="button" id="btn-request-permission" class="disabled-when-not-connected" value="RequestPermission" disabled />
+				<input type="button" id="btn-employee-get" class="disabled-when-not-connected" value="Get" disabled />
+				<input type="button" id="btn-employee-add" class="disabled-when-not-connected" value="Add" disabled />
+				<input type="button" id="btn-employee-update" class="disabled-when-not-connected" value="Update" disabled />
+				<input type="button" id="btn-employee-delete" class="disabled-when-not-connected" value="Delete" disabled />
 			</div>
 		</div>
 	</div>
-	<div id="Tab3" class="tabcontent tab-department flex-container">
+	<div id="TabDepartment" class="tabcontent tab-department flex-container">
 		<div>
-			<label for="ws-department-id">ID:</label>
-			<input class="department-id" type="text" id="ws-department-id" />
-			<label for="ws-department-name">Name:</label>
-			<input class="department-name" type="text" id="ws-department-name" />
+			<label for="ws-department-id" class="hide-in-quickaccess">ID:</label>
+			<input class="department-id hide-in-quickaccess" type="text" id="ws-department-id" />
+			<label for="ws-department-name" id="label-department-name" class="hide-in-quickaccess">Name:</label>
+			<input class="department-name hide-in-quickaccess" type="text" id="ws-department-name" />
 			<div class="dropdown">
-				<button id="btn-terminal-list" class="dropbtn" disabled>Terminals</button>
+				<button id="btn-terminal-list" class="dropbtn disabled-when-not-connected" disabled>Terminals</button>
 				<div id="terminalDropdown" class="dropdown-content">
 					<label><input type="checkbox" name="option1" value="*"> Any Terminal</label>
 					<label><input type="checkbox" name="option2" value="A134"> A134</label>
@@ -110,7 +112,7 @@
 				</div>
 			</div>
 			<div class="dropdown">
-				<button id="btn-timeslot" class="dropbtn" disabled>TimeSlot</button>
+				<button id="btn-timeslot" class="dropbtn disabled-when-not-connected" disabled>TimeSlot</button>
 				<div id="timeslotDropdown" class="dropdown-content">
 					<label><input type="radio" name="options" value="none"> none</label>
 					<label><input type="radio" name="options" value="ninetofiveeveryday"> 9-5, everyday</label>
@@ -119,10 +121,28 @@
 					<label><input type="radio" name="options" value="twentyfourhrsweekdays"> 24hrs, weekdays</label>
 				</div>
 			</div>
-			<input type="button" id="btn-department-get" value="Get" disabled />
-			<input type="button" id="btn-department-add" value="Add" disabled />
-			<input type="button" id="btn-department-update" value="Update" disabled />
-			<input type="button" id="btn-department-delete" value="Delete" disabled />
+			<input type="button" id="btn-department-get" class="disabled-when-not-connected" value="Get" disabled />
+			<input type="button" id="btn-department-add" class="disabled-when-not-connected" value="Add" class="hide-in-quickaccess" disabled />
+			<input type="button" id="btn-department-update" class="disabled-when-not-connected" value="Update" disabled />
+			<input type="button" id="btn-department-delete" class="disabled-when-not-connected" value="Delete" class="hide-in-quickaccess" disabled />
+		</div>
+	</div>
+	<div id="TabInOutTrigger" class="tabcontent tab-inouttrigger">
+		<div>
+			<label for="inouttrigger-1">1:</label>
+			<select name="inouttrigger-time-1" id="inouttrigger-time-1" class="option-inouttrigger-time"></select>
+			<select name="inouttrigger-status-1" id="inouttrigger-status-1" class="option-inouttrigger-status"></select>
+			<label for="inouttrigger-2">2:</label>
+			<select name="inouttrigger-time-2" id="inouttrigger-time-2" class="option-inouttrigger-time"></select>
+			<select name="inouttrigger-status-2" id="inouttrigger-status-2" class="option-inouttrigger-status"></select>
+			<label for="inouttrigger-3">3:</label>
+			<select name="inouttrigger-time-3" id="inouttrigger-time-3" class="option-inouttrigger-time"></select>
+			<select name="inouttrigger-status-3" id="inouttrigger-status-3" class="option-inouttrigger-status"></select>
+			<label for="inouttrigger-4">4:</label>
+			<select name="inouttrigger-time-4" id="inouttrigger-time-4" class="option-inouttrigger-time"></select>
+			<select name="inouttrigger-status-4" id="inouttrigger-status-4" class="option-inouttrigger-status"></select>
+			<input type="button" id="btn-inouttrigger-get" class="disabled-when-not-connected" value="Get" disabled />
+			<input type="button" id="btn-inouttrigger-set" class="disabled-when-not-connected" value="Set" disabled />
 		</div>
 	</div>
 	<div id="ws-discussion">

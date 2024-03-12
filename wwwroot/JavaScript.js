@@ -1,4 +1,6 @@
-﻿window.onload = function () {
+﻿let currentTabName = "TabAccessLog";
+
+window.onload = function () {
 	let webSocket;
 	const wsStatus = document.getElementById("status");
 	const wsSerialNo = document.getElementById("ws-serial-no");
@@ -32,6 +34,8 @@
 	const deleteDepartmentButton = document.querySelector('#btn-department-delete');
 	const terminalListButton = document.querySelector('#btn-terminal-list');
 	const timeslotButton = document.querySelector('#btn-timeslot');
+	const getInOutTriggerButton = document.querySelector('#btn-inouttrigger-get');
+	const setInOutTriggerButton = document.querySelector('#btn-inouttrigger-set');
 
 	// get/set fake sn @localStorage (201105)
 	var storageSN = wsSerialNo.value = window.localStorage.getItem("sn");
@@ -88,43 +92,17 @@
 	};
 
 	const onConnected = () => {
-		accessLogButton.disabled = false;
-		accessLogsButton.disabled = false;
-		getAccessRightButton.disabled = false;
-		getInOutStatusButton.disabled = false;
-		getStatusByIdButton.disabled = false;
-		requestPermissionButton.disabled = false;
-		getEmployeeButton.disabled = false;
-		addEmployeeButton.disabled = false;
-		updateEmployeeButton.disabled = false;
-		deleteEmployeeButton.disabled = false;
-		wsTestBtn.disabled = false;
-		getDepartmentButton.disabled = false;
-		addDepartmentButton.disabled = false;
-		updateDepartmentButton.disabled = false;
-		deleteDepartmentButton.disabled = false;
-		terminalListButton.disabled = false;
-		timeslotButton.disabled = false;
+		const buttons = document.querySelectorAll('.disabled-when-not-connected');
+		buttons.forEach(button => {
+			button.disabled = false;
+		});
 	}
 
 	const onDisconnected = () => {
-		accessLogButton.disabled = true;
-		accessLogsButton.disabled = true;
-		getAccessRightButton.disabled = true;
-		getInOutStatusButton.disabled = true;
-		getStatusByIdButton.disabled = true;
-		requestPermissionButton.disabled = true;
-		getEmployeeButton.disabled = true;
-		addEmployeeButton.disabled = true;
-		updateEmployeeButton.disabled = true;
-		deleteEmployeeButton.disabled = true;
-		wsTestBtn.disabled = true;
-		getDepartmentButton.disabled = true;
-		addDepartmentButton.disabled = true;
-		updateDepartmentButton.disabled = true;
-		deleteDepartmentButton.disabled = true;
-		terminalListButton.disabled = true;
-		timeslotButton.disabled = true;
+		const buttons = document.querySelectorAll('.disabled-when-not-connected');
+		buttons.forEach(button => {
+			button.disabled = true;
+		});
 	}
 
 	const connectServer = async () => {
@@ -318,22 +296,32 @@
 
 	/* add & update department (240222) */
 	getDepartmentButton.onclick = () => {
-		const jsonObj = {
-			eventType: "GetDepartment",
-			data: [{
-				departmentId: document.querySelector('#ws-department-id').value.toUpperCase()
-			}]
+		let jsonObj;
+
+		if (currentTabName === "TabDepartment") {
+			jsonObj = {
+				eventType: "GetDepartment",
+				data: [{
+					departmentId: document.querySelector('#ws-department-id').value.toUpperCase()
+				}]
+			}
 		}
+		else {
+			jsonObj = {
+				eventType: "GetQuickAccess",
+				data: []
+			}
+		}
+
 		const jsonStr = JSON.stringify(jsonObj);
-
-		// debug
-		console.log("TP#05 jsonStr:", jsonStr);
-
 		webSocket.send(jsonStr);
 	}
 
 	addDepartmentButton.onclick = () => setDepartment("AddDepartment");
-	updateDepartmentButton.onclick = () => setDepartment("UpdateDepartment");
+	updateDepartmentButton.onclick = () => {
+		let eventtype = currentTabName === "TabDepartment" ? "UpdateDepartment" : "UpdateQuickAccess";
+		setDepartment(eventtype);
+	}
 
 	var setDepartment = (eventType) => {
 		const checkboxes = document.querySelectorAll('#terminalDropdown input[type="checkbox"]');
@@ -350,15 +338,29 @@
 			localStorage.setItem('selectedTimeslot', JSON.stringify(selectedTimeslot.value));
 		}
 
-		const jsonObj = {
-			eventType: eventType,
-			data: [{
-				departmentId: document.querySelector('#ws-department-id').value.toUpperCase(),
-				departmentName: document.querySelector('#ws-department-name').value,
-				terminals: selectedOptions,
-				timeslot: selectedTimeslot ? selectedTimeslot.value : null
-			}]
+		let jsonObj;
+
+		if (currentTabName === "TabDepartment") {
+			jsonObj = {
+				eventType: eventType,
+				data: [{
+					departmentId: document.querySelector('#ws-department-id').value.toUpperCase(),
+					departmentName: document.querySelector('#ws-department-name').value,
+					terminals: selectedOptions,
+					timeslot: selectedTimeslot ? selectedTimeslot.value : null
+				}]
+			}
 		}
+		else {
+			jsonObj = {
+				eventType: eventType,
+				data: [{
+					terminals: selectedOptions,
+					timeslot: selectedTimeslot ? selectedTimeslot.value : null
+				}]
+			}
+		}
+
 		const jsonStr = JSON.stringify(jsonObj);
 		webSocket.send(jsonStr);
 	}
@@ -414,6 +416,41 @@
 		const jsonStr = JSON.stringify(jsonObj);
 		webSocket.send(jsonStr);
 	}
+
+	(() => {
+		// initialize inout trigger dropdown (240311)
+		const timeArray = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ":00");
+		const dropdownTimes = document.querySelectorAll('.tab-inouttrigger .option-inouttrigger-time');
+		dropdownTimes.forEach(dropdownTime => {
+			timeArray.forEach(time => {
+				var option = document.createElement('option');
+				option.innerHTML = time;
+				option.value = time;
+				dropdownTime.add(option);
+			});
+		});
+		const dropdownStatus = document.querySelectorAll('.tab-inouttrigger .option-inouttrigger-status');
+		const statusArray = ["N/A", "IN", "OUT", "F1", "F2", "F3", "F4"];
+		dropdownStatus.forEach(dropdownStatus => {
+			statusArray.forEach(status => {
+				var option = document.createElement('option');
+				option.innerHTML = status;
+				option.value = status;
+				dropdownStatus.add(option);
+			});
+		});
+	})();
+
+	getInOutTriggerButton.onclick = () => {
+		let jsonObj;
+		jsonObj = {
+			eventType: "GetInOutTrigger",
+			data: []
+		}
+		const jsonStr = JSON.stringify(jsonObj);
+		webSocket.send(jsonStr);
+	}
+
 }
 
 function openTab(element, tabName) {
@@ -429,10 +466,21 @@ function openTab(element, tabName) {
 		tablinks[i].className = tablinks[i].className.replace(" active", "");
 	}
 
-	document.getElementById(tabName).style.display = "block";
+	currentTabName = tabName;
+
+	// sharing content between department & quick access (240305)
+	if (tabName === "TabQuickAccess") {
+		document.querySelectorAll(".hide-in-quickaccess").forEach(element => element.style.display = "none");
+	} else if (tabName === "TabDepartment") {
+		document.querySelectorAll(".hide-in-quickaccess").forEach(element => element.style.display = "inline-block");
+	}
+	document.getElementById(tabName === "TabQuickAccess" ? "TabDepartment" : tabName).style.display = "block";
+
 	element.className += " active";
 
 	setCookie("lastOpenedTab", tabName, 30);
+
+	document.getElementById("ws-ul").innerHTML = "";
 }
 
 function getCookie(name) {

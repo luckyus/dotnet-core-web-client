@@ -76,7 +76,7 @@ namespace dotnet_core_web_client.Services
 
 		public async Task ReceiveAsync()
 		{
-			var receiveBuffer = new ArraySegment<Byte>(new byte[100]);
+			var receiveBuffer = new ArraySegment<byte>(new byte[100]);
 
 			while (webSocket.State == WebSocketState.Open)
 			{
@@ -179,6 +179,18 @@ namespace dotnet_core_web_client.Services
 						{
 							await DeleteDepartmentAsync(jsonObj.Data);
 						}
+						else if (eventType == "GetQuickAccess")
+						{
+							await GetQuickAccessAsync();
+						}
+						else if (eventType == "UpdateQuickAccess")
+						{
+							await UpdateQuickAccessAsync(jsonObj.Data);
+						}
+						else if(eventType == "GetInOutTrigger")
+						{
+							await GetInOutTriggerAsync();
+						}
 						else
 						{
 							if (clientWebSocketHandler != null)
@@ -204,6 +216,136 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		private async Task GetInOutTriggerAsync()
+		{
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "GetInOutTrigger",
+				Data = [],
+				Id = Guid.NewGuid(),
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
+		}
+
+		private async Task UpdateQuickAccessAsync(object[] data)
+		{
+			var id = Guid.NewGuid();
+			string[] terminalIds = [];
+
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+
+			var timeslot = jsonElement?.GetProperty("timeslot").GetString();
+
+			if (jsonElement?.TryGetProperty("terminals", out var tempElement) == true)
+			{
+				if (tempElement.ValueKind == JsonValueKind.Array)
+				{
+					terminalIds = tempElement.EnumerateArray().Select(x => x.GetString()).ToArray();
+				}
+			}
+
+			bool[][][] timeRestrictions = null;
+
+			if (!string.IsNullOrEmpty(timeslot))
+			{
+				timeRestrictions = new bool[8][][];
+				for (int i = 0; i < 8; i++)
+				{
+					timeRestrictions[i] = new bool[24][];
+					for (int j = 0; j < 24; j++) { timeRestrictions[i][j] = new bool[2]; }
+				}
+
+				if (timeslot == "none")
+				{
+				}
+				else if (timeslot == "ninetofiveeveryday")
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 9; j < 18; j++)
+						{
+							timeRestrictions[i][j][0] = true;
+							timeRestrictions[i][j][1] = true;
+						}
+					}
+				}
+				else if (timeslot == "ninetofiveweekdays")
+				{
+					for (int i = 1; i < 6; i++)
+					{
+						for (int j = 9; j < 18; j++)
+						{
+							if (i >= 1 && i <= 5)
+							{
+								timeRestrictions[i][j][0] = true;
+								timeRestrictions[i][j][1] = true;
+							}
+						}
+					}
+				}
+				else if (timeslot == "twentyfourhrseveryday")
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						for (int j = 0; j < 24; j++)
+						{
+							timeRestrictions[i][j][0] = true;
+							timeRestrictions[i][j][1] = true;
+						}
+					}
+				}
+				else if (timeslot == "twentyfourhrsweekdays")
+				{
+					for (int i = 1; i < 6; i++)
+					{
+						for (int j = 0; j < 24; j++)
+						{
+							if (i >= 1 && i <= 5)
+							{
+								timeRestrictions[i][j][0] = true;
+								timeRestrictions[i][j][1] = true;
+							}
+						}
+					}
+				}
+			}
+
+			DepartmentDto departmentDto = new()
+			{
+				TerminalIds = terminalIds,
+				TimeRestrictions = timeRestrictions
+			};
+
+			List<DepartmentDto> departments = [departmentDto];
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "UpdateQuickAccess",
+				Data = [departments],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+		}
+
+		private async Task GetQuickAccessAsync()
+		{
+			var id = Guid.NewGuid();
+
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "GetQuickAccess",
+				Data = [],
+				Id = id,
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task DeleteDepartmentAsync(object[] data)
@@ -444,15 +586,13 @@ namespace dotnet_core_web_client.Services
 			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
-		private async Task UnknownEventTypeAsync(string eventType, object data)
+		private async Task UnknownEventTypeAsync(string eventType, object[] data)
 		{
-			var id = Guid.NewGuid();
-
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = eventType,
-				Data = [data],
-				Id = id,
+				Data = data,
+				Id = Guid.NewGuid(),
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);

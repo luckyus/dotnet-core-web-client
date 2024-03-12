@@ -133,6 +133,7 @@ input.employee-name, input.employee-password {
 	}
 
 .tab-department {
+	margin-top: -2px;
 }
 
 	.tab-department .department-id {
@@ -167,3 +168,18 @@ input.employee-name, input.employee-password {
 	.tab-department .show {
 		display: block;
 	}
+
+.tab-inouttrigger {
+	display: flex;
+	justify-content: space-between;
+}
+
+	.tab-inouttrigger .option-inouttrigger-time {
+		width: 80px;
+	}
+
+	.tab-inouttrigger .option-inouttrigger-status {
+		width: 50px;
+		margin-right: 8px;
+	}
+

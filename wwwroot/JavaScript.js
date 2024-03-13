@@ -417,27 +417,39 @@ window.onload = function () {
 		webSocket.send(jsonStr);
 	}
 
+	// initialize inout trigger dropdown from local storage (240313)
 	(() => {
-		// initialize inout trigger dropdown (240311)
-		const timeArray = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ":00");
+		const populateDropdown = (dropdown, optionsArray, defaultValue) => {
+			optionsArray.forEach(optionValue => {
+				const option = document.createElement('option');
+				option.value = optionValue;
+				option.textContent = optionValue;
+				option.selected = optionValue === defaultValue;
+				dropdown.add(option);
+			});
+		};
+
+		const storageJsonInOutTrigger = window.localStorage.getItem("inOutTrigger");
+		let defaultInOut = {};
+		let defaultInOutKeys = [];
+
+		if (storageJsonInOutTrigger) {
+			defaultInOut = JSON.parse(storageJsonInOutTrigger);
+			defaultInOutKeys = Object.keys(defaultInOut);
+		}
+
+		const timeArray = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 		const dropdownTimes = document.querySelectorAll('.tab-inouttrigger .option-inouttrigger-time');
-		dropdownTimes.forEach(dropdownTime => {
-			timeArray.forEach(time => {
-				var option = document.createElement('option');
-				option.innerHTML = time;
-				option.value = time;
-				dropdownTime.add(option);
-			});
+		dropdownTimes.forEach((dropdown, index) => {
+			const defaultTime = defaultInOutKeys.length > index ? defaultInOutKeys[index] : null;
+			populateDropdown(dropdown, timeArray, defaultTime);
 		});
-		const dropdownStatus = document.querySelectorAll('.tab-inouttrigger .option-inouttrigger-status');
+
 		const statusArray = ["N/A", "IN", "OUT", "F1", "F2", "F3", "F4"];
-		dropdownStatus.forEach(dropdownStatus => {
-			statusArray.forEach(status => {
-				var option = document.createElement('option');
-				option.innerHTML = status;
-				option.value = status;
-				dropdownStatus.add(option);
-			});
+		const dropdownStatuses = document.querySelectorAll('.tab-inouttrigger .option-inouttrigger-status');
+		dropdownStatuses.forEach((dropdown, index) => {
+			const defaultStatus = defaultInOutKeys.length > index ? defaultInOut[defaultInOutKeys[index]] : null;
+			populateDropdown(dropdown, statusArray, defaultStatus);
 		});
 	})();
 
@@ -451,6 +463,39 @@ window.onload = function () {
 		webSocket.send(jsonStr);
 	}
 
+	setInOutTriggerButton.onclick = () => {
+		const selectorPrefix = '#inouttrigger-';
+		let obj = {};
+
+		for (let i = 1; i <= 4; i++) {
+			const time = document.querySelector(`#inouttrigger-time-${i}`).value;
+			const status = document.querySelector(`#inouttrigger-status-${i}`).value;
+
+			if (status !== "N/A") {
+				obj[time] = status;
+			}
+		}
+
+		/*
+		if (Object.keys(defaultInOut).length >= 0) {
+			const items = Object.entries(defaultInOut);
+			const sortedItems = items.sort((a, b) => a[0].localeCompare(b[0]));
+			defaultInOut = Object.fromEntries(sortedItems);
+		};
+		*/
+
+		// save it (240313)
+		window.localStorage.setItem("inOutTrigger", JSON.stringify(obj));
+
+
+		const jsonObj = {
+			eventType: "SetInOutTrigger",
+			data: [obj]
+		};
+
+		const jsonStr = JSON.stringify(jsonObj);
+		webSocket.send(jsonStr);
+	}
 }
 
 function openTab(element, tabName) {

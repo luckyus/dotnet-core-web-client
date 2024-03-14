@@ -37,26 +37,30 @@ window.onload = function () {
 	const getInOutTriggerButton = document.querySelector('#btn-inouttrigger-get');
 	const setInOutTriggerButton = document.querySelector('#btn-inouttrigger-set');
 
-	// get/set fake sn @localStorage (201105)
-	var storageSN = wsSerialNo.value = window.localStorage.getItem("sn");
-	if (!wsSerialNo.value) {
-		wsSerialNo.value = "7100-" + Math.floor(Math.random() * (8999) + 1000) + "-" + Math.floor(Math.random() * (8999) + 1000);
-		window.localStorage.setItem("sn", wsSerialNo.value);
-	}
+	const populateDropdown = (dropdown, optionsArray, defaultValue) => {
+		optionsArray.forEach(optionValue => {
+			const option = document.createElement('option');
+			option.value = optionValue;
+			option.textContent = optionValue;
+			option.selected = optionValue === defaultValue;
+			dropdown.add(option);
+		});
+	};
+
+	// initialize iGuard SN (240314)
+	let storageSN = window.localStorage.getItem("sn");
+	const snArray = ["8100-1058-6480", "8100-1058-6481", "8100-1058-6482"];
+	populateDropdown(wsSerialNo, snArray, storageSN);
 
 	// ditto (201105)
-	var storageIpPort = wsIpPort.value = window.localStorage.getItem("ipPort");
-	if (!wsIpPort.value) {
-		wsIpPort.value = "localhost:50595";
-		window.localStorage.setItem("ipPort", wsIpPort.value);
-	}
-
+	let storageIpPort = window.localStorage.getItem("ipPort");
+	const ipPortArray = ["localhost:50595", "stresstest.iguardpayroll.com"];
+	populateDropdown(wsIpPort, ipPortArray, storageIpPort);
+	
 	// ditto (221014)
-	var storageRegCode = wsRegCode.value = window.localStorage.getItem("regCode");
-	if (!wsRegCode.value) {
-		wsRegCode.value = "123456";
-		window.localStorage.setItem("regCode", wsRegCode.value);
-	}
+	let storageRegCode = window.localStorage.getItem("regCode");
+	const regCodeArray = ["4519A5", "9847A2"];
+	populateDropdown(wsRegCode, regCodeArray, storageRegCode);
 
 	var storageTerminalList = window.localStorage.getItem("terminalList");
 	if (storageTerminalList) {
@@ -419,16 +423,6 @@ window.onload = function () {
 
 	// initialize inout trigger dropdown from local storage (240313)
 	(() => {
-		const populateDropdown = (dropdown, optionsArray, defaultValue) => {
-			optionsArray.forEach(optionValue => {
-				const option = document.createElement('option');
-				option.value = optionValue;
-				option.textContent = optionValue;
-				option.selected = optionValue === defaultValue;
-				dropdown.add(option);
-			});
-		};
-
 		const storageJsonInOutTrigger = window.localStorage.getItem("inOutTrigger");
 		let defaultInOut = {};
 		let defaultInOutKeys = [];

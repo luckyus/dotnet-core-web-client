@@ -56,7 +56,7 @@ window.onload = function () {
 	let storageIpPort = window.localStorage.getItem("ipPort");
 	const ipPortArray = ["localhost:50595", "192.168.0.137:50595", "stresstest.iguardpayroll.com"];
 	populateDropdown(wsIpPort, ipPortArray, storageIpPort);
-	
+
 	// ditto (221014)
 	let storageRegCode = window.localStorage.getItem("regCode");
 	const regCodeArray = ["4519A5", "9847A2"];
@@ -96,17 +96,13 @@ window.onload = function () {
 	};
 
 	const onConnected = () => {
-		const buttons = document.querySelectorAll('.disabled-when-not-connected');
-		buttons.forEach(button => {
-			button.disabled = false;
-		});
+		document.querySelectorAll('.disabled-when-not-connected').forEach(button => button.disabled = false);
+		document.querySelectorAll('.disabled-when-connected').forEach(button => button.disabled = true);
 	}
 
 	const onDisconnected = () => {
-		const buttons = document.querySelectorAll('.disabled-when-not-connected');
-		buttons.forEach(button => {
-			button.disabled = true;
-		});
+		document.querySelectorAll('.disabled-when-not-connected').forEach(button => button.disabled = true);
+		document.querySelectorAll('.disabled-when-connected').forEach(button => button.disabled = false);
 	}
 
 	const connectServer = async () => {

@@ -187,7 +187,7 @@ namespace dotnet_core_web_client.Services
 						{
 							await UpdateQuickAccessAsync(jsonObj.Data);
 						}
-						else if(eventType == "GetInOutTrigger")
+						else if (eventType == "GetInOutTrigger")
 						{
 							await GetInOutTriggerAsync();
 						}
@@ -249,14 +249,23 @@ namespace dotnet_core_web_client.Services
 			}
 
 			bool[][][] timeRestrictions = null;
+			int[][][] timeRestrictions2 = null;
 
 			if (!string.IsNullOrEmpty(timeslot))
 			{
 				timeRestrictions = new bool[8][][];
+				timeRestrictions2 = new int[8][][];
+
 				for (int i = 0; i < 8; i++)
 				{
 					timeRestrictions[i] = new bool[24][];
-					for (int j = 0; j < 24; j++) { timeRestrictions[i][j] = new bool[2]; }
+					timeRestrictions2[i] = new int[24][];
+
+					for (int j = 0; j < 24; j++)
+					{
+						timeRestrictions[i][j] = new bool[2];
+						timeRestrictions2[i][j] = new int[2];
+					}
 				}
 
 				if (timeslot == "none")
@@ -270,6 +279,9 @@ namespace dotnet_core_web_client.Services
 						{
 							timeRestrictions[i][j][0] = true;
 							timeRestrictions[i][j][1] = true;
+
+							timeRestrictions2[i][j][0] = 1;
+							timeRestrictions2[i][j][1] = 1;
 						}
 					}
 				}
@@ -283,6 +295,9 @@ namespace dotnet_core_web_client.Services
 							{
 								timeRestrictions[i][j][0] = true;
 								timeRestrictions[i][j][1] = true;
+
+								timeRestrictions2[i][j][0] = 1;
+								timeRestrictions2[i][j][1] = 1;
 							}
 						}
 					}
@@ -295,6 +310,9 @@ namespace dotnet_core_web_client.Services
 						{
 							timeRestrictions[i][j][0] = true;
 							timeRestrictions[i][j][1] = true;
+
+							timeRestrictions2[i][j][0] = 1;
+							timeRestrictions2[i][j][1] = 1;
 						}
 					}
 				}
@@ -308,6 +326,9 @@ namespace dotnet_core_web_client.Services
 							{
 								timeRestrictions[i][j][0] = true;
 								timeRestrictions[i][j][1] = true;
+
+								timeRestrictions2[i][j][0] = 1;
+								timeRestrictions2[i][j][1] = 1;
 							}
 						}
 					}
@@ -317,7 +338,7 @@ namespace dotnet_core_web_client.Services
 			DepartmentDto departmentDto = new()
 			{
 				TerminalIds = terminalIds,
-				TimeRestrictions = timeRestrictions
+				TimeRestrictions2 = timeRestrictions2
 			};
 
 			List<DepartmentDto> departments = [departmentDto];
@@ -419,14 +440,23 @@ namespace dotnet_core_web_client.Services
 			}
 
 			bool[][][] timeRestrictions = null;
+			int[][][] timeRestrictions2 = null;
 
 			if (!string.IsNullOrEmpty(timeslot))
 			{
 				timeRestrictions = new bool[8][][];
+				timeRestrictions2 = new int[8][][];
+
 				for (int i = 0; i < 8; i++)
 				{
 					timeRestrictions[i] = new bool[24][];
-					for (int j = 0; j < 24; j++) { timeRestrictions[i][j] = new bool[2]; }
+					timeRestrictions2[i] = new int[24][];
+
+					for (int j = 0; j < 24; j++)
+					{
+						timeRestrictions[i][j] = new bool[2];
+						timeRestrictions2[i][j] = new int[2];
+					}
 				}
 
 				if (timeslot == "none")
@@ -440,6 +470,9 @@ namespace dotnet_core_web_client.Services
 						{
 							timeRestrictions[i][j][0] = true;
 							timeRestrictions[i][j][1] = true;
+
+							timeRestrictions2[i][j][0] = 1;
+							timeRestrictions2[i][j][1] = 1;
 						}
 					}
 				}
@@ -453,6 +486,9 @@ namespace dotnet_core_web_client.Services
 							{
 								timeRestrictions[i][j][0] = true;
 								timeRestrictions[i][j][1] = true;
+
+								timeRestrictions2[i][j][0] = 1;
+								timeRestrictions2[i][j][1] = 1;
 							}
 						}
 					}
@@ -465,6 +501,9 @@ namespace dotnet_core_web_client.Services
 						{
 							timeRestrictions[i][j][0] = true;
 							timeRestrictions[i][j][1] = true;
+
+							timeRestrictions2[i][j][0] = 1;
+							timeRestrictions2[i][j][1] = 1;
 						}
 					}
 				}
@@ -478,6 +517,9 @@ namespace dotnet_core_web_client.Services
 							{
 								timeRestrictions[i][j][0] = true;
 								timeRestrictions[i][j][1] = true;
+
+								timeRestrictions2[i][j][0] = 1;
+								timeRestrictions2[i][j][1] = 1;
 							}
 						}
 					}
@@ -489,7 +531,7 @@ namespace dotnet_core_web_client.Services
 				DeptId = departmentId,
 				DeptName = departmentName,
 				TerminalIds = terminalIds,
-				TimeRestrictions = timeRestrictions
+				TimeRestrictions2 = timeRestrictions2
 			};
 
 			List<DepartmentDto> departments = [departmentDto];

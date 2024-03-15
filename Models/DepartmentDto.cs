@@ -12,6 +12,6 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("terminalId")]
 		public string[] TerminalIds { get; set; }
 		[JsonPropertyName("timeRestrictions")]
-		public bool[][][] TimeRestrictions { get; set; }
+		public int[][][] TimeRestrictions2 { get; set; }
 	}
 }

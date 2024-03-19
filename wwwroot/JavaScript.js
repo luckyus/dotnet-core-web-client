@@ -36,6 +36,8 @@ window.onload = function () {
 	const timeslotButton = document.querySelector('#btn-timeslot');
 	const getInOutTriggerButton = document.querySelector('#btn-inouttrigger-get');
 	const setInOutTriggerButton = document.querySelector('#btn-inouttrigger-set');
+	const getSpecialDaysButton = document.querySelector('#btn-specialdays-get');
+	const setSpecialDaysButton = document.querySelector('#btn-specialdays-set');
 
 	const populateDropdown = (dropdown, optionsArray, defaultValue) => {
 		optionsArray.forEach(optionValue => {
@@ -196,7 +198,8 @@ window.onload = function () {
 			data: [{
 				SN: wsSerialNo.value,
 				IpPort: wsIpPort.value,
-				RegCode: wsRegCode.value.toUpperCase()
+				RegCode: wsRegCode.value.toUpperCase(),
+				IsNoTimeStamp: document.getElementById("is-no-timestamp").checked
 			}]
 		}
 		const jsonStr = JSON.stringify(jsonObj);
@@ -441,51 +444,98 @@ window.onload = function () {
 			const defaultStatus = defaultInOutKeys.length > index ? defaultInOut[defaultInOutKeys[index]] : null;
 			populateDropdown(dropdown, statusArray, defaultStatus);
 		});
+
+		getInOutTriggerButton.onclick = () => {
+			let jsonObj;
+			jsonObj = {
+				eventType: "GetInOutTrigger",
+				data: []
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
+
+		setInOutTriggerButton.onclick = () => {
+			const selectorPrefix = '#inouttrigger-';
+			let obj = {};
+
+			for (let i = 1; i <= 4; i++) {
+				const time = document.querySelector(`#inouttrigger-time-${i}`).value;
+				const status = document.querySelector(`#inouttrigger-status-${i}`).value;
+
+				if (status !== "N/A") {
+					obj[time] = status;
+				}
+			}
+
+			/*
+			// sort
+			if (Object.keys(defaultInOut).length >= 0) {
+				const items = Object.entries(defaultInOut);
+				const sortedItems = items.sort((a, b) => a[0].localeCompare(b[0]));
+				defaultInOut = Object.fromEntries(sortedItems);
+			};
+			*/
+
+			// save it (240313)
+			window.localStorage.setItem("inOutTrigger", JSON.stringify(obj));
+
+			const jsonObj = {
+				eventType: "SetInOutTrigger",
+				data: [obj]
+			};
+
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
 	})();
 
-	getInOutTriggerButton.onclick = () => {
-		let jsonObj;
-		jsonObj = {
-			eventType: "GetInOutTrigger",
-			data: []
-		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
+	// initialize holidays (240315)
+	(() => {
+		const localStorageKey = 'specialDays';
+		const specialDaysJSON = localStorage.getItem(localStorageKey);
 
-	setInOutTriggerButton.onclick = () => {
-		const selectorPrefix = '#inouttrigger-';
-		let obj = {};
-
-		for (let i = 1; i <= 4; i++) {
-			const time = document.querySelector(`#inouttrigger-time-${i}`).value;
-			const status = document.querySelector(`#inouttrigger-status-${i}`).value;
-
-			if (status !== "N/A") {
-				obj[time] = status;
+		if (specialDaysJSON) {
+			const specialDays = JSON.parse(specialDaysJSON);
+			for (let i = 1; i <= specialDays.length; i++) {
+				const inputElement = document.getElementById(`specialdays-${i}`);
+				if (inputElement && specialDays[i - 1]) {
+					inputElement.value = specialDays[i - 1];
+				}
 			}
 		}
 
-		/*
-		if (Object.keys(defaultInOut).length >= 0) {
-			const items = Object.entries(defaultInOut);
-			const sortedItems = items.sort((a, b) => a[0].localeCompare(b[0]));
-			defaultInOut = Object.fromEntries(sortedItems);
-		};
-		*/
+		getSpecialDaysButton.onclick = () => {
+			const jsonObj = {
+				eventType: "GetSpecialDays",
+				data: []
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
 
-		// save it (240313)
-		window.localStorage.setItem("inOutTrigger", JSON.stringify(obj));
+		setSpecialDaysButton.onclick = () => {
+			const specialDays = [];
+			for (let i = 1; i <= 4; i++) {
+				const inputValue = document.getElementById(`specialdays-${i}`).value;
+				if (inputValue) {
+					specialDays.push(inputValue);
+				}
+			}
+			if (specialDays.length > 0) {
+				const specialDaysJSON = JSON.stringify(specialDays);
+				localStorage.setItem(localStorageKey, specialDaysJSON);
+			}
 
+			const jsonObj = {
+				eventType: "SetSpecialDays",
+				data: [specialDays]
+			};
 
-		const jsonObj = {
-			eventType: "SetInOutTrigger",
-			data: [obj]
-		};
-
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
+	})();
 }
 
 function openTab(element, tabName) {

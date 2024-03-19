@@ -31,8 +31,6 @@ namespace dotnet_core_web_client.Services
 
 		// to be assigned in onConnectClick eventType (230709)
 		protected string sn;
-		protected string iGuardPayrollIpPort;
-		protected string regCode;
 
 		// private readonly IServiceScopeFactory _scopeFactory;
 		public ITerminalSettingsRepository terminalSettingsRepository = terminalSettingsRepository;
@@ -117,9 +115,11 @@ namespace dotnet_core_web_client.Services
 							// update the existing terminal info if necessary (these are the two inputs b4 the 'connect' btn) (201201)
 							// - now include regCode (221019)
 							var jsonElement = JsonSerializer.Deserialize<JsonElement>(jsonObj.Data[0].ToString()) as JsonElement?;
+
 							sn = jsonElement?.GetProperty("SN").GetString();
-							iGuardPayrollIpPort = jsonElement?.GetProperty("IpPort").GetString();
-							regCode = jsonElement?.GetProperty("RegCode").GetString();
+							string iGuardPayrollIpPort = jsonElement?.GetProperty("IpPort").GetString();
+							string regCode = jsonElement?.GetProperty("RegCode").GetString();
+							bool isNoTimeStamp = jsonElement?.GetProperty("IsNoTimeStamp").GetBoolean() ?? false;
 
 							//if (Terminal.SN != sn)
 							//{
@@ -128,7 +128,7 @@ namespace dotnet_core_web_client.Services
 							//}
 
 							// connect to iGuardPayroll (201201)
-							clientWebSocketHandler = new ClientWebSocketHandler(this, sn, iGuardPayrollIpPort, regCode, memoryCache);
+							clientWebSocketHandler = new ClientWebSocketHandler(this, sn, iGuardPayrollIpPort, regCode, isNoTimeStamp, memoryCache);
 							_ = clientWebSocketHandler.Initialize();
 						}
 						else if (eventType == "accessLog")
@@ -191,6 +191,10 @@ namespace dotnet_core_web_client.Services
 						{
 							await GetInOutTriggerAsync();
 						}
+						else if (eventType == "GetSpecialDays")
+						{
+							await GetSpecialDaysAsync();
+						}
 						else
 						{
 							if (clientWebSocketHandler != null)
@@ -216,6 +220,19 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		private async Task GetSpecialDaysAsync()
+		{
+			WebSocketMessage webSocketMessage = new()
+			{
+				EventType = "GetSpecialDays",
+				Data = [],
+				Id = Guid.NewGuid(),
+			};
+
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task GetInOutTriggerAsync()

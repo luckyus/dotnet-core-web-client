@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Services;
 
-public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort, string regCode, IMemoryCache memoryCache) : IClientWebSocketHandler
+public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn, string ipPort, string regCode, bool isNoTimeStamp, IMemoryCache memoryCache) : IClientWebSocketHandler
 {
 	protected WebSocketHandler webSocketHandler = webSocketHandler;
 	protected ClientWebSocket clientWebSocket;
@@ -65,9 +65,13 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 					await webSocketHandler.SendAsync(jsonStr);
 
 					// get timeStamp fm file (210203)
-					string str = File.ReadAllText(timeStampPath);
-					var timeStampJsonElement = JsonSerializer.Deserialize<JsonElement>(str) as JsonElement?;
-					var timeStamp = timeStampJsonElement?.GetProperty("timeStamp");
+					long timeStamp = 0;
+					if (!isNoTimeStamp)
+					{
+						string str = File.ReadAllText(timeStampPath);
+						var timeStampJsonElement = JsonSerializer.Deserialize<JsonElement>(str) as JsonElement?;
+						timeStamp = (long)(timeStampJsonElement?.GetProperty("timeStamp").GetUInt32());
+					}
 
 					// get terminal settings (230719)
 					// - can't use WhenAll() since dbContext (scoped service) is not thread-safe (230803)

@@ -66,15 +66,15 @@
 }
 
 	.flex-container #ws-serial-no {
-		width: 130px;
+		width: 125px;
 	}
 
 	.flex-container #ws-ip-port {
-		width: 200px;
+		width: 190px;
 	}
 
 	.flex-container #ws-reg-code {
-		width: 100px;
+		width: 75px;
 		text-transform: uppercase;
 	}
 
@@ -182,4 +182,8 @@ input.employee-name, input.employee-password {
 		width: 50px;
 		margin-right: 8px;
 	}
+
+.tab-specialdays input {
+	margin-right: 10px;
+}
 

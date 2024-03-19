@@ -28,6 +28,7 @@
 				<label for="ws-reg-code">RegCode:</label>
 				<select name="ws-reg-code" id="ws-reg-code" class="disabled-when-connected"></select>&nbsp;&nbsp;
 				<input type="button" id="ws-btn-connect" value="Connect" />
+				<input type="checkbox" id="is-no-timestamp" class="disabled-when-connected" />noTimeStamp
 			</div>
 			<div>
 				<input type="button" id="ws-btn-test" value="Test" disabled />
@@ -40,110 +41,115 @@
 			<button class="tablinks" data-tab-name="TabDepartment" onclick="openTab(this, 'TabDepartment')">Department</button>
 			<button class="tablinks" data-tab-name="TabQuickAccess" onclick="openTab(this, 'TabQuickAccess')">Quick Access</button>
 			<button class="tablinks" data-tab-name="TabInOutTrigger" onclick="openTab(this, 'TabInOutTrigger')">InOut Trigger</button>
+			<button class="tablinks" data-tab-name="TabSpecialDays" onclick="openTab(this, 'TabSpecialDays')">Special Days</button>
 		</div>
 	</div>
 	<div id="TabAccessLog" class="tabcontent flex-container">
-		<div>
-			<label for="ws-accesslog-card-sn">Card SN:</label>
-			<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn" class="option-cardsn"></select>
-			<label for="in-out-status">Status:</label>
-			<select name="in-out-status" id="in-out-status">
-				<option value="IN">In</option>
-				<option value="OUT">Out</option>
-				<option value="F1">F1</option>
-				<option value="F2">F2</option>
-				<option value="F3">F3</option>
-				<option value="F4">F4</option>
-				<option value="F5">F5</option>
-			</select>
-			<input type="button" id="btn-accesslog" class="disabled-when-not-connected" value="AccessLog" disabled />
-			<input type="button" id="btn-accesslogs" class="disabled-when-not-connected" value="AccessLogs" disabled />
-			<input type="button" id="btn-get-access-right" class="disabled-when-not-connected" value="GetAccessRight" disabled />
-			<input type="button" id="btn-get-in-out-status" class="disabled-when-not-connected" value="GetInOutStatus" disabled />
-		</div>
+		<label for="ws-accesslog-card-sn">Card SN:</label>
+		<select name="ws-accesslog-card-sn" id="ws-accesslog-card-sn" class="option-cardsn"></select>
+		<label for="in-out-status">Status:</label>
+		<select name="in-out-status" id="in-out-status">
+			<option value="IN">In</option>
+			<option value="OUT">Out</option>
+			<option value="F1">F1</option>
+			<option value="F2">F2</option>
+			<option value="F3">F3</option>
+			<option value="F4">F4</option>
+			<option value="F5">F5</option>
+		</select>
+		<input type="button" id="btn-accesslog" class="disabled-when-not-connected" value="AccessLog" disabled />
+		<input type="button" id="btn-accesslogs" class="disabled-when-not-connected" value="AccessLogs" disabled />
+		<input type="button" id="btn-get-access-right" class="disabled-when-not-connected" value="GetAccessRight" disabled />
+		<input type="button" id="btn-get-in-out-status" class="disabled-when-not-connected" value="GetInOutStatus" disabled />
 	</div>
 	<div id="TabEmployee" class="tabcontent">
 		<div>
-			<div>
-				<label for="ws-employee-id">ID:</label>
-				<input class="employee-id" type="text" id="ws-employee-id" />
-				<label for="ws-employee-original-id">Original ID:</label>
-				<input class="employee-id" type="text" id="ws-employee-original-id" />
-				<label for="ws-employee-card-sn">Card SN:</label>
-				<select name="ws-employee-card-sn" id="ws-employee-card-sn" class="option-cardsn">
-					<option value=''>=== select ===</option>
-				</select>
-				<label for="ws-employee-lastname">Last Name:</label>
-				<input class="employee-name" type="text" id="ws-employee-lastname" />
-				<label for="ws-employee-firstname">1st Name:</label>
-				<input class="employee-name" type="text" id="ws-employee-firstname" />
-				<label for="is-active">Active:</label>
-				<select name="is-active" id="is-active">
-					<option value="false">False</option>
-					<option value="true">True</option>
-				</select>
-				<label for="ws-employee-password">Password:</label>
-				<input class="employee-password" type="text" id="ws-employee-password" />
-			</div>
-			<div>
-				<input type="button" id="btn-get-status-by-id" class="disabled-when-not-connected" value="GetInOutStatus" disabled />
-				<input type="button" id="btn-request-permission" class="disabled-when-not-connected" value="RequestPermission" disabled />
-				<input type="button" id="btn-employee-get" class="disabled-when-not-connected" value="Get" disabled />
-				<input type="button" id="btn-employee-add" class="disabled-when-not-connected" value="Add" disabled />
-				<input type="button" id="btn-employee-update" class="disabled-when-not-connected" value="Update" disabled />
-				<input type="button" id="btn-employee-delete" class="disabled-when-not-connected" value="Delete" disabled />
-			</div>
+			<label for="ws-employee-id">ID:</label>
+			<input class="employee-id" type="text" id="ws-employee-id" />
+			<label for="ws-employee-original-id">Original ID:</label>
+			<input class="employee-id" type="text" id="ws-employee-original-id" />
+			<label for="ws-employee-card-sn">Card SN:</label>
+			<select name="ws-employee-card-sn" id="ws-employee-card-sn" class="option-cardsn">
+				<option value=''>=== select ===</option>
+			</select>
+			<label for="ws-employee-lastname">Last Name:</label>
+			<input class="employee-name" type="text" id="ws-employee-lastname" />
+			<label for="ws-employee-firstname">1st Name:</label>
+			<input class="employee-name" type="text" id="ws-employee-firstname" />
+			<label for="is-active">Active:</label>
+			<select name="is-active" id="is-active">
+				<option value="false">False</option>
+				<option value="true">True</option>
+			</select>
+			<label for="ws-employee-password">Password:</label>
+			<input class="employee-password" type="text" id="ws-employee-password" />
+		</div>
+		<div>
+			<input type="button" id="btn-get-status-by-id" class="disabled-when-not-connected" value="GetInOutStatus" disabled />
+			<input type="button" id="btn-request-permission" class="disabled-when-not-connected" value="RequestPermission" disabled />
+			<input type="button" id="btn-employee-get" class="disabled-when-not-connected" value="Get" disabled />
+			<input type="button" id="btn-employee-add" class="disabled-when-not-connected" value="Add" disabled />
+			<input type="button" id="btn-employee-update" class="disabled-when-not-connected" value="Update" disabled />
+			<input type="button" id="btn-employee-delete" class="disabled-when-not-connected" value="Delete" disabled />
 		</div>
 	</div>
 	<div id="TabDepartment" class="tabcontent tab-department flex-container">
-		<div>
-			<label for="ws-department-id" class="hide-in-quickaccess">ID:</label>
-			<input class="department-id hide-in-quickaccess" type="text" id="ws-department-id" />
-			<label for="ws-department-name" id="label-department-name" class="hide-in-quickaccess">Name:</label>
-			<input class="department-name hide-in-quickaccess" type="text" id="ws-department-name" />
-			<div class="dropdown">
-				<button id="btn-terminal-list" class="dropbtn disabled-when-not-connected" disabled>Terminals</button>
-				<div id="terminalDropdown" class="dropdown-content">
-					<label><input type="checkbox" name="option1" value="*"> Any Terminal</label>
-					<label><input type="checkbox" name="option2" value="A134"> A134</label>
-					<label><input type="checkbox" name="option3" value="A135"> A135</label>
-					<label><input type="checkbox" name="option4" value="Client_01"> Client_01</label>
-					<label><input type="checkbox" name="option5" value="CLIENT_02"> CLIENT_02</label>
-				</div>
+		<label for="ws-department-id" class="hide-in-quickaccess">ID:</label>
+		<input class="department-id hide-in-quickaccess" type="text" id="ws-department-id" />
+		<label for="ws-department-name" id="label-department-name" class="hide-in-quickaccess">Name:</label>
+		<input class="department-name hide-in-quickaccess" type="text" id="ws-department-name" />
+		<div class="dropdown">
+			<button id="btn-terminal-list" class="dropbtn disabled-when-not-connected" disabled>Terminals</button>
+			<div id="terminalDropdown" class="dropdown-content">
+				<label><input type="checkbox" name="option1" value="*"> Any Terminal</label>
+				<label><input type="checkbox" name="option2" value="A134"> A134</label>
+				<label><input type="checkbox" name="option3" value="A135"> A135</label>
+				<label><input type="checkbox" name="option4" value="Client_01"> Client_01</label>
+				<label><input type="checkbox" name="option5" value="CLIENT_02"> CLIENT_02</label>
 			</div>
-			<div class="dropdown">
-				<button id="btn-timeslot" class="dropbtn disabled-when-not-connected" disabled>TimeSlot</button>
-				<div id="timeslotDropdown" class="dropdown-content">
-					<label><input type="radio" name="options" value="none"> none</label>
-					<label><input type="radio" name="options" value="ninetofiveeveryday"> 9-5, everyday</label>
-					<label><input type="radio" name="options" value="ninetofiveweekdays"> 9-5, weekdays</label>
-					<label><input type="radio" name="options" value="twentyfourhrseveryday"> 24hrs, everyday</label>
-					<label><input type="radio" name="options" value="twentyfourhrsweekdays"> 24hrs, weekdays</label>
-				</div>
-			</div>
-			<input type="button" id="btn-department-get" class="disabled-when-not-connected" value="Get" disabled />
-			<input type="button" id="btn-department-add" class="disabled-when-not-connected" value="Add" class="hide-in-quickaccess" disabled />
-			<input type="button" id="btn-department-update" class="disabled-when-not-connected" value="Update" disabled />
-			<input type="button" id="btn-department-delete" class="disabled-when-not-connected" value="Delete" class="hide-in-quickaccess" disabled />
 		</div>
+		<div class="dropdown">
+			<button id="btn-timeslot" class="dropbtn disabled-when-not-connected" disabled>TimeSlot</button>
+			<div id="timeslotDropdown" class="dropdown-content">
+				<label><input type="radio" name="options" value="none"> none</label>
+				<label><input type="radio" name="options" value="ninetofiveeveryday"> 9-5, everyday</label>
+				<label><input type="radio" name="options" value="ninetofiveweekdays"> 9-5, weekdays</label>
+				<label><input type="radio" name="options" value="twentyfourhrseveryday"> 24hrs, everyday</label>
+				<label><input type="radio" name="options" value="twentyfourhrsweekdays"> 24hrs, weekdays</label>
+			</div>
+		</div>
+		<input type="button" id="btn-department-get" class="disabled-when-not-connected" value="Get" disabled />
+		<input type="button" id="btn-department-add" class="disabled-when-not-connected" value="Add" class="hide-in-quickaccess" disabled />
+		<input type="button" id="btn-department-update" class="disabled-when-not-connected" value="Update" disabled />
+		<input type="button" id="btn-department-delete" class="disabled-when-not-connected" value="Delete" class="hide-in-quickaccess" disabled />
 	</div>
 	<div id="TabInOutTrigger" class="tabcontent tab-inouttrigger">
-		<div>
-			<label for="inouttrigger-1">1:</label>
-			<select name="inouttrigger-time-1" id="inouttrigger-time-1" class="option-inouttrigger-time"></select>
-			<select name="inouttrigger-status-1" id="inouttrigger-status-1" class="option-inouttrigger-status"></select>
-			<label for="inouttrigger-2">2:</label>
-			<select name="inouttrigger-time-2" id="inouttrigger-time-2" class="option-inouttrigger-time"></select>
-			<select name="inouttrigger-status-2" id="inouttrigger-status-2" class="option-inouttrigger-status"></select>
-			<label for="inouttrigger-3">3:</label>
-			<select name="inouttrigger-time-3" id="inouttrigger-time-3" class="option-inouttrigger-time"></select>
-			<select name="inouttrigger-status-3" id="inouttrigger-status-3" class="option-inouttrigger-status"></select>
-			<label for="inouttrigger-4">4:</label>
-			<select name="inouttrigger-time-4" id="inouttrigger-time-4" class="option-inouttrigger-time"></select>
-			<select name="inouttrigger-status-4" id="inouttrigger-status-4" class="option-inouttrigger-status"></select>
-			<input type="button" id="btn-inouttrigger-get" class="disabled-when-not-connected" value="Get" disabled />
-			<input type="button" id="btn-inouttrigger-set" class="disabled-when-not-connected" value="Set" disabled />
-		</div>
+		<label for="inouttrigger-1">1:</label>
+		<select name="inouttrigger-time-1" id="inouttrigger-time-1" class="option-inouttrigger-time"></select>
+		<select name="inouttrigger-status-1" id="inouttrigger-status-1" class="option-inouttrigger-status"></select>
+		<label for="inouttrigger-2">2:</label>
+		<select name="inouttrigger-time-2" id="inouttrigger-time-2" class="option-inouttrigger-time"></select>
+		<select name="inouttrigger-status-2" id="inouttrigger-status-2" class="option-inouttrigger-status"></select>
+		<label for="inouttrigger-3">3:</label>
+		<select name="inouttrigger-time-3" id="inouttrigger-time-3" class="option-inouttrigger-time"></select>
+		<select name="inouttrigger-status-3" id="inouttrigger-status-3" class="option-inouttrigger-status"></select>
+		<label for="inouttrigger-4">4:</label>
+		<select name="inouttrigger-time-4" id="inouttrigger-time-4" class="option-inouttrigger-time"></select>
+		<select name="inouttrigger-status-4" id="inouttrigger-status-4" class="option-inouttrigger-status"></select>
+		<input type="button" id="btn-inouttrigger-get" class="disabled-when-not-connected" value="Get" disabled />
+		<input type="button" id="btn-inouttrigger-set" class="disabled-when-not-connected" value="Set" disabled />
+	</div>
+	<div id="TabSpecialDays" class="tabcontent tab-specialdays">
+		<label for="specialdays-1">1:</label>
+		<input type="date" name="specialdays-1" id="specialdays-1" class="" />
+		<label for="specialdays-2">2:</label>
+		<input type="date" name="specialdays-2" id="specialdays-2" class="" />
+		<label for="specialdays-3">3:</label>
+		<input type="date" name="specialdays-3" id="specialdays-3" class="" />
+		<label for="specialdays-4">4:</label>
+		<input type="date" name="specialdays-4" id="specialdays-4" class="" />
+		<input type="button" id="btn-specialdays-get" class="disabled-when-not-connected" value="Get" disabled />
+		<input type="button" id="btn-specialdays-set" class="disabled-when-not-connected" value="Set" disabled />
 	</div>
 	<div id="ws-discussion">
 		<ul id="ws-ul"></ul>

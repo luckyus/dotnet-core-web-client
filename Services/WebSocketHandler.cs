@@ -403,17 +403,10 @@ namespace dotnet_core_web_client.Services
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var departmentId = jsonElement?.GetProperty("departmentId").GetString();
 
-			Dictionary<string, object> obj = null;
-
-			if (!string.IsNullOrEmpty(departmentId))
-			{
-				obj = new Dictionary<string, object> { { "departmentId", departmentId } };
-			}
-
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = eventType,
-				Data = obj is null ? [] : [obj],
+				Data = [departmentId],
 				Id = id,
 			};
 

@@ -59,21 +59,21 @@
 	width: 130px;
 }
 
-.flex-container-top {
+.flex-container {
 	display: flex;
 	justify-content: space-between;
 	align-items: baseline;
 }
 
-	.flex-container-top #ws-serial-no {
+	.flex-container #ws-serial-no {
 		width: 125px;
 	}
 
-	.flex-container-top #ws-ip-port {
+	.flex-container #ws-ip-port {
 		width: 190px;
 	}
 
-	.flex-container-top #ws-reg-code {
+	.flex-container #ws-reg-code {
 		width: 75px;
 		text-transform: uppercase;
 	}

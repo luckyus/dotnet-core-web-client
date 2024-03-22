@@ -36,6 +36,7 @@ window.onload = function () {
 	const timeslotButton = document.querySelector('#btn-timeslot');
 	const getInOutTriggerButton = document.querySelector('#btn-inouttrigger-get');
 	const setInOutTriggerButton = document.querySelector('#btn-inouttrigger-set');
+	const clearSpecialDaysButton = document.querySelector('#btn-specialdays-clear');
 	const getSpecialDaysButton = document.querySelector('#btn-specialdays-get');
 	const setSpecialDaysButton = document.querySelector('#btn-specialdays-set');
 
@@ -210,206 +211,208 @@ window.onload = function () {
 		wsUl.innerHTML = "";
 	}
 
-	accessLogButton.onclick = () => {
-		const jsonObj = {
-			eventType: "accessLog",
-			data: [{
-				cardSN: accessLogCardSN.value,
-				status: accessLogStatus.value
-			}]
-		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
-
-	accessLogsButton.onclick = () => {
-		const statusArray = Array.from(accessLogStatus.options).map((e) => {
-			return e.value;
-		});
-		const data = Array.from(accessLogCardSN.options).map((e) => {
-			return {
-				cardSN: e.value,
-				status: statusArray[Math.floor(Math.random() * statusArray.length)]
+	// access log (240321)
+	(() => {
+		accessLogButton.onclick = () => {
+			const jsonObj = {
+				eventType: "accessLog",
+				data: [{
+					cardSN: accessLogCardSN.value,
+					status: accessLogStatus.value
+				}]
 			}
-		});
-		const jsonObj = {
-			eventType: "accessLogs",
-			data: data
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
 
-	getAccessRightButton.onclick = () => {
-		const jsonObj = {
-			eventType: "GetAccessRight",
-			data: [{
-				smartCardSN: parseInt(accessLogCardSN.value)
-			}]
+		accessLogsButton.onclick = () => {
+			const statusArray = Array.from(accessLogStatus.options).map((e) => {
+				return e.value;
+			});
+			const data = Array.from(accessLogCardSN.options).map((e) => {
+				return {
+					cardSN: e.value,
+					status: statusArray[Math.floor(Math.random() * statusArray.length)]
+				}
+			});
+			const jsonObj = {
+				eventType: "Accesslogs",
+				data: data
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
 
-	getInOutStatusButton.onclick = () => {
-		const jsonObj = {
-			eventType: "GetInOutStatus",
-			data: [{
-				smartCardSN: parseInt(accessLogCardSN.value)
-			}]
+		getAccessRightButton.onclick = () => {
+			const jsonObj = {
+				eventType: "GetAccessRight",
+				data: [{
+					smartCardSN: parseInt(accessLogCardSN.value)
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
 
-	getStatusByIdButton.onclick = () => {
-		const jsonObj = {
-			eventType: "GetInOutStatus",
-			data: [{
-				smartCardSN: 0,
-				employeeId: employeeId.value
-			}]
+		getInOutStatusButton.onclick = () => {
+			const jsonObj = {
+				eventType: "GetInOutStatus",
+				data: [{
+					smartCardSN: parseInt(accessLogCardSN.value)
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
+	})();
 
-	requestPermissionButton.onclick = () => {
-		const jsonObj = {
-			eventType: "RequestPermission",
-			data: [{
-				employeeId: employeeId.value
-			}]
+	// employee (240321)
+	(() => {
+		getStatusByIdButton.onclick = () => {
+			const jsonObj = {
+				eventType: "GetInOutStatus",
+				data: [{
+					smartCardSN: 0,
+					employeeId: employeeId.value
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
 
-	getEmployeeButton.onclick = () => {
-		const jsonObj = {
-			eventType: "GetEmployee",
-			data: [{
-				employeeId: employeeId.value == '' ? null : employeeId.value.toUpperCase(),
-				smartCardSN: employeeCardSN.value == '' ? null : employeeCardSN.value
-			}]
+		requestPermissionButton.onclick = () => {
+			const jsonObj = {
+				eventType: "RequestInsertPermission",
+				data: [{
+					employeeId: employeeId.value
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
+
+		getEmployeeButton.onclick = () => {
+			const jsonObj = {
+				eventType: "GetEmployee",
+				data: [{
+					employeeId: employeeId.value == '' ? null : employeeId.value.toUpperCase(),
+					smartCardSN: employeeCardSN.value == '' ? null : employeeCardSN.value
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
+
+		/* add & update employee */
+		addEmployeeButton.onclick = () => setEmployee("AddEmployee");
+		updateEmployeeButton.onclick = () => setEmployee("UpdateEmployees");
+
+		var setEmployee = (eventtype) => {
+			const jsonObj = {
+				eventType: eventtype,
+				data: [{
+					employeeId: employeeId.value.toUpperCase(),
+					originalId: originalId.value === '' ? null : originalId.value.toUpperCase(),
+					smartCardSN: employeeCardSN.value === '' ? null : employeeCardSN.value,
+					lastName: document.querySelector('#ws-employee-lastname').value,
+					firstName: document.querySelector('#ws-employee-firstname').value,
+					isActive: document.querySelector('#is-active').value,
+					password: employeePassword.value === '' ? null : employeePassword.value
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
+
+		deleteEmployeeButton.onclick = () => {
+			const jsonObj = {
+				eventType: "DeleteEmployee",
+				data: [employeeId.value.toUpperCase()]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
+	})();
 
 	/* add & update department (240222) */
-	getDepartmentButton.onclick = () => {
-		let jsonObj;
+	(() => {
+		getDepartmentButton.onclick = () => {
+			let jsonObj;
 
-		if (currentTabName === "TabDepartment") {
-			jsonObj = {
-				eventType: "GetDepartment",
-				data: [{
-					departmentId: document.querySelector('#ws-department-id').value.toUpperCase()
-				}]
+			if (currentTabName === "TabDepartment") {
+				jsonObj = {
+					eventType: "GetDepartment",
+					data: [document.querySelector('#ws-department-id').value.toUpperCase()]
+				}
 			}
-		}
-		else {
-			jsonObj = {
-				eventType: "GetQuickAccess",
-				data: []
+			else {
+				jsonObj = {
+					eventType: "GetQuickAccess",
+					data: []
+				}
 			}
+
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
 
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
-
-	addDepartmentButton.onclick = () => setDepartment("AddDepartment");
-	updateDepartmentButton.onclick = () => {
-		let eventtype = currentTabName === "TabDepartment" ? "UpdateDepartment" : "UpdateQuickAccess";
-		setDepartment(eventtype);
-	}
-
-	var setDepartment = (eventType) => {
-		const checkboxes = document.querySelectorAll('#terminalDropdown input[type="checkbox"]');
-		let selectedOptions = [];
-		checkboxes.forEach(checkbox => {
-			if (checkbox.checked) {
-				selectedOptions.push(checkbox.value);
+		deleteDepartmentButton.onclick = () => {
+			const jsonObj = {
+				eventType: "DeleteDepartment",
+				data: [document.querySelector('#ws-department-id').value.toUpperCase()]
 			}
-		});
-		window.localStorage.setItem("terminalList", JSON.stringify(selectedOptions));
-
-		var selectedTimeslot = document.querySelector('#timeslotDropdown input[type="radio"]:checked');
-		if (selectedTimeslot) {
-			localStorage.setItem('selectedTimeslot', JSON.stringify(selectedTimeslot.value));
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
 
-		let jsonObj;
+		addDepartmentButton.onclick = () => setDepartment("AddDepartment");
+		updateDepartmentButton.onclick = () => {
+			let eventtype = currentTabName === "TabDepartment" ? "UpdateDepartment" : "UpdateQuickAccess";
+			setDepartment(eventtype);
+		}
 
-		if (currentTabName === "TabDepartment") {
-			jsonObj = {
-				eventType: eventType,
-				data: [{
-					departmentId: document.querySelector('#ws-department-id').value.toUpperCase(),
-					departmentName: document.querySelector('#ws-department-name').value,
-					terminals: selectedOptions,
-					timeslot: selectedTimeslot ? selectedTimeslot.value : null
-				}]
+		var setDepartment = (eventType) => {
+			const checkboxes = document.querySelectorAll('#terminalDropdown input[type="checkbox"]');
+			let selectedOptions = [];
+			checkboxes.forEach(checkbox => {
+				if (checkbox.checked) {
+					selectedOptions.push(checkbox.value);
+				}
+			});
+			window.localStorage.setItem("terminalList", JSON.stringify(selectedOptions));
+
+			var selectedTimeslot = document.querySelector('#timeslotDropdown input[type="radio"]:checked');
+			if (selectedTimeslot) {
+				localStorage.setItem('selectedTimeslot', JSON.stringify(selectedTimeslot.value));
 			}
-		}
-		else {
-			jsonObj = {
-				eventType: eventType,
-				data: [{
-					terminals: selectedOptions,
-					timeslot: selectedTimeslot ? selectedTimeslot.value : null
-				}]
+
+			let jsonObj;
+
+			if (currentTabName === "TabDepartment") {
+				jsonObj = {
+					eventType: eventType,
+					data: [{
+						departmentId: document.querySelector('#ws-department-id').value.toUpperCase(),
+						departmentName: document.querySelector('#ws-department-name').value,
+						terminals: selectedOptions,
+						timeslot: selectedTimeslot ? selectedTimeslot.value : null
+					}]
+				}
 			}
+			else {
+				jsonObj = {
+					eventType: eventType,
+					data: [{
+						terminals: selectedOptions,
+						timeslot: selectedTimeslot ? selectedTimeslot.value : null
+					}]
+				}
+			}
+
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
 		}
-
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
-
-	deleteDepartmentButton.onclick = () => {
-		const jsonObj = {
-			eventType: "DeleteDepartment",
-			data: [{
-				departmentId: document.querySelector('#ws-department-id').value.toUpperCase()
-			}]
-		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
-
-	/* add & update employee */
-	addEmployeeButton.onclick = () => setEmployee("AddEmployee");
-	updateEmployeeButton.onclick = () => setEmployee("UpdateEmployee");
-
-	var setEmployee = (eventtype) => {
-		const jsonObj = {
-			eventType: eventtype,
-			data: [{
-				employeeId: employeeId.value.toUpperCase(),
-				originalId: originalId.value === '' ? null : originalId.value.toUpperCase(),
-				smartCardSN: employeeCardSN.value === '' ? null : employeeCardSN.value,
-				lastName: document.querySelector('#ws-employee-lastname').value,
-				firstName: document.querySelector('#ws-employee-firstname').value,
-				isActive: document.querySelector('#is-active').value,
-				password: employeePassword.value === '' ? null : employeePassword.value
-			}]
-		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
-
-	deleteEmployeeButton.onclick = () => {
-		const jsonObj = {
-			eventType: "DeleteEmployee",
-			data: [{
-				employeeId: employeeId.value.toUpperCase()
-			}]
-		}
-		const jsonStr = JSON.stringify(jsonObj);
-		webSocket.send(jsonStr);
-	}
+	})();
 
 	wsTestBtn.onclick = () => {
 		const jsonObj = {
@@ -534,6 +537,11 @@ window.onload = function () {
 
 			const jsonStr = JSON.stringify(jsonObj);
 			webSocket.send(jsonStr);
+		}
+
+		clearSpecialDaysButton.onclick = () => {
+			const inputElements = document.querySelectorAll('[id^="specialdays-"]');
+			inputElements.forEach(a => a.value = '');
 		}
 	})();
 }

@@ -135,71 +135,39 @@ namespace dotnet_core_web_client.Services
 						{
 							await AccessLog(jsonObj.Data);
 						}
-						else if (eventType == "accessLogs")
+						else if (eventType == WebSocketEventType.Accesslogs)
 						{
 							await AccessLogs(jsonObj.Data);
 						}
-						else if (eventType == "GetAccessRight")
+						else if (eventType == WebSocketEventType.GetAccessRight)
 						{
 							await GetAccessRight(jsonObj.Data);
 						}
-						else if (eventType == "RequestPermission")
+						else if (eventType == WebSocketEventType.RequestInsertPermission)
 						{
 							await RequestInsertPermissionAsync(jsonObj.Data);
 						}
-						else if (eventType == "GetEmployee")
+						else if (eventType == WebSocketEventType.GetEmployee)
 						{
-							_ = GetEmployeeAsync(jsonObj.Data);
+							await GetEmployeeAsync(jsonObj.Data);
 						}
-						else if (eventType == "AddEmployee")
+						else if (eventType == WebSocketEventType.AddEmployee || eventType == WebSocketEventType.UpdateEmployee)
 						{
-							await AddEmployeeAsync(jsonObj.Data);
+							await SetEmployeeAsync(eventType, jsonObj.Data);
 						}
-						else if (eventType == "UpdateEmployee")
+						else if (eventType == WebSocketEventType.AddDepartment || eventType == WebSocketEventType.UpdateDepartment)
 						{
-							await UpdateEmployeeAsync(jsonObj.Data);
+							await SetDepartmentAsync(eventType, jsonObj.Data);
 						}
-						else if (eventType == "DeleteEmployee")
-						{
-							await DeleteEmployeeAsync(jsonObj.Data);
-						}
-						else if (eventType == "GetDepartment")
-						{
-							_ = GetDepartmentAsync(jsonObj.Data);
-						}
-						else if (eventType == "AddDepartment")
-						{
-							await AddDepartmentAsync(jsonObj.Data);
-						}
-						else if (eventType == "UpdateDepartment")
-						{
-							await UpdateDepartmentAsync(jsonObj.Data);
-						}
-						else if (eventType == "DeleteDepartment")
-						{
-							await DeleteDepartmentAsync(jsonObj.Data);
-						}
-						else if (eventType == "GetQuickAccess")
-						{
-							await GetQuickAccessAsync();
-						}
-						else if (eventType == "UpdateQuickAccess")
+						else if (eventType == WebSocketEventType.UpdateQuickAccess)
 						{
 							await UpdateQuickAccessAsync(jsonObj.Data);
-						}
-						else if (eventType == "GetInOutTrigger")
-						{
-							await GetInOutTriggerAsync();
-						}
-						else if (eventType == "GetSpecialDays")
-						{
-							await GetSpecialDaysAsync();
 						}
 						else
 						{
 							if (clientWebSocketHandler != null)
 							{
-								await UnknownEventTypeAsync(eventType, jsonObj.Data);
+								await DefaultEventTypeAsync(eventType, jsonObj.Data);
 							}
 						}
 					}
@@ -220,32 +188,6 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
-		}
-
-		private async Task GetSpecialDaysAsync()
-		{
-			WebSocketMessage webSocketMessage = new()
-			{
-				EventType = "GetSpecialDays",
-				Data = [],
-				Id = Guid.NewGuid(),
-			};
-
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
-			await clientWebSocketHandler?.SendAsync(jsonStr);
-		}
-
-		private async Task GetInOutTriggerAsync()
-		{
-			WebSocketMessage webSocketMessage = new()
-			{
-				EventType = "GetInOutTrigger",
-				Data = [],
-				Id = Guid.NewGuid(),
-			};
-
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
-			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task UpdateQuickAccessAsync(object[] data)
@@ -362,66 +304,13 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "UpdateQuickAccess",
+				EventType = WebSocketEventType.UpdateQuickAccess,
 				Data = [departments],
 				Id = id,
 			};
 
 			string jsonStr = JsonSerializer.Serialize(webSocketMessage, jsonSerializerOptionsIgnoreNull);
 			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
-		}
-
-		private async Task GetQuickAccessAsync()
-		{
-			var id = Guid.NewGuid();
-
-			WebSocketMessage webSocketMessage = new()
-			{
-				EventType = "GetQuickAccess",
-				Data = [],
-				Id = id,
-			};
-
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
-			await clientWebSocketHandler?.SendAsync(jsonStr);
-		}
-
-		private async Task DeleteDepartmentAsync(object[] data)
-		{
-			await GetOrDeleteDepartmentAsync("DeleteDepartment", data);
-		}
-
-		private async Task GetDepartmentAsync(object[] data)
-		{
-			await GetOrDeleteDepartmentAsync("GetDepartment", data);
-		}
-
-		private async Task GetOrDeleteDepartmentAsync(string eventType, object[] data)
-		{
-			var id = Guid.NewGuid();
-
-			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
-			var departmentId = jsonElement?.GetProperty("departmentId").GetString();
-
-			WebSocketMessage webSocketMessage = new()
-			{
-				EventType = eventType,
-				Data = [departmentId],
-				Id = id,
-			};
-
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
-			await clientWebSocketHandler?.SendAsync(jsonStr);
-		}
-
-		private async Task UpdateDepartmentAsync(object[] data)
-		{
-			await SetDepartmentAsync(WebSocketEventType.UpdateDepartment, data);
-		}
-
-		private async Task AddDepartmentAsync(object[] data)
-		{
-			await SetDepartmentAsync(WebSocketEventType.AddDepartment, data);
 		}
 
 		private async Task SetDepartmentAsync(string eventType, object[] data)
@@ -586,7 +475,7 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "GetEmployee",
+				EventType = WebSocketEventType.GetEmployee,
 				Data = [obj],
 				Id = id,
 			};
@@ -598,6 +487,7 @@ namespace dotnet_core_web_client.Services
 
 			await clientWebSocketHandler?.SendAsync(jsonStr);
 
+			// the following will fill the inputs in the employee form (to demo how handshake works for sean) (240321)
 			using CancellationTokenSource cancellationTokenSource = new();
 			Task task = semaphoreSlim.WaitAsync(cancellationTokenSource.Token);
 
@@ -620,25 +510,7 @@ namespace dotnet_core_web_client.Services
 			cancellationTokenSource.Cancel();
 		}
 
-		private async Task DeleteEmployeeAsync(object[] data)
-		{
-			var id = Guid.NewGuid();
-
-			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
-			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
-
-			WebSocketMessage webSocketMessage = new()
-			{
-				EventType = "DeleteEmployee",
-				Data = [employeeId],
-				Id = id,
-			};
-
-			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
-			await clientWebSocketHandler?.SendAsync(jsonStr);
-		}
-
-		private async Task UnknownEventTypeAsync(string eventType, object[] data)
+		private async Task DefaultEventTypeAsync(string eventType, object[] data)
 		{
 			WebSocketMessage webSocketMessage = new()
 			{
@@ -657,26 +529,17 @@ namespace dotnet_core_web_client.Services
 
 			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
 			var employeeId = jsonElement?.GetProperty("employeeId").GetString();
+			// var smartCardSNString = jsonElement?.GetProperty("smartCardSN").GetString();
 
 			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "RequestInsertPermission",
+				EventType = WebSocketEventType.RequestInsertPermission,
 				Data = [new { employeeId }],
 				Id = id,
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
 			await clientWebSocketHandler?.SendAsync(jsonStr);
-		}
-
-		private async Task AddEmployeeAsync(object[] data)
-		{
-			await SetEmployeeAsync("AddEmployees", data);
-		}
-
-		private async Task UpdateEmployeeAsync(object[] data)
-		{
-			await SetEmployeeAsync("UpdateEmployees", data);
 		}
 
 		private async Task SetEmployeeAsync(string eventType, object[] data)
@@ -739,15 +602,15 @@ namespace dotnet_core_web_client.Services
 			var random = new Random();
 			dateTimeISO8601 += "." + random.Next(1000);
 
-			WebSocketMessage webSocketMessage = new WebSocketMessage
+			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "GetAccessRight",
+				EventType = WebSocketEventType.GetAccessRight,
 				Data = [new { smartCardSN, dateTime = dateTimeISO8601 }],
 				Id = id,
 			};
 
 			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptionsIgnoreNull);
-			if (clientWebSocketHandler != null) await clientWebSocketHandler.SendAsync(jsonStr);
+			await clientWebSocketHandler?.SendAsync(jsonStr);
 		}
 
 		private async Task AccessLog(object[] data)
@@ -774,11 +637,11 @@ namespace dotnet_core_web_client.Services
 				ByWhat = "S"
 			};
 
-			List<AccessLogDto> accessLogs = new() { accesslog };
+			List<AccessLogDto> accessLogs = [accesslog];
 
 			WebSocketMessage webSocketMessage = new WebSocketMessage
 			{
-				EventType = "Accesslogs",
+				EventType = WebSocketEventType.Accesslogs,
 				Data = [accessLogs],
 				Id = id,
 			};
@@ -817,7 +680,7 @@ namespace dotnet_core_web_client.Services
 
 			WebSocketMessage webSocketMessage = new()
 			{
-				EventType = "Accesslogs",
+				EventType = WebSocketEventType.Accesslogs,
 				Data = [accessLogs],
 				Id = id,
 			};

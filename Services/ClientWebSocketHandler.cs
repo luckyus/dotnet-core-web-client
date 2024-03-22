@@ -220,7 +220,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
 								"EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
 								"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
-								"Acknowledge" or "OnGetEmployee" => OnAcknowledge(webSocketMessage.Data, webSocketMessage.AckId),
+								"Acknowledge" => OnAcknowledge(webSocketMessage.Data, webSocketMessage.AckId),
 								_ => OnDefaultAsync(webSocketMessage.Id),
 							});
 

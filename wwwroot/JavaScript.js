@@ -52,7 +52,7 @@ window.onload = function () {
 
 	// initialize iGuard SN (240314)
 	let storageSN = window.localStorage.getItem("sn");
-	const snArray = ["8100-1058-6480", "8100-1058-6481", "8100-1058-6482"];
+	const snArray = ["8100-1058-6480", "8100-1058-6481", "8100-1058-6482", "7100-1058-6480", "7100-1058-6481", "7100-1058-6482"];
 	populateDropdown(wsSerialNo, snArray, storageSN);
 
 	// ditto (201105)

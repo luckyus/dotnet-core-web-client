@@ -289,69 +289,68 @@ namespace dotnet_core_web_client.Services
 					else if (snPrefix == "80") machineType = MachineType.iGuard530;
 					else if (snPrefix == "81") machineType = MachineType.iGuard540;
 
-					string s1 = sn.Substring(1, 12).Replace("-", "");   // eg. 7000-0000-0355 -> 1879048757 (150417)
-					uint i1 = uint.Parse(s1) * 16;
-					string s2 = sn.Substring(13, 1);
-					uint i2 = uint.Parse(s2);
+					if (machineType == MachineType.iGuardExpress || machineType == MachineType.iGuard530)
+					{
+						string s1 = sn.Substring(1, 12).Replace("-", "");   // eg. 7000-0000-0355 -> 1879048757 (150417)
+						uint i1 = uint.Parse(s1) * 16;
+						string s2 = sn.Substring(13, 1);
+						uint i2 = uint.Parse(s2);
 
-					if (machineType == MachineType.iGuardExpress)
-					{
-						iSn = (i1 + i2 + 0x70000000);
+						if (machineType == MachineType.iGuardExpress)
+						{
+							iSn = (i1 + i2 + 0x70000000);
+						}
+						else
+						{
+							iSn = (i1 + i2 + 0x80000000);
+						}
 					}
-					else if (machineType == MachineType.iGuardExpress540)
+					else
 					{
-						iSn = (i1 + i2 + 0x80000000);
-					}
-					else if (machineType == MachineType.iGuard530)
-					{
-						iSn = (i1 + i2 + 0x80000000);
-					}
-					else if (machineType == MachineType.iGuard540)
-					{
-						iSn = (i1 + i2 + 0xA0000000);
+						sn = sn.Replace("-", "");
+						uint cs = sn[sn.Length - 1];            // last digit is checksum
+						uint prefix = sn[0];                    // first digit prefix
+						uint prefix2 = sn[1];
+						sn = sn.Substring(2, sn.Length - 3);    // remove first, 2nd and last digit
+
+						if (uint.TryParse(sn, out iSn))
+						{
+							iSn = iSn << 4 & 0xFFFFFF;   // shift one digit and remove MS digit
+							iSn |= cs - '0';
+							iSn |= prefix - '0' << 28;
+							iSn |= prefix2 - '0' << 24;
+						}
+						else
+						{
+							iSn = uint.MaxValue;
+						}
 					}
 				}
 
 				return iSn;
 			}
 
-			string myConvertHexSerialNo(uint hsn)
+			(string, string) myConvertHexSerialNo(uint hsn)
 			{
-				MachineType machineType = MachineType.iGuardExpress;
+				string s1, s2;
 
-				if (hsn >= 0x70000000 && hsn <= 0x7FFFFFFF)
-				{
-					machineType = MachineType.iGuardExpress;
-				}
-				else if (hsn >= 0x80000000 && hsn <= 0x8FFFFFF)
-				{
-					machineType = MachineType.iGuard530;
-				}
-				else if (hsn >= 0x90000000 && hsn <= 0x9FFFFFFF)
-				{
-					machineType = MachineType.iGuard540;
-				}
+				uint p = (hsn & 0xF0000000) >> 28;  // Prefix
+				uint n = (hsn & 0x0FFFFFFF) >> 4;       // SN
+				uint cs = hsn & 0xF;                // Checksum
+				s1 = $"{p}{n:D10}{cs}";           // Prefix + SN + CS
 
-				uint iSn = hsn;
+				s1 = s1.Insert(8, "-");
+				s1 = s1.Insert(4, "-");
 
-				uint i0 = iSn & 0x0FFFFFFF;
-				uint i2 = i0 % 10;
-				uint i1 = i0 / 16;
+				p = (hsn & 0xFF000000) >> 24;  // Prefix
+				n = (hsn & 0x00FFFFFF) >> 4;       // SN
+				cs = hsn & 0xF;                // Checksum
+				s2 = $"{p:X2}{n:D9}{cs}";           // Prefix + SN + CS
 
-				string s2 = i2.ToString();
-				string s1 = i1.ToString();
-				string sn = s1 + s2;
+				s2 = s2.Insert(8, "-");
+				s2 = s2.Insert(4, "-");
 
-				string sn2 = sn.PadLeft(10, '0');
-
-				if (machineType == MachineType.iGuardExpress) sn2 = "70" + sn2;
-				else if (machineType == MachineType.iGuardExpress540) sn2 = "71" + sn2;
-				else if (machineType == MachineType.iGuard540) sn2 = "80" + sn2;
-
-				sn2 = sn2.Insert(8, "-");
-				sn2 = sn2.Insert(4, "-");
-
-				return sn2;
+				return (s1, s2);
 			}
 
 			string sn = "7000-0000-0355";
@@ -371,7 +370,7 @@ namespace dotnet_core_web_client.Services
 			uint int5 = myConvertSerialNo(sn);
 			string sn5 = ConvertHexSerialNo(int5, IsTwoDigitPrefix: false);
 			string sn6 = ConvertHexSerialNo(int5, IsTwoDigitPrefix: true);
-			string sn7 = myConvertHexSerialNo(int5);
+			(string sn7, string sn8) = myConvertHexSerialNo(int5);
 		}
 
 		private async Task UpdateQuickAccessAsync(object[] data)
@@ -489,7 +488,7 @@ namespace dotnet_core_web_client.Services
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = WebSocketEventType.UpdateQuickAccess,
-				Data = [departments],
+				Data = [departmentDto],
 				Id = id,
 			};
 

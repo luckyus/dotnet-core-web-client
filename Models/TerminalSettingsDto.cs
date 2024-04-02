@@ -15,7 +15,7 @@ namespace dotnet_core_web_client.Models
 		[JsonPropertyName("dateTimeFormat")]
 		public string DateTimeFormat { get; set; } = "dd/mm/yy";
 		[JsonPropertyName("allowedOrigins")]
-		public string[] AllowedOrigins { get; set; } = new string[] { "http://iguardexpress.azurewebsites.net", "http://localhost:3000" };
+		public string[] AllowedOrigins { get; set; } = ["http://iguardexpress.azurewebsites.net", "http://localhost:3000"];
 		[JsonPropertyName("inOutTrigger")]
 		public SortedDictionary<string, InOutStatus> InOutTigger { get; set; } = new SortedDictionary<string, InOutStatus>
 		{

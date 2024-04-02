@@ -7,6 +7,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -163,6 +164,10 @@ namespace dotnet_core_web_client.Services
 						{
 							await UpdateQuickAccessAsync(jsonObj.Data);
 						}
+						else if (eventType == "onTestClick")
+						{
+							OnTestClick();
+						}
 						else
 						{
 							if (clientWebSocketHandler != null)
@@ -188,6 +193,185 @@ namespace dotnet_core_web_client.Services
 			}
 
 			return;
+		}
+
+		private void OnTestClick()
+		{
+			string ConvertHexSerialNo(uint hsn, bool IsTwoDigitPrefix)
+			{
+				if (IsTwoDigitPrefix)
+				{
+					uint p = (hsn & 0xFF000000) >> 24;  // Prefix
+					uint n = (hsn & 0x00FFFFFF) >> 4;       // SN
+					uint cs = hsn & 0xF;                // Checksum
+					string s = $"{p:X2}{n:D9}{cs}";           // Prefix + SN + CS
+
+					s = s.Insert(8, "-");
+					s = s.Insert(4, "-");
+
+					return s;
+				}
+				else
+				{
+					uint p = (hsn & 0xF0000000) >> 28;  // Prefix
+					uint n = (hsn & 0x0FFFFFFF) >> 4;       // SN
+					uint cs = hsn & 0xF;                // Checksum
+					string s = $"{p}{n:D10}{cs}";           // Prefix + SN + CS
+
+					s = s.Insert(8, "-");
+					s = s.Insert(4, "-");
+
+					return s;
+				}
+			}
+
+			uint ConvertSerialNo(string sn, bool IsTwoDigitPrefix)
+			{
+				uint rc;
+				uint cs;
+				uint prefix;
+				uint prefix2;
+
+				if (IsTwoDigitPrefix)
+				{
+					sn = sn.Replace("-", "");
+					cs = sn[sn.Length - 1];                 // last digit is checksum
+					prefix = sn[0];                         // first digit prefix
+					prefix2 = sn[1];
+					sn = sn.Substring(2, sn.Length - 3);    // remove first and last digit
+
+					if (uint.TryParse(sn, out rc))
+					{
+						rc = rc << 4 & 0xFFFFFF;   // shift one digit and remove MS digit
+						rc |= cs - '0';
+						rc |= prefix - '0' << 28;
+						rc |= prefix2 - '0' << 24;
+					}
+					else
+					{
+						rc = uint.MaxValue;
+					}
+				}
+				else
+				{
+					sn = sn.Replace("-", "");
+					cs = sn[sn.Length - 1];                 // last digit is checksum
+					prefix = sn[0];                         // first digit prefix
+					sn = sn.Substring(1, sn.Length - 2);    // remove first and last digit
+
+					if (uint.TryParse(sn, out rc))
+					{
+						rc = rc << 4 & 0xFFFFFFF;   // shift one digit and remove MS digit
+						rc |= cs - '0';
+						rc |= prefix - '0' << 28;
+					}
+					else
+					{
+						rc = uint.MaxValue;
+					}
+				}
+
+				return rc;
+			}
+
+			// convert sn fm string to int (iGuardPayroll uses int to store sn) (201230)
+			uint myConvertSerialNo(string sn)
+			{
+				uint iSn = 0;
+				MachineType machineType = MachineType.iGuardExpress;
+
+				if (sn.Length == 14)
+				{
+					string snPrefix = sn.Substring(0, 2);
+
+					if (snPrefix == "70") machineType = MachineType.iGuardExpress;
+					else if (snPrefix == "71") machineType = MachineType.iGuardExpress540;
+					else if (snPrefix == "80") machineType = MachineType.iGuard530;
+					else if (snPrefix == "81") machineType = MachineType.iGuard540;
+
+					string s1 = sn.Substring(1, 12).Replace("-", "");   // eg. 7000-0000-0355 -> 1879048757 (150417)
+					uint i1 = uint.Parse(s1) * 16;
+					string s2 = sn.Substring(13, 1);
+					uint i2 = uint.Parse(s2);
+
+					if (machineType == MachineType.iGuardExpress)
+					{
+						iSn = (i1 + i2 + 0x70000000);
+					}
+					else if (machineType == MachineType.iGuardExpress540)
+					{
+						iSn = (i1 + i2 + 0x80000000);
+					}
+					else if (machineType == MachineType.iGuard530)
+					{
+						iSn = (i1 + i2 + 0x80000000);
+					}
+					else if (machineType == MachineType.iGuard540)
+					{
+						iSn = (i1 + i2 + 0xA0000000);
+					}
+				}
+
+				return iSn;
+			}
+
+			string myConvertHexSerialNo(uint hsn)
+			{
+				MachineType machineType = MachineType.iGuardExpress;
+
+				if (hsn >= 0x70000000 && hsn <= 0x7FFFFFFF)
+				{
+					machineType = MachineType.iGuardExpress;
+				}
+				else if (hsn >= 0x80000000 && hsn <= 0x8FFFFFF)
+				{
+					machineType = MachineType.iGuard530;
+				}
+				else if (hsn >= 0x90000000 && hsn <= 0x9FFFFFFF)
+				{
+					machineType = MachineType.iGuard540;
+				}
+
+				uint iSn = hsn;
+
+				uint i0 = iSn & 0x0FFFFFFF;
+				uint i2 = i0 % 10;
+				uint i1 = i0 / 16;
+
+				string s2 = i2.ToString();
+				string s1 = i1.ToString();
+				string sn = s1 + s2;
+
+				string sn2 = sn.PadLeft(10, '0');
+
+				if (machineType == MachineType.iGuardExpress) sn2 = "70" + sn2;
+				else if (machineType == MachineType.iGuardExpress540) sn2 = "71" + sn2;
+				else if (machineType == MachineType.iGuard540) sn2 = "80" + sn2;
+
+				sn2 = sn2.Insert(8, "-");
+				sn2 = sn2.Insert(4, "-");
+
+				return sn2;
+			}
+
+			string sn = "7000-0000-0355";
+
+			uint int1 = ConvertSerialNo(sn, IsTwoDigitPrefix: false);
+			string sn1 = ConvertHexSerialNo(int1, IsTwoDigitPrefix: false);
+
+			uint int2 = ConvertSerialNo(sn, IsTwoDigitPrefix: false);
+			string sn2 = ConvertHexSerialNo(int2, IsTwoDigitPrefix: true);
+
+			uint int3 = ConvertSerialNo(sn, IsTwoDigitPrefix: true);
+			string sn3 = ConvertHexSerialNo(int3, IsTwoDigitPrefix: false);
+
+			uint int4 = ConvertSerialNo(sn, IsTwoDigitPrefix: true);
+			string sn4 = ConvertHexSerialNo(int4, IsTwoDigitPrefix: true);
+
+			uint int5 = myConvertSerialNo(sn);
+			string sn5 = ConvertHexSerialNo(int5, IsTwoDigitPrefix: false);
+			string sn6 = ConvertHexSerialNo(int5, IsTwoDigitPrefix: true);
+			string sn7 = myConvertHexSerialNo(int5);
 		}
 
 		private async Task UpdateQuickAccessAsync(object[] data)
@@ -639,7 +823,7 @@ namespace dotnet_core_web_client.Services
 
 			List<AccessLogDto> accessLogs = [accesslog];
 
-			WebSocketMessage webSocketMessage = new WebSocketMessage
+			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = WebSocketEventType.Accesslogs,
 				Data = [accessLogs],

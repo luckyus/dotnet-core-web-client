@@ -17,6 +17,7 @@ using System.Xml.Linq;
 using dotnet_core_web_client.DBCotexts;
 using dotnet_core_web_client.Models;
 using dotnet_core_web_client.Repository;
+using dotnet_core_web_client.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Caching.Memory;
@@ -289,7 +290,7 @@ namespace dotnet_core_web_client.Services
 					else if (snPrefix == "80") machineType = MachineType.iGuard530;
 					else if (snPrefix == "81") machineType = MachineType.iGuard540;
 
-					if (machineType == MachineType.iGuardExpress || machineType == MachineType.iGuard530)
+					if (machineType == MachineType.iGuardExpress || machineType == MachineType.iGuard530 || machineType == MachineType.iGuardExpress540)
 					{
 						string s1 = sn.Substring(1, 12).Replace("-", "");   // eg. 7000-0000-0355 -> 1879048757 (150417)
 						uint i1 = uint.Parse(s1) * 16;
@@ -330,47 +331,46 @@ namespace dotnet_core_web_client.Services
 				return iSn;
 			}
 
-			(string, string) myConvertHexSerialNo(uint hsn)
+			string myConvertHexSerialNo(uint hsn)
 			{
-				string s1, s2;
-
-				uint p = (hsn & 0xF0000000) >> 28;  // Prefix
-				uint n = (hsn & 0x0FFFFFFF) >> 4;       // SN
+				uint p = (hsn & 0xFF000000) >> 24;  // Prefix
+				uint n = (hsn & 0x00FFFFFF) >> 4;       // SN
 				uint cs = hsn & 0xF;                // Checksum
-				s1 = $"{p}{n:D10}{cs}";           // Prefix + SN + CS
-
-				s1 = s1.Insert(8, "-");
-				s1 = s1.Insert(4, "-");
-
-				p = (hsn & 0xFF000000) >> 24;  // Prefix
-				n = (hsn & 0x00FFFFFF) >> 4;       // SN
-				cs = hsn & 0xF;                // Checksum
-				s2 = $"{p:X2}{n:D9}{cs}";           // Prefix + SN + CS
+				string s2 = $"{p:X2}{n:D9}{cs}";           // Prefix + SN + CS
 
 				s2 = s2.Insert(8, "-");
 				s2 = s2.Insert(4, "-");
 
-				return (s1, s2);
+				return s2;
 			}
 
-			string sn = "7000-0000-0355";
+			/*
+			string sn = "7000-0999-9999";
+			uint int5 = SerialNoConverter.StringToUint(sn);
+			string sn7 = SerialNoConverter.UintToString(int5);
 
-			uint int1 = ConvertSerialNo(sn, IsTwoDigitPrefix: false);
-			string sn1 = ConvertHexSerialNo(int1, IsTwoDigitPrefix: false);
+			string sn1 = "7100-0999-9999";
+			uint int6 = SerialNoConverter.StringToUint(sn1);
+			string sn8 = SerialNoConverter.UintToString(int6);
 
-			uint int2 = ConvertSerialNo(sn, IsTwoDigitPrefix: false);
-			string sn2 = ConvertHexSerialNo(int2, IsTwoDigitPrefix: true);
+			string sn2 = "8000-0999-9999";
+			uint int7 = SerialNoConverter.StringToUint(sn2);
+			string sn9 = SerialNoConverter.UintToString(int7);
 
-			uint int3 = ConvertSerialNo(sn, IsTwoDigitPrefix: true);
-			string sn3 = ConvertHexSerialNo(int3, IsTwoDigitPrefix: false);
+			string sn3 = "8100-0999-9999";
+			uint int8 = SerialNoConverter.StringToUint(sn3);
+			string snA = SerialNoConverter.UintToString(int8);
+			*/
 
-			uint int4 = ConvertSerialNo(sn, IsTwoDigitPrefix: true);
-			string sn4 = ConvertHexSerialNo(int4, IsTwoDigitPrefix: true);
+			// string sn = "7100-0016-2556";
+			// uint uint1 = myConvertSerialNo(sn);    // existing mistake (240404)
 
-			uint int5 = myConvertSerialNo(sn);
-			string sn5 = ConvertHexSerialNo(int5, IsTwoDigitPrefix: false);
-			string sn6 = ConvertHexSerialNo(int5, IsTwoDigitPrefix: true);
-			(string sn7, string sn8) = myConvertHexSerialNo(int5);
+			string sn = "8100-1048-0033";
+			uint uint1 = SerialNoConverter.StringToUint(sn);
+
+			var isValid = SerialNoConverter.IsValidSerialNo(sn);
+			string snC = SerialNoConverter.UintToString(uint1);
+			var isValid1 = SerialNoConverter.IsValidSerialNo(snC);
 		}
 
 		private async Task UpdateQuickAccessAsync(object[] data)

@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using System;
+using dotnet_core_web_client.Utilities;
 
 namespace dotnet_core_web_client.Models
 {
-	public record TerminalsDto
+    public record TerminalsDto
 	{
 		[JsonPropertyName("serialNo")]
 		public string SN { get; set; } = "7100-0000-0000";

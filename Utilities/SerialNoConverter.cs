@@ -1,4 +1,6 @@
-﻿namespace dotnet_core_web_client.Utilities
+﻿using System.Text;
+
+namespace dotnet_core_web_client.Utilities
 {
 	/// <summary>
 	/// background: when a new device is first powered up, it will fetch a serial number from the photo.iguardpayroll.com,
@@ -6,6 +8,7 @@
 	/// later use, using the same algorithm below. So when the device sends an accessLog to iGuardPayroll, it only includes
 	/// the string serial number, but will send the uint to the photo server. That's why I need to convert the string to uint
 	/// when trying to get the pictures of a particular accessLog from the photo server. (240403)
+	/// - max serial number: xx00-1048-575x
 	/// </summary>
 	public class SerialNoConverter
 	{
@@ -25,7 +28,7 @@
 
 			rc = uint.Parse(sn);
 
-			rc = (rc << 4) & 0xFFFFFF;   // shift one digit and remove MS digit
+			rc = (rc << 4) & 0xFFFFFF;              // shift one digit and remove MS digit
 			rc |= cs - '0';
 			rc |= (prefix - '0') << 28;
 			rc |= (prefix2 - '0') << 24;
@@ -35,30 +38,37 @@
 
 		public static string UintToString(uint hsn)
 		{
-			// first assume a two-digit prefix (240404)
-			uint p = (hsn & 0xFF000000) >> 24;  // Prefix
-			uint n = (hsn & 0x00FFFFFF) >> 4;   // SN
-			uint cs = hsn & 0xF;                // Checksum
-			string s2 = $"{p:X2}{n:D9}{cs}";    // Prefix + SN + CS
+			string sn;
 
-			s2 = s2.Insert(8, "-");
-			s2 = s2.Insert(4, "-");
+			bool isWrongConversionInEarlyiGuardExpress540(uint x) => (x & 0xFF000000) == 0x39000000;
+			bool isLM520(uint x) => x < 0x60000000;
 
-			if (IsValidSerialNo(s2))
+			if (isWrongConversionInEarlyiGuardExpress540(hsn))
 			{
-				return s2;
+				// for wrong conversion used in early iGuardExpress540 (240410)
+				// - refer to WebSocketManager.cs -> OnDeviceConnectedAsync() for more info (240410)
+				uint u1 = hsn - 0x80000000;
+				uint u3 = hsn & 0x0f;
+				uint u2 = (u1 >> 4) | 0x30000000;
+				sn = new StringBuilder("7").Append(u2.ToString("D10")).Append(u3.ToString()).Insert(4, "-").Insert(9, "-").ToString();
+			}
+			else if (isLM520(hsn))
+			{
+				// Most significant 4 bits < 7 is serial no. for LM520
+				uint sn1 = hsn >> 16;
+				uint sn2 = hsn & 0xFFFF;
+				int yearcode = (hsn < 0x50000000) ? 9940 : 2003;
+				sn = $"VK-{yearcode}-{sn1:X4}-{sn2:X4}";
+			}
+			else
+			{
+				uint p = (hsn & 0xFF000000) >> 24;  // Prefix
+				uint n = (hsn & 0x00FFFFFF) >> 4;   // SN
+				uint cs = hsn & 0xF;                // Checksum
+				sn = new StringBuilder(p.ToString("X2")).Append(n.ToString("D9")).Append(cs).Insert(4, "-").Insert(9, "-").ToString();
 			}
 
-			// now it should be a one-digit prefix (240404)
-			p = (hsn & 0xF0000000) >> 28;	// Prefix
-			n = (hsn & 0x0FFFFFFF) >> 4;	// SN
-			cs = hsn & 0xF;					// Checksum
-			string s = $"{p}{n:D10}{cs}";	// Prefix + SN + CS
-
-			s = s.Insert(8, "-");
-			s = s.Insert(4, "-");
-
-			return s;
+			return sn;
 		}
 
 		public static bool IsValidSerialNo(string sn)

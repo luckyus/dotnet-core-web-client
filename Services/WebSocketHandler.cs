@@ -20,6 +20,7 @@ using dotnet_core_web_client.Repository;
 using dotnet_core_web_client.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -198,179 +199,29 @@ namespace dotnet_core_web_client.Services
 
 		private void OnTestClick()
 		{
-			string ConvertHexSerialNo(uint hsn, bool IsTwoDigitPrefix)
+			string[] snArray = ["7100-1048-0066", "7100-0000-0000", "7100-0006-2555", "7100-0006-2544", "7100-0006-2533", "7100-0006-2522", "7100-0006-2487", "7100-0005-8426",
+				"7100-0005-8381","7100-0005-8370", "7100-0005-8358", "7100-0005-8336", "7100-0005-8325",
+				"7100-0005-8280", "7100-0005-8000", "7100-0005-5760", "7100-0005-5759", "7100-0005-5603",
+				"7100-0005-5591", "7100-0005-5580", "7100-0005-5579", "7100-0005-3599", "7100-0005-3588",
+				"7100-0005-2813", "7100-0005-2790", "7100-0005-2565", "7100-0005-2554", "7100-0005-2251",
+				"7100-0005-2172", "7100-0005-2015"];
+
+			// max uint 4,294,967,295
+
+			foreach (var sn in snArray)
 			{
-				if (IsTwoDigitPrefix)
-				{
-					uint p = (hsn & 0xFF000000) >> 24;  // Prefix
-					uint n = (hsn & 0x00FFFFFF) >> 4;       // SN
-					uint cs = hsn & 0xF;                // Checksum
-					string s = $"{p:X2}{n:D9}{cs}";           // Prefix + SN + CS
+				// this is the wrong code me and marcus used to convert serial no. (240410)
+				string s1 = sn.Substring(1, 12).Replace("-", "");
+				uint i0 = uint.Parse(s1);
+				uint i1 = i0 * 16;
+				string s2 = sn.Substring(13, 1);
+				uint i2 = uint.Parse(s2);
+				uint uiSn = (uint)(i1 + i2 + 0x80000000);
+				string s3 = uiSn.ToString("X8");
 
-					s = s.Insert(8, "-");
-					s = s.Insert(4, "-");
-
-					return s;
-				}
-				else
-				{
-					uint p = (hsn & 0xF0000000) >> 28;  // Prefix
-					uint n = (hsn & 0x0FFFFFFF) >> 4;       // SN
-					uint cs = hsn & 0xF;                // Checksum
-					string s = $"{p}{n:D10}{cs}";           // Prefix + SN + CS
-
-					s = s.Insert(8, "-");
-					s = s.Insert(4, "-");
-
-					return s;
-				}
+				// special conversion (240410)
+				string sn1 = SerialNoConverter.UintToString(uiSn);
 			}
-
-			uint ConvertSerialNo(string sn, bool IsTwoDigitPrefix)
-			{
-				uint rc;
-				uint cs;
-				uint prefix;
-				uint prefix2;
-
-				if (IsTwoDigitPrefix)
-				{
-					sn = sn.Replace("-", "");
-					cs = sn[sn.Length - 1];                 // last digit is checksum
-					prefix = sn[0];                         // first digit prefix
-					prefix2 = sn[1];
-					sn = sn.Substring(2, sn.Length - 3);    // remove first and last digit
-
-					if (uint.TryParse(sn, out rc))
-					{
-						rc = rc << 4 & 0xFFFFFF;   // shift one digit and remove MS digit
-						rc |= cs - '0';
-						rc |= prefix - '0' << 28;
-						rc |= prefix2 - '0' << 24;
-					}
-					else
-					{
-						rc = uint.MaxValue;
-					}
-				}
-				else
-				{
-					sn = sn.Replace("-", "");
-					cs = sn[sn.Length - 1];                 // last digit is checksum
-					prefix = sn[0];                         // first digit prefix
-					sn = sn.Substring(1, sn.Length - 2);    // remove first and last digit
-
-					if (uint.TryParse(sn, out rc))
-					{
-						rc = rc << 4 & 0xFFFFFFF;   // shift one digit and remove MS digit
-						rc |= cs - '0';
-						rc |= prefix - '0' << 28;
-					}
-					else
-					{
-						rc = uint.MaxValue;
-					}
-				}
-
-				return rc;
-			}
-
-			// convert sn fm string to int (iGuardPayroll uses int to store sn) (201230)
-			uint myConvertSerialNo(string sn)
-			{
-				uint iSn = 0;
-				MachineType machineType = MachineType.iGuardExpress;
-
-				if (sn.Length == 14)
-				{
-					string snPrefix = sn.Substring(0, 2);
-
-					if (snPrefix == "70") machineType = MachineType.iGuardExpress;
-					else if (snPrefix == "71") machineType = MachineType.iGuardExpress540;
-					else if (snPrefix == "80") machineType = MachineType.iGuard530;
-					else if (snPrefix == "81") machineType = MachineType.iGuard540;
-
-					if (machineType == MachineType.iGuardExpress || machineType == MachineType.iGuard530 || machineType == MachineType.iGuardExpress540)
-					{
-						string s1 = sn.Substring(1, 12).Replace("-", "");   // eg. 7000-0000-0355 -> 1879048757 (150417)
-						uint i1 = uint.Parse(s1) * 16;
-						string s2 = sn.Substring(13, 1);
-						uint i2 = uint.Parse(s2);
-
-						if (machineType == MachineType.iGuardExpress)
-						{
-							iSn = (i1 + i2 + 0x70000000);
-						}
-						else
-						{
-							iSn = (i1 + i2 + 0x80000000);
-						}
-					}
-					else
-					{
-						sn = sn.Replace("-", "");
-						uint cs = sn[sn.Length - 1];            // last digit is checksum
-						uint prefix = sn[0];                    // first digit prefix
-						uint prefix2 = sn[1];
-						sn = sn.Substring(2, sn.Length - 3);    // remove first, 2nd and last digit
-
-						if (uint.TryParse(sn, out iSn))
-						{
-							iSn = iSn << 4 & 0xFFFFFF;   // shift one digit and remove MS digit
-							iSn |= cs - '0';
-							iSn |= prefix - '0' << 28;
-							iSn |= prefix2 - '0' << 24;
-						}
-						else
-						{
-							iSn = uint.MaxValue;
-						}
-					}
-				}
-
-				return iSn;
-			}
-
-			string myConvertHexSerialNo(uint hsn)
-			{
-				uint p = (hsn & 0xFF000000) >> 24;  // Prefix
-				uint n = (hsn & 0x00FFFFFF) >> 4;       // SN
-				uint cs = hsn & 0xF;                // Checksum
-				string s2 = $"{p:X2}{n:D9}{cs}";           // Prefix + SN + CS
-
-				s2 = s2.Insert(8, "-");
-				s2 = s2.Insert(4, "-");
-
-				return s2;
-			}
-
-			/*
-			string sn = "7000-0999-9999";
-			uint int5 = SerialNoConverter.StringToUint(sn);
-			string sn7 = SerialNoConverter.UintToString(int5);
-
-			string sn1 = "7100-0999-9999";
-			uint int6 = SerialNoConverter.StringToUint(sn1);
-			string sn8 = SerialNoConverter.UintToString(int6);
-
-			string sn2 = "8000-0999-9999";
-			uint int7 = SerialNoConverter.StringToUint(sn2);
-			string sn9 = SerialNoConverter.UintToString(int7);
-
-			string sn3 = "8100-0999-9999";
-			uint int8 = SerialNoConverter.StringToUint(sn3);
-			string snA = SerialNoConverter.UintToString(int8);
-			*/
-
-			// string sn = "7100-0016-2556";
-			// uint uint1 = myConvertSerialNo(sn);    // existing mistake (240404)
-
-			string sn = "8100-1048-0033";
-			uint uint1 = SerialNoConverter.StringToUint(sn);
-
-			var isValid = SerialNoConverter.IsValidSerialNo(sn);
-			string snC = SerialNoConverter.UintToString(uint1);
-			var isValid1 = SerialNoConverter.IsValidSerialNo(snC);
 		}
 
 		private async Task UpdateQuickAccessAsync(object[] data)

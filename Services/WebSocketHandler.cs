@@ -168,7 +168,7 @@ namespace dotnet_core_web_client.Services
 						}
 						else if (eventType == "onTestClick")
 						{
-							OnTestClick();
+							await OnTestClickAsync();
 						}
 						else
 						{
@@ -197,8 +197,27 @@ namespace dotnet_core_web_client.Services
 			return;
 		}
 
-		private void OnTestClick()
+		private static async Task OnTestClickAsync()
 		{
+			await Task.Delay(0);
+
+			var myObject = new { name = "iGuardHub", age = 3 };
+			var myObject2 = new { name = "iGuardHub2", age = 5 };
+
+			List<object> list = [myObject, myObject2];
+
+			var jsonStr1 = JsonSerializer.Serialize(new { eventType = "onTestClick", data = list });
+			var jsonStr2 = JsonSerializer.Serialize(list);
+
+			var jsonStr3 = JsonSerializer.Serialize(new[] { new { name = "iGuardHub" } });
+			var jsonStr4 = JsonSerializer.Serialize(new[] { new { name = "iGuardHub", age = 3 }, new { name = "iGuardHub2", age = 5 } });
+
+			var jsonStr5 = JsonSerializer.Serialize(new[] { new { name = "iGuardHub" }, new { name = "3" } });
+			var jsonStr6 = JsonSerializer.Serialize(new object[] { new { name = "iGuardHub" }, new { age = "3" } });
+
+			return;
+
+			/*
 			string[] snArray = ["7100-1048-0066", "7100-0000-0000", "7100-0006-2555", "7100-0006-2544", "7100-0006-2533", "7100-0006-2522", "7100-0006-2487", "7100-0005-8426",
 				"7100-0005-8381","7100-0005-8370", "7100-0005-8358", "7100-0005-8336", "7100-0005-8325",
 				"7100-0005-8280", "7100-0005-8000", "7100-0005-5760", "7100-0005-5759", "7100-0005-5603",
@@ -221,7 +240,7 @@ namespace dotnet_core_web_client.Services
 
 				// special conversion (240410)
 				string sn1 = SerialNoConverter.UintToString(uiSn);
-			}
+			} */
 		}
 
 		private async Task UpdateQuickAccessAsync(object[] data)

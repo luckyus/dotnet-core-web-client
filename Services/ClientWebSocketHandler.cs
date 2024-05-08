@@ -257,7 +257,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "OnVerifyPassword",
-				Data = new object[] { result },
+				Data = [result],
 				AckId = ackId
 			};
 
@@ -450,7 +450,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		WebSocketMessage webSocketMessage = new()
 		{
 			EventType = "OnGetTerminalSettings",
-			Data = new object[] { terminalSettingsDto },
+			Data = [terminalSettingsDto],
 			AckId = id
 		};
 
@@ -479,7 +479,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "Acknowledge",
-				Data = Array.Empty<object>(),
+				Data = [],
 				AckId = ackId
 			};
 

@@ -1,3 +1,5 @@
 {
-    "audioCues.lineHasBreakpoint": "on"
+    "accessibility.signals.lineHasBreakpoint": {
+        "sound": "on"
+    }
 }

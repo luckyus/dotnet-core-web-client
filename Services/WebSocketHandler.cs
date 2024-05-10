@@ -710,8 +710,12 @@ namespace dotnet_core_web_client.Services
 			var id = Guid.NewGuid();
 			List<AccessLogDto> accessLogs = [];
 
+			DateTime dateTime = DateTime.Now;
+
 			foreach (var item in data)
 			{
+				dateTime = dateTime.AddSeconds(random.Next(2) + 1);
+
 				var jsonElement = JsonSerializer.Deserialize<JsonElement>(item.ToString()) as JsonElement?;
 				var cardSN = jsonElement?.GetProperty("cardSN").GetString();
 				var status = jsonElement?.GetProperty("status").GetString();
@@ -721,7 +725,7 @@ namespace dotnet_core_web_client.Services
 				accessLogs.Add(new AccessLogDto
 				{
 					Status = status,
-					LogTime = DateTime.Now,
+					LogTime = dateTime,
 					TerminalID = terminalSettingsDto.TerminalId,
 					JobCode = 0,
 					BodyTemperature = Math.Round(((decimal)random.Next(366, 388)) / 10, 1),

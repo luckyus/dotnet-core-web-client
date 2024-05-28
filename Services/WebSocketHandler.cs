@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -201,6 +202,82 @@ namespace dotnet_core_web_client.Services
 		{
 			await Task.Delay(0);
 
+			Random random = new();
+			WebSocketMessage webSocketMessage;
+
+			int outOf = random.Next(23, 96);
+			int soFar = 0;
+
+			var jsonSerializerOptions = new JsonSerializerOptions
+			{
+				DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+				Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+			};
+
+			for (; ; )
+			{
+				// {"soFar":0,"outOf":23}
+				var obj = new { soFar, outOf };
+				var dataJsonStr = JsonSerializer.Serialize(obj, jsonSerializerOptions);
+
+				webSocketMessage = new WebSocketMessage
+				{
+					EventType = WebSocketEventType.OnAccessLogSync,
+					Data = [new { soFar, outOf }],
+					AckId = null
+				};
+
+				string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptions);
+				// await SendAsync(jsonStr);
+
+				if (soFar >= outOf) break;
+
+				// increment soFar by a random number between 1 and 4 (240528)
+				int increment = random.Next(1, 5);
+				soFar += increment;
+
+				if (soFar >= outOf) soFar = outOf;
+			}
+
+
+
+			/*
+			var dictionary = new Dictionary<string, int?>();
+
+			try
+			{
+				dictionary["key1"] = 100;
+				dictionary[null] = 200;  // Adding null as a key
+
+				// Using TryGetValue with null key
+				if (dictionary.TryGetValue(null, out int? value))
+				{
+					Console.WriteLine("Value for 'null' key: " + value);
+				}
+				else
+				{
+					Console.WriteLine("No entry for 'null' key.");
+				}
+			}
+			catch (Exception ex)
+			{
+				var msg = ex.Message;
+			}
+
+
+			Dictionary<string, string> _connections = [];
+			_connections.Add("one", "One");
+
+			try
+			{
+				var n = _connections.TryGetValue(null, out var v);
+			}
+			catch (Exception ex)
+			{
+				var msg = ex.Message;
+			} */
+
+			/*
 			var myObject = new { name = "iGuardHub", age = 3 };
 			var myObject2 = new { name = "iGuardHub2", age = 5 };
 
@@ -216,6 +293,7 @@ namespace dotnet_core_web_client.Services
 			var jsonStr6 = JsonSerializer.Serialize(new object[] { new { name = "iGuardHub" }, new { age = "3" } });
 
 			return;
+			*/
 
 			/*
 			string[] snArray = ["7100-1048-0066", "7100-0000-0000", "7100-0006-2555", "7100-0006-2544", "7100-0006-2533", "7100-0006-2522", "7100-0006-2487", "7100-0005-8426",

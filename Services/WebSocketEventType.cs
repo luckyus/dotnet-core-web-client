@@ -15,7 +15,7 @@
 
 		// employee CRUD (230911)
 		public const string GetEmployee = "GetEmployee";
-		public const string AddEmployee = "AddEmployees";
+		public const string AddEmployee = "AddEmployee";
 		public const string UpdateEmployee = "UpdateEmployees";
 		public const string DeleteEmployee = "DeleteEmployee";
 		public const string RequestInsertPermission = "RequestInsertPermission";

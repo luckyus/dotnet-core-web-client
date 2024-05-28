@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -38,6 +39,8 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		object[] data;
 		object jsonObj;
 		string jsonStr;
+
+		var jsonSerializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
 		for (; ; )
 		{
@@ -95,7 +98,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 						webSocketMessage.Data = [.. dataList];
 					}
 
-					string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+					string jsonString = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptions);
 					_ = SendAsync(jsonString);
 
 					isConnected = true;
@@ -220,6 +223,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
 								"EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
 								"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
+								"AccessLogSync" => OnAccessLogSync(webSocketMessage.Id),
 								"Acknowledge" => OnAcknowledge(webSocketMessage.Data, webSocketMessage.AckId),
 								_ => OnDefaultAsync(webSocketMessage.Id),
 							});
@@ -241,6 +245,47 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		catch (Exception ex)
 		{
 			System.Diagnostics.Debug.WriteLine(ex.Message);
+		}
+	}
+
+	/// <summary>
+	/// to fake the accessLog-upload-progress to iGuardPayroll (240528)
+	/// </summary>
+	private async Task OnAccessLogSync(Guid? id)
+	{
+		Random random = new();
+		WebSocketMessage webSocketMessage;
+
+		int outOf = random.Next(23, 96);
+		int soFar = 0;
+
+		var jsonSerializerOptions = new JsonSerializerOptions 
+		{
+			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+		};
+
+		for (; ; )
+		{
+			await Task.Delay(500 + random.Next(500));
+
+			webSocketMessage = new WebSocketMessage
+			{
+				EventType = WebSocketEventType.OnAccessLogSync,
+				Data = [new { soFar, outOf }],
+				AckId = id
+			};
+
+			// {"eventType":"OnAccessLogSync","data":[{"soFar":0,"outOf":91}]} (240529)
+			string jsonStr = JsonSerializer.Serialize<WebSocketMessage>(webSocketMessage, jsonSerializerOptions);
+			await SendAsync(jsonStr);
+
+			if (soFar >= outOf) break;
+
+			// increment soFar by a random number between 1 and 4 (240528)
+			soFar += random.Next(1, 5); ;
+
+			if (soFar >= outOf) soFar = outOf;
 		}
 	}
 

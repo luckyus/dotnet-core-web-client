@@ -223,7 +223,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 								"UnRegistered" => OnUnRegistered(webSocketMessage.Id),
 								"EndUploadUserData" => OnEndUploadUserData(webSocketMessage.Data, webSocketMessage.Id),
 								"VerifyPassword" => OnVerifyPassword(webSocketMessage.Data, webSocketMessage.Id),
-								"AccessLogSync" => OnAccessLogSync(webSocketMessage.Id),
+								"AccessLogSync" => OnAccessLogSyncAsync(webSocketMessage.Id),
 								"Acknowledge" => OnAcknowledge(webSocketMessage.Data, webSocketMessage.AckId),
 								_ => OnDefaultAsync(webSocketMessage.Id),
 							});
@@ -251,7 +251,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 	/// <summary>
 	/// to fake the accessLog-upload-progress to iGuardPayroll (240528)
 	/// </summary>
-	private async Task OnAccessLogSync(Guid? id)
+	private async Task OnAccessLogSyncAsync(Guid? id)
 	{
 		Random random = new();
 		WebSocketMessage webSocketMessage;

@@ -65,6 +65,20 @@ window.onload = function () {
 	const regCodeArray = ["4519A5", "9847A2"];
 	populateDropdown(wsRegCode, regCodeArray, storageRegCode);
 
+	// disable regCode dropdown for iGuardExpress540 (240529)
+	if (storageSN.startsWith("7")) {
+		wsRegCode.disabled = true;
+	}
+
+	wsSerialNo.addEventListener("change", function (event) {
+		const newSn = event.target.value;
+		if (newSn.startsWith("7")) {
+			wsRegCode.disabled = true;
+		} else {
+			wsRegCode.disabled = false; 
+		}
+	});
+
 	var storageTerminalList = window.localStorage.getItem("terminalList");
 	if (storageTerminalList) {
 		var optionsArray = JSON.parse(storageTerminalList);

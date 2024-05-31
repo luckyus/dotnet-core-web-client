@@ -66,7 +66,7 @@ window.onload = function () {
 	populateDropdown(wsRegCode, regCodeArray, storageRegCode);
 
 	// disable regCode dropdown for iGuardExpress540 (240529)
-	if (storageSN.startsWith("7")) {
+	if (storageSN?.startsWith("7")) {
 		wsRegCode.disabled = true;
 	}
 

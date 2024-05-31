@@ -70,12 +70,12 @@ window.onload = function () {
 		wsRegCode.disabled = true;
 	}
 
-	wsSerialNo.addEventListener("change", function (event) {
+	wsSerialNo.addEventListener("change", (event) => {
 		const newSn = event.target.value;
 		if (newSn.startsWith("7")) {
 			wsRegCode.disabled = true;
 		} else {
-			wsRegCode.disabled = false; 
+			wsRegCode.disabled = false;
 		}
 	});
 

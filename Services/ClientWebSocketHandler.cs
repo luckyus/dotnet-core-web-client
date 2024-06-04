@@ -331,12 +331,17 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		await CloseAsync();
 	}
 
+	/// <summary>
+	/// firmware update (comment (240531)
+	/// </summary>
 	private async Task OnNewUpdate(Guid? id)
 	{
 		Random r = new();
 		await Task.Delay(r.Next(1000, 2000));
 
-		await SendAcknowledgeAsync(id);
+		object[] objects = ["FileNotFound"];
+
+		await SendAcknowledgeAsync(id, objects);
 	}
 
 	private async Task SetTimeStamp(object[] data, Guid? id)
@@ -513,18 +518,20 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		await SendAcknowledgeAsync(id);
 	}
 
-	private async Task SendAcknowledgeAsync(Guid? ackId)
+	private async Task SendAcknowledgeAsync(Guid? ackId, object[] objects = null)
 	{
 		// debug
 		// if (ackId == null || ackId == Guid.Empty) return;
 		if (ackId == null) return;
+
+		object[] data = objects ?? [];
 
 		try
 		{
 			WebSocketMessage webSocketMessage = new()
 			{
 				EventType = "Acknowledge",
-				Data = [],
+				Data = data,
 				AckId = ackId
 			};
 

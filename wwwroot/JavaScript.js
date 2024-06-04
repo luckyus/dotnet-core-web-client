@@ -39,6 +39,8 @@ window.onload = function () {
 	const clearSpecialDaysButton = document.querySelector('#btn-specialdays-clear');
 	const getSpecialDaysButton = document.querySelector('#btn-specialdays-get');
 	const setSpecialDaysButton = document.querySelector('#btn-specialdays-set');
+	const getLatestAccessLogByEmployeeIdButton = document.querySelector('#btn-get-latest-accesslog-by-employeeid');
+	const getLatestAccessLogBySmartCardSNButton = document.querySelector('#btn-get-latest-accesslog-by-smartcardsn');
 
 	const populateDropdown = (dropdown, optionsArray, defaultValue) => {
 		optionsArray.forEach(optionValue => {
@@ -278,6 +280,16 @@ window.onload = function () {
 			const jsonStr = JSON.stringify(jsonObj);
 			webSocket.send(jsonStr);
 		}
+		getLatestAccessLogBySmartCardSNButton.onclick = () => {
+			const jsonObj = {
+				eventType: "GetLatestAccessLog",
+				data: [{
+					smartCardSN: parseInt(accessLogCardSN.value)
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
 	})();
 
 	// employee (240321)
@@ -297,6 +309,17 @@ window.onload = function () {
 		requestPermissionButton.onclick = () => {
 			const jsonObj = {
 				eventType: "RequestInsertPermission",
+				data: [{
+					employeeId: employeeId.value
+				}]
+			}
+			const jsonStr = JSON.stringify(jsonObj);
+			webSocket.send(jsonStr);
+		}
+
+		getLatestAccessLogByEmployeeIdButton.onclick = () => {
+			const jsonObj = {
+				eventType: "GetLatestAccessLog",
 				data: [{
 					employeeId: employeeId.value
 				}]

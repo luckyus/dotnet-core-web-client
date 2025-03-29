@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dotnet_core_web_client.DBCotexts;
 
@@ -11,9 +12,11 @@ using dotnet_core_web_client.DBCotexts;
 namespace dotnet_core_web_client.Migrations
 {
     [DbContext(typeof(IGuardDBContext))]
-    partial class IGuardDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250329053059_AddedFaceRecognition")]
+    partial class AddedFaceRecognition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

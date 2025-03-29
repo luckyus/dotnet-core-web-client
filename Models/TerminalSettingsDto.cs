@@ -26,11 +26,12 @@ namespace dotnet_core_web_client.Models
 		};
 		[JsonPropertyName("cameraControl")]
 		public CameraControlDto CameraControl { get; set; } = new();
+		[JsonPropertyName("faceRecognitionControl")]
+		public FaceRecognitionControlDto FaceRecognitionControl { get; set; } = new();
 		[JsonPropertyName("smartCardControl")]
 		public SmartCardControlDto SmartCardControl { get; set; } = new();
 		[JsonPropertyName("inOutControl")]
 		public InOutControlDto InOutControl { get; set; } = new();
-
 		[JsonPropertyName("localDoorRelayControl")]
 		public LocalDoorRelayControlDto LocalDoorRelayControl { get; set; } = new();
 		[JsonPropertyName("remoteDoorRelayControl")]
@@ -143,6 +144,17 @@ namespace dotnet_core_web_client.Models
 					IsDailyReset = terminalSettings.DailySingleAccess.IsDailyReset,
 					DailyResetTime = terminalSettings.DailySingleAccess.DailyResetTime
 				},
+
+				FaceRecognitionControl = new FaceRecognitionControlDto
+				{
+					Enable = terminalSettings.FaceRecognitionControl.Enable,
+					AllowMultipleMatch = terminalSettings.FaceRecognitionControl.AllowMultipleMatch,
+					FaceDetectConf = terminalSettings.FaceRecognitionControl.FaceDetectSensitivity,
+					FaceRegConf = terminalSettings.FaceRecognitionControl.FaceRecognitionSecurity,
+					DetectInterval = terminalSettings.FaceRecognitionControl.SnapShotInterval,
+					RecognitionInterval = terminalSettings.FaceRecognitionControl.ReAuthenticationDelay,
+					CropSize = terminalSettings.FaceRecognitionControl.ViewAngle
+				}
 			};
 
 			return dto;
@@ -260,5 +272,23 @@ namespace dotnet_core_web_client.Models
 		public bool IsEnableSNTP { get; set; } = true;
 		[JsonPropertyName("isSyncMasterTime")]
 		public bool IsSyncMasterTime { get; set; } = true;
+	}
+
+	public class FaceRecognitionControlDto
+	{
+		[JsonPropertyName("enable")]
+		public bool Enable { get; set; } = false;
+		[JsonPropertyName("allowMultipleMatch")]
+		public bool AllowMultipleMatch { get; set; } = false;
+		[JsonPropertyName("faceDetectConf")]
+		public double FaceDetectConf { get; set; } = 0.1;
+		[JsonPropertyName("faceRegConf")]
+		public double FaceRegConf { get; set; } = 0.1;
+		[JsonPropertyName("detectInterval")]
+		public double DetectInterval { get; set; } = 1.5;
+		[JsonPropertyName("recognitionInterval")]
+		public int RecognitionInterval { get; set; } = 3;
+		[JsonPropertyName("cropSize")]
+		public int CropSize { get; set; } = 130;
 	}
 }

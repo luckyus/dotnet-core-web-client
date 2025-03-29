@@ -36,6 +36,8 @@ namespace dotnet_core_web_client.Repository
 			}
 			else
 			{
+				// faceRecognitionStr can be null because it is added afterwards with migration (250329)
+				terminalSettings.FaceRecognitionControlStr ??= "{}";
 				terminalSettingsDto = (TerminalSettingsDto)terminalSettings;
 			}
 
@@ -71,6 +73,7 @@ namespace dotnet_core_web_client.Repository
 					existing.AutoUpdateEnabled = terminalSettings.AutoUpdateEnabled;
 					existing.AllowedOriginsStr = terminalSettings.AllowedOriginsStr;
 					existing.CameraControlStr = terminalSettings.CameraControlStr;
+					existing.FaceRecognitionControlStr = terminalSettings.FaceRecognitionControlStr;
 					existing.SmartCardControlStr = terminalSettings.SmartCardControlStr;
 					existing.InOutControlStr = terminalSettings.InOutControlStr;
 					existing.InOutTiggerStr = terminalSettings.InOutTiggerStr;

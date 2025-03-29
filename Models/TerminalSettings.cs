@@ -38,6 +38,13 @@ namespace dotnet_core_web_client.Models
 			get { return JsonSerializer.Deserialize<CameraControl>(CameraControlStr); }
 			set { CameraControlStr = JsonSerializer.Serialize<CameraControl>(value); }
 		}
+		public string FaceRecognitionControlStr { get; set; } = "{}";
+		[NotMapped]
+		public FaceRecognitionControl FaceRecognitionControl
+		{
+			get { return JsonSerializer.Deserialize<FaceRecognitionControl>(FaceRecognitionControlStr); }
+			set { FaceRecognitionControlStr = JsonSerializer.Serialize<FaceRecognitionControl>(value); }
+		}
 		public string SmartCardControlStr { get; set; }
 		[NotMapped]
 		public SmartCardControl SmartCardControl
@@ -183,6 +190,17 @@ namespace dotnet_core_web_client.Models
 					CardType = terminalSettingsDto.SmartCardControl.CardType,
 					AcceptUnknownCard = terminalSettingsDto.SmartCardControl.AcceptUnknownCard,
 					AcceptUnregisteredCard = terminalSettingsDto.SmartCardControl.AcceptUnregisteredCard
+				},
+
+				FaceRecognitionControl = new FaceRecognitionControl
+				{
+					Enable = terminalSettingsDto.FaceRecognitionControl.Enable,
+					AllowMultipleMatch = terminalSettingsDto.FaceRecognitionControl.AllowMultipleMatch,
+					FaceDetectSensitivity = terminalSettingsDto.FaceRecognitionControl.FaceDetectConf,
+					FaceRecognitionSecurity = terminalSettingsDto.FaceRecognitionControl.FaceRegConf,
+					SnapShotInterval = terminalSettingsDto.FaceRecognitionControl.DetectInterval,
+					ReAuthenticationDelay = terminalSettingsDto.FaceRecognitionControl.RecognitionInterval,
+					ViewAngle = terminalSettingsDto.FaceRecognitionControl.CropSize
 				}
 			};
 
@@ -229,6 +247,18 @@ namespace dotnet_core_web_client.Models
 		public CameraEnvironment? Environment { get; set; }
 		public CameraResolution? Resolution { get; set; }
 	}
+
+	public class FaceRecognitionControl
+	{
+		public bool Enable { get; set; }
+		public bool AllowMultipleMatch { get; set; } = false;
+		public double FaceDetectSensitivity { get; set; } = 0.1;
+		public double FaceRecognitionSecurity { get; set; } = 0.1;
+		public double SnapShotInterval { get; set; } = 1.5;
+		public int ReAuthenticationDelay { get; set; } = 3;
+		public int ViewAngle { get; set; } = 130;
+	}
+
 
 	public enum SmartCardType
 	{

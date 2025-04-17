@@ -153,7 +153,8 @@ namespace dotnet_core_web_client.Models
 					FaceRegConf = terminalSettings.FaceRecognitionControl.FaceRecognitionSecurity,
 					DetectInterval = terminalSettings.FaceRecognitionControl.SnapShotInterval,
 					RecognitionInterval = terminalSettings.FaceRecognitionControl.ReAuthenticationDelay,
-					CropSize = terminalSettings.FaceRecognitionControl.ViewAngle
+					CropSize = terminalSettings.FaceRecognitionControl.ViewAngle,
+					FaceDetectDistance = terminalSettings.FaceRecognitionControl.FaceDetectionRange
 				}
 			};
 
@@ -290,5 +291,7 @@ namespace dotnet_core_web_client.Models
 		public int RecognitionInterval { get; set; } = 3;
 		[JsonPropertyName("cropSize")]
 		public int CropSize { get; set; } = 130;
+		[JsonPropertyName("faceDetectDistance")]
+		public string FaceDetectDistance { get; set; }
 	}
 }

@@ -200,7 +200,8 @@ namespace dotnet_core_web_client.Models
 					FaceRecognitionSecurity = terminalSettingsDto.FaceRecognitionControl.FaceRegConf,
 					SnapShotInterval = terminalSettingsDto.FaceRecognitionControl.DetectInterval,
 					ReAuthenticationDelay = terminalSettingsDto.FaceRecognitionControl.RecognitionInterval,
-					ViewAngle = terminalSettingsDto.FaceRecognitionControl.CropSize
+					ViewAngle = terminalSettingsDto.FaceRecognitionControl.CropSize,
+					FaceDetectionRange = terminalSettingsDto.FaceRecognitionControl.FaceDetectDistance,
 				}
 			};
 
@@ -257,6 +258,7 @@ namespace dotnet_core_web_client.Models
 		public double SnapShotInterval { get; set; } = 1.5;
 		public int ReAuthenticationDelay { get; set; } = 3;
 		public int ViewAngle { get; set; } = 130;
+		public string FaceDetectionRange { get; set; }
 	}
 
 

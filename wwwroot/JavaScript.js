@@ -59,7 +59,7 @@ window.onload = function () {
 
 	// ditto (201105)
 	let storageIpPort = window.localStorage.getItem("ipPort");
-	const ipPortArray = ["localhost:50595", "192.168.0.137:5026", "stresstest.iguardpayroll.com"];
+	const ipPortArray = ["localhost:50595", "192.168.0.137:5026", "192.168.0.137:50595", "stresstest.iguardpayroll.com"];
 	populateDropdown(wsIpPort, ipPortArray, storageIpPort);
 
 	// ditto (221014)

@@ -198,10 +198,15 @@ namespace dotnet_core_web_client.Services
 			return;
 		}
 
-		private static async Task OnTestClickAsync()
+		private async Task OnTestClickAsync()
 		{
 			await Task.Delay(0);
 
+			TerminalSettingsDto terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
+			string jsonStr = JsonSerializer.Serialize<TerminalSettingsDto>(terminalSettingsDto, jsonSerializerOptionsIgnoreNull);
+			await SendAsync(jsonStr);
+
+			/*
 			Random random = new();
 			WebSocketMessage webSocketMessage;
 
@@ -238,7 +243,7 @@ namespace dotnet_core_web_client.Services
 
 				if (soFar >= outOf) soFar = outOf;
 			}
-
+			*/
 
 
 			/*

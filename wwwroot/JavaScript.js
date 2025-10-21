@@ -454,7 +454,9 @@ window.onload = function () {
 	wsTestBtn.onclick = () => {
 		const jsonObj = {
 			eventType: "onTestClick",
-			data: []
+			data: [{
+				SN: wsSerialNo.value,
+			}]
 		}
 		const jsonStr = JSON.stringify(jsonObj);
 		webSocket.send(jsonStr);

@@ -169,7 +169,7 @@ namespace dotnet_core_web_client.Services
 						}
 						else if (eventType == "onTestClick")
 						{
-							await OnTestClickAsync();
+							await OnTestClickAsync(jsonObj.Data);
 						}
 						else
 						{
@@ -198,10 +198,12 @@ namespace dotnet_core_web_client.Services
 			return;
 		}
 
-		private async Task OnTestClickAsync()
+		private async Task OnTestClickAsync(object[] data)
 		{
 			await Task.Delay(0);
 
+			var jsonElement = JsonSerializer.Deserialize<JsonElement>(data[0].ToString()) as JsonElement?;
+			var sn = jsonElement?.GetProperty("SN").GetString();
 			TerminalSettingsDto terminalSettingsDto = await terminalSettingsRepository.GetTerminalSettingsBySnAsync(sn);
 			string jsonStr = JsonSerializer.Serialize<TerminalSettingsDto>(terminalSettingsDto, jsonSerializerOptionsIgnoreNull);
 			await SendAsync(jsonStr);

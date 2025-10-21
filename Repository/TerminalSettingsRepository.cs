@@ -3,7 +3,6 @@ using dotnet_core_web_client.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace dotnet_core_web_client.Repository

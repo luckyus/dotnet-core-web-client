@@ -1,29 +1,18 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using dotnet_core_web_client.Models;
+using dotnet_core_web_client.Repository;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
-using System.Runtime.Intrinsics.Arm;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using dotnet_core_web_client.DBCotexts;
-using dotnet_core_web_client.Models;
-using dotnet_core_web_client.Repository;
-using dotnet_core_web_client.Utilities;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace dotnet_core_web_client.Services
 {

@@ -202,6 +202,8 @@ namespace dotnet_core_web_client.Models
 					ReAuthenticationDelay = terminalSettingsDto.FaceRecognitionControl.RecognitionInterval,
 					ViewAngle = terminalSettingsDto.FaceRecognitionControl.CropSize,
 					FaceDetectionRange = terminalSettingsDto.FaceRecognitionControl.FaceDetectDistance,
+					FaceDetectAcceptedHeadSize = terminalSettingsDto.FaceRecognitionControl.FaceDetectAcceptedHeadSize,
+					DetectModel = terminalSettingsDto.FaceRecognitionControl.DetectModel
 				}
 			};
 
@@ -259,6 +261,8 @@ namespace dotnet_core_web_client.Models
 		public int ReAuthenticationDelay { get; set; } = 3;
 		public int ViewAngle { get; set; } = 130;
 		public string FaceDetectionRange { get; set; }
+		public int FaceDetectAcceptedHeadSize { get; set; }
+		public string DetectModel { get; set; }
 	}
 
 

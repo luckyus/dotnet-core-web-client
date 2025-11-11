@@ -324,14 +324,17 @@ namespace dotnet_core_web_client.Models
 	public class LocalDoorRelayControl
 	{
 		// added for iGuard540 (230331)
-		public DoorRelayStatus DoorRelayStatus { get; set; } = new DoorRelayStatus() { In = true };
+		public DoorRelayStatusDto DoorRelayStatus { get; set; } = new DoorRelayStatusDto() { In = true };
 		public int Duration { get; set; } = 3000;
 	}
 
 	public class DoorRelayStatus
 	{
+		[JsonPropertyName("in")]
 		public bool? In { get; set; }
+		[JsonPropertyName("out")]
 		public bool? Out { get; set; }
+		[JsonPropertyName("f1toF4")]
 		public bool? F1toF4 { get; set; }
 	}
 

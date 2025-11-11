@@ -32,8 +32,10 @@ namespace dotnet_core_web_client.Models
 		public SmartCardControlDto SmartCardControl { get; set; } = new();
 		[JsonPropertyName("inOutControl")]
 		public InOutControlDto InOutControl { get; set; } = new();
+
 		[JsonPropertyName("localDoorRelayControl")]
 		public LocalDoorRelayControlDto LocalDoorRelayControl { get; set; } = new();
+
 		[JsonPropertyName("remoteDoorRelayControl")]
 		public RemoteDoorRelayControlDto RemoteDoorRelayControl { get; set; } = new();
 		[JsonPropertyName("dailyReboot")]
@@ -231,15 +233,18 @@ namespace dotnet_core_web_client.Models
 	{
 		// added for iGuard540 (230331)
 		[JsonPropertyName("openDoorStatus")]
-		public DoorRelayStatus DoorRelayStatus { get; set; } = new DoorRelayStatus() { In = true };
+		public DoorRelayStatusDto DoorRelayStatus { get; set; } = new DoorRelayStatusDto() { In = true };
 		[JsonPropertyName("delayTimer")]
 		public int Duration { get; set; } = 3000;
 	}
 
 	public class DoorRelayStatusDto
 	{
+		[JsonPropertyName("in")]
 		public bool? In { get; set; }
+		[JsonPropertyName("out")]
 		public bool? Out { get; set; }
+		[JsonPropertyName("f1toF4")]
 		public bool? F1toF4 { get; set; }
 	}
 

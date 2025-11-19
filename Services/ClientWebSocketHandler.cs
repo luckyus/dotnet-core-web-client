@@ -71,6 +71,12 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 					long timeStamp = 0;
 					if (!isNoTimeStamp)
 					{
+						if (!File.Exists(timeStampPath))
+						{
+							string js = JsonSerializer.Serialize(new { timeStamp = 0 });
+							File.WriteAllText(timeStampPath, js);
+						}
+
 						string str = File.ReadAllText(timeStampPath);
 						var timeStampJsonElement = JsonSerializer.Deserialize<JsonElement>(str) as JsonElement?;
 						timeStamp = (long)(timeStampJsonElement?.GetProperty("timeStamp").GetUInt32());
@@ -259,7 +265,7 @@ public class ClientWebSocketHandler(WebSocketHandler webSocketHandler, string sn
 		int outOf = random.Next(23, 96);
 		int soFar = 0;
 
-		var jsonSerializerOptions = new JsonSerializerOptions 
+		var jsonSerializerOptions = new JsonSerializerOptions
 		{
 			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
